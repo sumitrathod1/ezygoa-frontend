@@ -23,6 +23,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { VehicleService } from '../../services/vehicle.service';
 import { AgentService } from '../../services/agent.service';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-booking-form',
@@ -70,17 +71,25 @@ export class BookingFormComponent {
 
   constructor(
     private _fb: FormBuilder,
-    private _bookingServicea: BookingService,
+    private _bookingService: BookingService,
     private _employeeService: EmployeeService,
     private _vechileService: VehicleService,
     private _agentService: AgentService,
+    private _toastr: ToastrService,
     /*private _dialogRef:MatDialogRef<BookingComponent>*/ private _dilog: Dialog,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.bookingForm = _fb.group({
       bookingId: data?.bookingId ?? null,
       customerName: data?.customer?.customerName ?? '',
-      customerNumber: data?.customer?.customerNumber ?? '',
+      // customerNumber: data?.customer?.customerNumber ?? '',
+      customerNumber: [
+        data?.customer?.customerNumber ?? '',
+        [
+          Validators.required,
+          Validators.pattern(/^(\+91)?\d{10}$/), // +91 optional + 10 digits
+        ],
+      ],
       pax: data?.pax ?? '',
       from: Array.isArray(data?.from) ? data.from[0] : data?.from ?? '',
       to: Array.isArray(data?.to) ? data.to[0] : data?.to ?? '',
@@ -181,13 +190,16 @@ export class BookingFormComponent {
   onFormSubmit() {
     if (this.bookingForm.valid) {
       console.log(this.bookingForm.value);
-      this._bookingServicea.newBooking(this.bookingForm.value).subscribe({
+      this._bookingService.newBooking(this.bookingForm.value).subscribe({
         next: (val: any) => {
-          this._bookingServicea.notifyBookingUpdated(val.newBooking);
-          console.log('Booking is added successfully', val.message, val);
+          this._bookingService.loadBookings().subscribe();
+          this._toastr.success(val.message || 'Booking is added successfully');
         },
-        error(err: any) {
-          console.error(err);
+        error: (err: any) => {
+          this._toastr.error(
+            err?.error?.message || 'Error while adding booking',
+            'Failed'
+          );
         },
       });
       this._dilog.closeAll();

@@ -22,6 +22,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { EmployeeService } from '../../services/employee.service';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-addemployee-form',
@@ -50,7 +51,8 @@ export class AddemployeeFormComponent {
   constructor(
     private _fb: FormBuilder,
     private _dialog: Dialog,
-    private _employeeService: EmployeeService //private _dialog: MatDialog
+    private _employeeService: EmployeeService,
+    private _toaster: ToastrService
   ) {
     this.employeeForm = _fb.group({
       EmployeeName: '',
@@ -71,17 +73,13 @@ export class AddemployeeFormComponent {
   onAddEmployeeFormSubmit() {
     this._employeeService.addEmployee(this.employeeForm.value).subscribe({
       next: (response) => {
-        console.log('Employee added successfully', response);
+        this._toaster.success('Employee added successfully', 'Success');
         this.closeForm();
       },
       error: (error) => {
-        console.error('Error adding employee', error);
+        this._toaster.error('Error adding employee', 'error');
       },
     });
-
-    if (this.employeeForm.valid) {
-      console.log(this.employeeForm.value);
-    }
   }
   closeForm() {
     this._dialog.closeAll();

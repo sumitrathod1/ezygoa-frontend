@@ -2,17 +2,19 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { EmployeeService } from '../services/employee.service';
 import { map } from 'rxjs';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-driver',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatProgressSpinner],
   templateUrl: './driver.component.html',
   styleUrl: './driver.component.css',
 })
 export class DriverComponent {
   currentBookings: any[] = [];
   upcomingRides: any[] = [];
+  isLoading = false;
 
   rides = 0;
   constructor(private _employeService: EmployeeService) {}
@@ -55,5 +57,8 @@ export class DriverComponent {
           this.upcomingRides = [];
         },
       });
+  }
+  onLogout() {
+    this._employeService.logout();
   }
 }

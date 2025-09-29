@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,12 @@ export class EmployeeService {
   private employeUpdatedSubject = new Subject<void>();
   employeeUpdated$ = this.employeUpdatedSubject.asObservable();
 
-  constructor(private _http: HttpClient) {}
+  private userRoleSubject = new BehaviorSubject<string | null>(null);
+  public userRole$ = this.userRoleSubject.asObservable();
+
+  constructor(private _http: HttpClient, private router: Router) {
+    this.updateUserRole();
+  }
 
   addEmployee(employees: any): Observable<any> {
     const emp = {
@@ -40,6 +46,7 @@ export class EmployeeService {
     console.log('Employee data to be sent (emp object):', emp);
     return this._http.post(`${this.baseUrl}Register`, emp).pipe(
       tap(() => {
+        console.log('📢 Employee added, notifying components...');
         this.employeUpdatedSubject.next();
       })
     );
@@ -59,10 +66,17 @@ export class EmployeeService {
 
   storeTokan(tokenValue: string) {
     localStorage.setItem('token', tokenValue);
+    this.updateUserRole();
   }
 
   getToken() {
     return localStorage.getItem('token');
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    this.userRoleSubject.next(null);
+    this.router.navigate(['/login']);
   }
 
   isloggedIn(): boolean {
@@ -75,6 +89,20 @@ export class EmployeeService {
     return jwthlper.decodeToken(token);
   }
 
+  updateUserRole() {
+    const token = this.getToken();
+    if (token) {
+      const helper = new JwtHelperService();
+      const decodedToken = helper.decodeToken(token);
+      const role =
+        decodedToken[
+          'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+        ];
+      this.userRoleSubject.next(role);
+    } else {
+      this.userRoleSubject.next(null);
+    }
+  }
   getRoleFromToken(): string | null {
     const token = localStorage.getItem('token');
     if (!token) return null;
@@ -94,13 +122,14 @@ export class EmployeeService {
       : null;
   }
   getEmployeeBookings(): Observable<any> {
-    // const id = this.getUserIdFromToken();
+    const id = this.getUserIdFromToken();
+    console.log('User ID from token:', id);
     // const dumyID = 2;
-    // if (!id) throw new Error('User ID not found in token');
-    return this._http.get(`${this.baseUrl}ViewBookings`, {
-      params: { id: 2 },
-    });
+    if (!id) throw new Error('User ID not found in token');
+    // return this._http.get(`${this.baseUrl}ViewBookings`, {
+    //   params: { id},
+    // });
 
-    //return this._http.get(`${this.baseUrl}ViewBookings`, { params: { id } });
+    return this._http.get(`${this.baseUrl}ViewBookings`, { params: { id } });
   }
 }

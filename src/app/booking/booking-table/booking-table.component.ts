@@ -5,11 +5,12 @@ import { BookingFormComponent } from '../booking-form/booking-form.component';
 import { BookingService } from '../../services/booking.service';
 import { EmailBookingComponent } from '../email-booking/email-booking.component';
 import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-booking-table',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
   templateUrl: './booking-table.component.html',
   styleUrl: './booking-table.component.css',
 })
@@ -22,10 +23,11 @@ export class BookingTableComponent {
   bookings: any[] = [];
 
   ngOnInit() {
-    this.loadAllbookings();
-    this._bookingservice.bookingUpdated$.subscribe(() => {
-      this.loadAllbookings(); // Refresh when booking is added
-    });
+    // this.loadAllbookings();
+    // this._bookingservice.bookingUpdated$.subscribe(() => {
+    //   this.loadAllbookings();
+    // });
+    this.applyFilter();
   }
 
   loadAllbookings() {
@@ -33,7 +35,6 @@ export class BookingTableComponent {
       next: (data) => {
         this.bookings = data.bookings;
         this._bookingservice.updateBookingCount(this.bookings.length);
-        console.log('Bookings loaded:', this.bookings);
       },
       error: (err) => {
         console.error('Error loading bookings:', err);
@@ -52,5 +53,46 @@ export class BookingTableComponent {
     this._dialog.open(BookingFormComponent, {
       data: booking,
     });
+  }
+
+  bookingss: any[] = [];
+  pagination: any = {
+    pageNumber: 1,
+    pageSize: 15,
+    totalCount: 0,
+    totalPages: 0,
+  };
+
+  showFilter = false;
+
+  filter: any = {
+    particularDate: null,
+    startDate: null,
+    endDate: null,
+    from: '',
+    to: '',
+    status: '',
+    vehicleId: null,
+    userId: null,
+    bookingType: null,
+    travelTime: null,
+  };
+
+  applyFilter() {
+    this._bookingservice
+      .filterBookings(
+        this.filter,
+        this.pagination.pageNumber,
+        this.pagination.pageSize
+      )
+      .subscribe((res: any) => {
+        this.bookings = res.data;
+        this.pagination = res.pagination;
+      });
+  }
+  changePage(page: number) {
+    if (page < 1 || page > this.pagination.totalPages) return;
+    this.pagination.pageNumber = page;
+    this.applyFilter();
   }
 }

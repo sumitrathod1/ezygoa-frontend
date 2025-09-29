@@ -22,6 +22,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { VehicleService } from '../../services/vehicle.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-document-form',
@@ -48,6 +49,7 @@ export class DocumentFormComponent {
     private _fb: FormBuilder,
     private _dialog: MatDialog,
     private _vehicleService: VehicleService,
+    private _toastr: ToastrService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.documentForm = _fb.group({
@@ -58,21 +60,23 @@ export class DocumentFormComponent {
       description: '',
     });
 
-    this.documentForm.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((value) => {
-        console.log('Document form value changed:', value);
-      });
+    // this.documentForm.valueChanges
+    //   .pipe(takeUntilDestroyed())
+    //   .subscribe((value) => {
+    //     console.log('Document form value changed:', value);
+    //   });
   }
   onDocumentFormSubmit() {
     if (this.documentForm.valid) {
       this._vehicleService.addDocument(this.documentForm.value).subscribe({
         next: (res: any) => {
           this._dialog.closeAll();
-          console.log('Document Form Submitted:', res);
+          this._toastr.success('Document Added Successfully', 'Success');
         },
         error: (err) => {
-          console.error('Error submitting document form:', err);
+          this._toastr.error('Error submitting document:', err.message, {
+            timeOut: 3000,
+          });
         },
       });
     }

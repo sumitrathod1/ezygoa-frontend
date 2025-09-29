@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { AgentService } from '../../services/agent.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-agent-form',
@@ -42,7 +43,8 @@ export class AgentFormComponent {
   constructor(
     private _fb: FormBuilder,
     private _agetnservice: AgentService,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private _toastr: ToastrService
   ) {
     this.agentForm = this._fb.group({
       name: '',
@@ -55,11 +57,11 @@ export class AgentFormComponent {
     console.log('Agent Form Submitted', this.agentForm.value);
     this._agetnservice.addAgetn(this.agentForm.value).subscribe({
       next: (res) => {
-        console.log('Agent added successfully', res);
+        this._toastr.success('Agent added successfully', 'Success');
         this.agentForm.reset();
       },
       error: (err) => {
-        console.error('Error adding agent', err);
+        this._toastr.error('Error adding agent', err);
       },
     });
     this._dialog.closeAll();

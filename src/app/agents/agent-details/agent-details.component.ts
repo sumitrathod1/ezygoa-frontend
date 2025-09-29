@@ -36,8 +36,4 @@ export class AgentDetailsComponent {
       },
     });
   }
-
-  printPage() {
-    window.print();
-  }
 }

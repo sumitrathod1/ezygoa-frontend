@@ -1,10 +1,31 @@
-<div class="app-container">
-  <app-header></app-header>
-  <!-- *ngIf="userRole === 'Admin'" -->
+<!-- <div class="app-container">
+  <app-header *ngIf="(userRole$ | async) === 'Admin'"></app-header>
 
   <div class="content">
     <router-outlet></router-outlet>
   </div>
 
-  <app-footer></app-footer>
-</div>
+  <app-footer *ngIf="(userRole$ | async) === 'Admin'"></app-footer>
+</div> -->
+
+<ng-container *ngIf="userRole$ | async as role; else maybeLogin">
+  <div class="app-container" *ngIf="role">
+    <ng-container *ngIf="role === 'Admin'">
+      <app-header></app-header>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+      <app-footer></app-footer>
+    </ng-container>
+
+    <ng-container *ngIf="role === 'Employee'">
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </ng-container>
+  </div>
+</ng-container>
+
+<ng-template #maybeLogin>
+  <router-outlet></router-outlet>
+</ng-template>

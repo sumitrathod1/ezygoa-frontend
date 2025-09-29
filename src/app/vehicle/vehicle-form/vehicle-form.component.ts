@@ -18,6 +18,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { Dialog } from '@angular/cdk/dialog';
+import { VehicleService } from '../../services/vehicle.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-vehicle-form',
@@ -53,19 +55,43 @@ export class VehicleFormComponent {
     'Notspecified',
   ];
 
-  constructor(private _fb: FormBuilder, private _dilog: Dialog) {
+  constructor(
+    private _fb: FormBuilder,
+    private _dilog: Dialog,
+    private _vehicleService: VehicleService,
+    private _toaster: ToastrService
+  ) {
     this.vehicleForm = _fb.group({
-      vehiclename: '',
-      vehicleNumber: '',
-      vehicleType: '',
-      seatingCapacity: '',
-      registrationDate: '',
+      VehicleName: '',
+      VehicleNumber: '',
+      VehicleType: '',
+      Seatingcapacity: '',
+      RegistrationDate: '',
     });
   }
 
   onVehicleFormSubmit() {
     if (this.vehicleForm.valid) {
-      console.log(this.vehicleForm.value);
+      const payload = {
+        VehicleName: this.vehicleForm.value.VehicleName,
+        VehicleNumber: this.vehicleForm.value.VehicleNumber,
+        VehicleType: this.vehicleForm.value.VehicleType,
+        RegistrationDate: new Date(this.vehicleForm.value.RegistrationDate)
+          .toISOString()
+          .split('T')[0],
+        Seatingcapacity: this.vehicleForm.value.Seatingcapacity,
+      };
+      this._vehicleService.addVehicle(payload).subscribe({
+        next: (res: any) => {
+          this._dilog.closeAll();
+          this._toaster.success('Vehicle Added Successfully', 'Success');
+        },
+        error: (err) => {
+          this._toaster.error('Error while ading the vehicle:', err.message, {
+            timeOut: 3000,
+          });
+        },
+      });
     }
   }
   clossVehicle() {

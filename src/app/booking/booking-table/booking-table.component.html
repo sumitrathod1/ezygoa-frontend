@@ -5,31 +5,36 @@
       class="form-control mb-2"
       placeholder="Search bookings..."
     />
-    <div class="btn-group w-100" role="group">
-      <button class="btn btn-outline-secondary">All</button>
-      <button class="btn btn-outline-success">Confirmed</button>
-      <button class="btn btn-outline-warning">Pending</button>
-      <button class="btn btn-outline-danger">Cancelled</button>
-    </div>
   </div>
+  <nav *ngIf="pagination.totalPages > 1" aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="pagination.pageNumber === 1">
+        <a class="page-link" (click)="changePage(pagination.pageNumber - 1)"
+          >Previous</a
+        >
+      </li>
 
-  <div class="d-flex justify-content-between mb-3">
-    <div class="summary-card bg-primary text-white text-center">
-      <div class="fw-bold">{{ bookings.length }}</div>
-      <small>Total</small>
-    </div>
-    <div
-      class="summary-card bg-success text-white text-center"
-      routerLink="/email-booking"
-    >
-      <div class="fw-bold">8</div>
-      <small>Enquery</small>
-    </div>
-    <div class="summary-card bg-warning text-dark text-center">
-      <div class="fw-bold">4</div>
-      <small>Pending</small>
-    </div>
-  </div>
+      <li
+        class="page-item"
+        *ngFor="
+          let page of [].constructor(pagination.totalPages);
+          let i = index
+        "
+        [class.active]="pagination.pageNumber === i + 1"
+      >
+        <a class="page-link" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+      </li>
+
+      <li
+        class="page-item"
+        [class.disabled]="pagination.pageNumber === pagination.totalPages"
+      >
+        <a class="page-link" (click)="changePage(pagination.pageNumber + 1)"
+          >Next</a
+        >
+      </li>
+    </ul>
+  </nav>
 
   <div *ngFor="let booking of bookings" class="booking-card">
     <div class="booking-left">
@@ -40,10 +45,10 @@
 
     <div class="booking-middle">
       <div class="title">
-        {{ booking.customer.customerName }}
+        {{ booking.customerName }}
         <span class="pax"> Pax {{ booking.pax }} </span>
       </div>
-      <div class="location">{{ booking.customer.customerNumber }}</div>
+      <div class="location">{{ booking.customerNumber }}</div>
       <div class="title"></div>
       <div class="dates">
         <div class="date-section">
@@ -58,7 +63,7 @@
 
       <div class="duration">
         <div>{{ booking.bookingType }}</div>
-        <div>Driver {{ booking.user.employeeName }}</div>
+        <div>Driver {{ booking.userName }}</div>
       </div>
     </div>
 
@@ -67,7 +72,7 @@
         booking.status
       }}</span>
       <div class="price">{{ booking.amount }}</div>
-      <div>{{ booking.vehicle.vehicleName }}</div>
+      <div>{{ booking.vehicleName }}</div>
       <div class="mt-2">
         <button class="btn btn-primary" (click)="editBooking(booking)">
           Edit

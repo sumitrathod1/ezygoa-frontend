@@ -19,6 +19,7 @@ import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { BookingService } from '../services/booking.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-booking',
   standalone: true,
@@ -48,7 +49,8 @@ export class BookingComponent {
   isLoading = false;
   constructor(
     private _bookingService: BookingService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private _toastr: ToastrService
   ) {}
 
   ngOnInit() {
@@ -61,48 +63,42 @@ export class BookingComponent {
       this.loadData();
     });
 
-    this.loadData();
+    this._bookingService.loadBookings().subscribe();
   }
 
   private loadData() {
     this._bookingService.loadBookings().subscribe({
       next: (data) => {
         const bookings = data.bookings || [];
-        const monthlyCounts = Array(12).fill(0);
         this.totalBookings = bookings.length;
+
+        const monthlyCounts: { [key: string]: number } = {};
 
         bookings.forEach((booking: any) => {
           if (booking.travelDate && booking.travelDate !== '0001-01-01') {
-            const month = new Date(booking.travelDate).getMonth();
-            monthlyCounts[month]++;
+            const date = new Date(booking.travelDate);
+            const month = date.toLocaleString('default', { month: 'short' });
+            const year = date.getFullYear();
+            const key = `${month}-${year}`;
+
+            monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
           }
         });
 
+        const labels = Object.keys(monthlyCounts);
+        const values = Object.values(monthlyCounts);
+
         this.barChartData = {
-          labels: [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ],
+          labels,
           datasets: [
             {
               label: 'Bookings',
-              data: monthlyCounts,
+              data: values,
               backgroundColor: '#6366f1',
             },
           ],
         };
 
-        // --- Pie Chart (bookingType distribution) ---
         const typeCounts: { [key: string]: number } = {};
         bookings.forEach((booking: any) => {
           if (booking.bookingType) {
@@ -124,27 +120,104 @@ export class BookingComponent {
                 '#f59e42',
                 '#ef4444',
               ],
-              hoverBackgroundColor: [
-                '#6366f1',
-                '#fbbf24',
-                '#22c55e',
-                '#f43f5e',
-                '#a78bfa',
-                '#f59e42',
-                '#ef4444',
-              ],
             },
           ],
         };
 
         this.isLoading = false;
         this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
     });
   }
+
+  // private loadData() {
+  //   this._bookingService.loadBookings().subscribe({
+  //     next: (data) => {
+  //       const bookings = data.bookings || [];
+  //       const monthlyCounts = Array(12).fill(0);
+  //       this.totalBookings = bookings.length;
+
+  //       bookings.forEach((booking: any) => {
+  //         if (booking.travelDate && booking.travelDate !== '0001-01-01') {
+  //           const month = new Date(booking.travelDate).getMonth();
+  //           monthlyCounts[month]++;
+  //         }
+  //       });
+
+  //       this.barChartData = {
+  //         labels: [
+  //           'Jan',
+  //           'Feb',
+  //           'Mar',
+  //           'Apr',
+  //           'May',
+  //           'Jun',
+  //           'Jul',
+  //           'Aug',
+  //           'Sep',
+  //           'Oct',
+  //           'Nov',
+  //           'Dec',
+  //         ],
+  //         datasets: [
+  //           {
+  //             label: 'Bookings',
+  //             data: monthlyCounts,
+  //             backgroundColor: '#6366f1',
+  //           },
+  //         ],
+  //       };
+
+  //       // --- Pie Chart (bookingType distribution) ---
+  //       const typeCounts: { [key: string]: number } = {};
+  //       bookings.forEach((booking: any) => {
+  //         if (booking.bookingType) {
+  //           typeCounts[booking.bookingType] =
+  //             (typeCounts[booking.bookingType] || 0) + 1;
+  //         }
+  //       });
+  //       this.pieChartData = {
+  //         labels: Object.keys(typeCounts),
+  //         datasets: [
+  //           {
+  //             data: Object.values(typeCounts),
+  //             backgroundColor: [
+  //               '#6366f1',
+  //               '#fbbf24',
+  //               '#22c55e',
+  //               '#f43f5e',
+  //               '#a78bfa',
+  //               '#f59e42',
+  //               '#ef4444',
+  //             ],
+  //             hoverBackgroundColor: [
+  //               '#6366f1',
+  //               '#fbbf24',
+  //               '#22c55e',
+  //               '#f43f5e',
+  //               '#a78bfa',
+  //               '#f59e42',
+  //               '#ef4444',
+  //             ],
+  //           },
+  //         ],
+  //       };
+
+  //       this.isLoading = false;
+  //       this.cdr.detectChanges();
+  //       this.cdr.markForCheck();
+  //     },
+  //     error: () => {
+  //       this.isLoading = false;
+  //       this.cdr.markForCheck();
+  //     },
+  //   });
+  // }
 
   barChartData = {
     labels: [

@@ -22,6 +22,10 @@ export class EmployeeComponent {
 
   ngOnInit() {
     this.loadDrivers();
+    this._employeServeice.employeeUpdated$.subscribe(() => {
+      console.log('📢 Employee update event received!');
+      this.loadDrivers();
+    });
   }
 
   loadDrivers() {

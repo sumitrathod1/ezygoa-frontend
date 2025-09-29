@@ -10,6 +10,7 @@ import {
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,8 @@ export class LoginComponent {
   constructor(
     private _employeService: EmployeeService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private _totastr: ToastrService
   ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
@@ -39,9 +41,8 @@ export class LoginComponent {
       localStorage.setItem('name', this.loginForm.value.username);
       this._employeService.loginUser(this.loginForm.value).subscribe({
         next: (response) => {
-          this.loginForm.reset();
           this._employeService.storeTokan(response.token);
-          // Decode the token
+
           const helper = new JwtHelperService();
           const decodedToken = helper.decodeToken(response.token);
           const role =
@@ -49,18 +50,20 @@ export class LoginComponent {
               'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
             ];
 
-          // Navigate based on role
           if (role === 'Admin') {
+            console.log('Admin');
             this.router.navigate(['/home']);
           } else if (role === 'Employee') {
-            this.router.navigate(['/drver']);
+            console.log('Employee');
+            this.router.navigate(['/driver']);
           } else {
-            console.warn('Unknown role:', role);
+            this._totastr.warning('Unknown role:', role);
           }
-          console.log('Login successful:', response);
+          this._totastr.success('Login successful', 'Success');
+          this.loginForm.reset();
         },
         error: (error) => {
-          console.error('Login failed:', error);
+          this._totastr.error('Login failed', error);
         },
       });
     }

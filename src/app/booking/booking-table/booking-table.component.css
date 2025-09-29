@@ -104,7 +104,8 @@
 
 .dates {
   display: flex;
-  gap: 32px;
+  justify-content: space-between;
+
   margin-bottom: 12px;
 }
 
@@ -118,7 +119,8 @@
   align-items: center;
   color: gray;
   font-size: 14px;
-  gap: 15px;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .booking-right {

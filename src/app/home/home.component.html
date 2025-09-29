@@ -3,6 +3,29 @@
   </mat-progress-spinner>
   <p class="loader-text">Loading, please wait...</p>
 </div>
+<!-- <div *ngIf="isLoading" class="loader-overlay">
+  <div class="loader-container">
+    <img src="assets/Ezy.png" alt="Logo" class="logo" />
+    <svg class="loader-svg" viewBox="0 0 300 100">
+      <line x1="0" y1="80" x2="300" y2="80" stroke="#ccc" stroke-width="3" />
+
+      <g class="car">
+        <rect x="0" y="60" width="60" height="20" rx="4" fill="#3f51b5" />
+        <rect x="10" y="50" width="20" height="10" fill="#90caf9" />
+        <rect x="35" y="50" width="15" height="10" fill="#90caf9" />
+        <circle cx="15" cy="82" r="6" fill="#333" />
+        <circle cx="45" cy="82" r="6" fill="#333" />
+      </g>
+
+      <circle class="smoke s1" cx="0" cy="70" r="4" fill="#bbb" />
+      <circle class="smoke s2" cx="0" cy="70" r="4" fill="#bbb" />
+      <circle class="smoke s3" cx="0" cy="70" r="4" fill="#bbb" />
+    </svg>
+
+    <p class="loader-text">Loading, please wait...</p>
+  </div>
+</div> -->
+
 <div *ngIf="!isLoading">
   <div class="dashboard-container">
     <div>
@@ -49,7 +72,7 @@
       <h3>Today's Bookings</h3>
     </div>
 
-    <div class="booking-card" *ngFor="let booking of bookings | slice : 0 : 4">
+    <div class="booking-card" *ngFor="let booking of todayBookingss">
       <div class="d-flex">
         <div
           class="status-bar"
@@ -81,7 +104,7 @@
       </div>
     </div>
 
-    <!-- <div class="d-flex justify-content-between align-items-center mt-3 p-2">
+    <div class="d-flex justify-content-between align-items-center mt-4 p-2">
       <h3>Upcoming Bookings</h3>
     </div>
 
@@ -94,7 +117,6 @@
           class="status-bar"
           [ngStyle]="{ 'background-color': booking.color }"
         ></div>
-
         <div class="booking-info ms-2 flex-grow-1">
           <div class="d-flex justify-content-between">
             <div>
@@ -103,7 +125,7 @@
                 {{ booking.customer.customerNumber }}
               </h4>
               <h4 class="text-muted small mb-0">
-                {{ booking.travelDate }}: {{ booking.traveltime }}
+                {{ booking.travelDate }} : {{ booking.traveltime }}
               </h4>
             </div>
             <div class="text-end">
@@ -115,7 +137,7 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
 
     <!-- <div class="row g-4">
       <div class="col-12 col-md-6">

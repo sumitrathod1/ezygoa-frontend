@@ -1,24 +1,24 @@
 <div
   class="dashboard-header d-flex justify-content-between align-items-center mb-3"
 >
-  <div class="dashboard-title">
+  <!-- <div class="dashboard-title">
     <i class="bi bi-people-fill"></i> Agent Dashboard
-  </div>
-  <button class="btn btn-primary" (click)="addAgent()">+ Add</button>
+  </div> -->
+  <button class="btn btn-primary mt-2" (click)="addAgent()">+ Add</button>
 </div>
 <div class="agent-dashboard">
   <div class="summary-grid">
     <div class="summary-card total">
       <div class="summary-text">
         <div class="label">Total Agents</div>
-        <div class="count">24</div>
+        <div class="count">{{ agentCount }}</div>
       </div>
       <div class="icon-bg bg-blue"><i class="bi bi-people"></i></div>
     </div>
     <div class="summary-card bookings">
       <div class="summary-text">
         <div class="label">Total Bookings</div>
-        <div class="count">156</div>
+        <div class="count">{{ totalBookings }}</div>
       </div>
       <div class="icon-bg bg-purple"><i class="bi bi-calendar-event"></i></div>
     </div>

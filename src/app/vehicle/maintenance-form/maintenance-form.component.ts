@@ -19,6 +19,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { VehicleService } from '../../services/vehicle.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-maintenance-form',
@@ -47,6 +48,7 @@ export class MaintenanceFormComponent {
     private _fb: FormBuilder,
     private _dialog: MatDialog,
     private _vehicleService: VehicleService,
+    private _toastr: ToastrService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.maintenanceForm = _fb.group({
@@ -66,10 +68,10 @@ export class MaintenanceFormComponent {
         .addMaintenance(this.maintenanceForm.value)
         .subscribe({
           next: (val: any) => {
-            console.log('Maintenance added successfully:', val);
+            this._toastr.success('Maintenance added successfully:', 'Success');
           },
           error: (err: any) => {
-            console.error('Error adding maintenance:', err);
+            this._toastr.error('Error adding maintenance:', err);
           },
         });
       this._dialog.closeAll();

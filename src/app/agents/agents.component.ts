@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ReportFormComponent } from './report-form/report-form.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-agents',
@@ -20,6 +21,8 @@ export class AgentsComponent {
 
   totalRevenue: number = 0;
   pendingAmount: number = 0;
+  agentCount: number = 0;
+  totalBookings: number = 0;
 
   get totalRevenueAmount() {
     return this.totalRevenue;
@@ -30,7 +33,8 @@ export class AgentsComponent {
   constructor(
     private route: Router,
     private _dilog: MatDialog,
-    private _agents: AgentService
+    private _agents: AgentService,
+    private _toaster: ToastrService
   ) {}
   onAgentClick() {
     this._dilog.open(AgentFormComponent);
@@ -41,12 +45,16 @@ export class AgentsComponent {
 
   ngOnInit() {
     this.getAllAgents();
+    this._agents.agentUpdated$.subscribe(() => {
+      this.getAllAgents();
+    });
   }
 
   getAllAgents() {
     this._agents.getAllAgents().subscribe({
       next: (data) => {
         this.agents = data;
+        this.agentCount = this.agents.length;
         this.totalRevenue = data.reduce(
           (sum: number, agent: any) => sum + (agent.earned || 0),
           0
@@ -55,7 +63,6 @@ export class AgentsComponent {
           (sum: number, agent: any) => sum + (agent.pending || 0),
           0
         );
-        console.log('Agents fetched successfully:', data);
       },
       error: (error) => {
         console.error('Error fetching agents:', error);
@@ -80,15 +87,27 @@ export class AgentsComponent {
   }
 
   submitPayment() {
-    console.log('clicked');
-    this._agents.addPayment(this.paymentData).subscribe((res) => {
-      const modalElement = this.paymentModal.nativeElement;
-      const modal =
-        (window as any).bootstrap.Modal.getInstance(modalElement) ||
-        new (window as any).bootstrap.Modal(modalElement);
-      modal.hide();
-      this.getAllAgents();
+    const modalElement = this.paymentModal.nativeElement;
+    const modal =
+      (window as any).bootstrap.Modal.getInstance(modalElement) ||
+      new (window as any).bootstrap.Modal(modalElement);
+    this._agents.addPayment(this.paymentData).subscribe({
+      next: (res) => {
+        this._toaster.success('Payment added successfully', 'Success');
+        this.paymentData.totalPaidAmount = 0;
+
+        this.getAllAgents();
+      },
+      error: (err) => {
+        this._toaster.error('Error adding payment', err);
+        const modalElement = this.paymentModal.nativeElement;
+        const modal =
+          (window as any).bootstrap.Modal.getInstance(modalElement) ||
+          new (window as any).bootstrap.Modal(modalElement);
+        modal.hide();
+      },
     });
+    modal.hide();
   }
 
   addAgent() {

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { EmailServiceService } from '../../services/email-service.service';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-email-booking',
@@ -12,7 +13,10 @@ import { CommonModule } from '@angular/common';
 export class EmailBookingComponent {
   inquiries: any = []; // backend se load karo
 
-  constructor(private _emailService: EmailServiceService) {}
+  constructor(
+    private _emailService: EmailServiceService,
+    private _toaster: ToastrService
+  ) {}
 
   ngOnInit() {
     this.loadInquiries();
@@ -28,10 +32,10 @@ export class EmailBookingComponent {
       },
     });
   }
-  toggleConfirm(inquiry: any) {
-    inquiry.isConfirmed = !inquiry.isConfirmed;
-    if (inquiry.isConfirmed) inquiry.isRejected = false;
-  }
+  // toggleConfirm(inquiry: any) {
+  //   inquiry.isConfirmed = !inquiry.isConfirmed;
+  //   if (inquiry.isConfirmed) inquiry.isRejected = false;
+  // }
 
   toggleReject(inquiry: any) {
     inquiry.isRejected = !inquiry.isRejected;
@@ -40,5 +44,19 @@ export class EmailBookingComponent {
 
   callCustomer(number: string) {
     window.open(`tel:${number}`, '_self');
+  }
+  toggleConfirm(inquiry: any) {
+    if (inquiry.isConfirmed) return;
+
+    this._emailService.confirmInquiry(inquiry.id).subscribe({
+      next: (res) => {
+        this._toaster.success('Inquiry confirmed:');
+        inquiry.isConfirmed = true; // UI me instantly reflect karne ke liye
+      },
+      error: (err) => {
+        this._toaster.error('Error confirming inquiry:', err);
+        alert('Failed to confirm inquiry');
+      },
+    });
   }
 }

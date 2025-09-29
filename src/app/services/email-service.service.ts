@@ -13,4 +13,9 @@ export class EmailServiceService {
   public getAllAgents(): any {
     return this._http.get(`${this.baseUrl}GetAllEnqueries`);
   }
+
+  confirmInquiry(id: number) {
+    console.log(id);
+    return this._http.post(`${this.baseUrl}confirm/${id}`, {});
+  }
 }

@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DatePerBookingsComponent } from './date-per-bookings/date-per-bookings.component';
 
 const VEHICLE_COLOR_MAP: Record<string, string> = {
   Dzire: '#00bcd4',
@@ -12,7 +13,7 @@ const VEHICLE_COLOR_MAP: Record<string, string> = {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DatePerBookingsComponent],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',
 })
@@ -40,6 +41,7 @@ export class CalendarComponent implements OnChanges {
   calendarDates: Date[] = [];
   showPopup = false;
   selectedDate: Date | null = null;
+  selectedBookings: any[] = [];
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['newBookings']) {
@@ -48,7 +50,8 @@ export class CalendarComponent implements OnChanges {
         color:
           VEHICLE_COLOR_MAP[b.vehicle?.vehicleName] ||
           VEHICLE_COLOR_MAP['Default'],
-        date: b.travelDate,
+        //date: b.travelDate,
+        date: new Date(b.travelDate),
       }));
     }
   }
@@ -112,21 +115,33 @@ export class CalendarComponent implements OnChanges {
       .map((b) => b.color);
   }
 
+  // getBookingsForDate(date: Date | null) {
+  //   if (!date) return [];
+  //   return this.bookings.filter(
+  //     (b) => b.date.toDateString() === date.toDateString()
+  //   );
+  // }
   getBookingsForDate(date: Date | null) {
     if (!date) return [];
     return this.bookings.filter(
-      (b) => b.date.toDateString() === date.toDateString()
+      (b) => new Date(b.date).toDateString() === date.toDateString()
     );
   }
 
-  openDayPopup(date: Date | null) {
-    if (!date) return;
-    this.selectedDate = date;
-    this.showPopup = true;
-  }
+  // openDayPopup(date: Date | null) {
+  //   if (!date) return;
+  //   this.selectedDate = date;
+  //   this.showPopup = true;
+  // }
 
   closePopup() {
     this.showPopup = false;
     this.selectedDate = null;
+  }
+  openDayPopup(date: Date | null) {
+    if (!date) return;
+    this.selectedDate = date;
+    this.selectedBookings = this.getBookingsForDate(date);
+    this.showPopup = true;
   }
 }

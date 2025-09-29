@@ -79,12 +79,18 @@
       </div>
       <div class="maint-right">
         <!-- <div class="maint-amount">₹{{ item.amount | number }}</div> -->
-        <div
+        <!-- <div
           *ngIf="item.status"
-          class="maint-status"
-          [ngClass]="item.statusClass"
+          class="getMaintenanceDisplay(item)"
+          [ngClass]="getMaintenanceDisplay(item).statusClass"
         >
           {{ item.status }}
+        </div> -->
+        <div
+          class="doc-badge"
+          [ngClass]="getMaintenanceDisplay(item).statusClass"
+        >
+          {{ getMaintenanceDisplay(item).status }}
         </div>
       </div>
     </div>

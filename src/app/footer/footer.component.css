@@ -1,8 +1,10 @@
 .app-footer {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: #fff;
-  box-shadow: 0 -2px 12px rgba(60,60,60,0.08);
+  box-shadow: 0 -2px 12px rgba(60, 60, 60, 0.08);
   z-index: 100;
 }
 
@@ -40,7 +42,7 @@
   align-items: center;
   justify-content: center;
   margin-top: -24px;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.15);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
   z-index: 1;
 }
 

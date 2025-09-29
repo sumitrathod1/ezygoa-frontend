@@ -15,6 +15,7 @@ import { AddemployeeFormComponent } from '../employee/addemployee-form/addemploy
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
+import { EmployeeService } from '../services/employee.service';
 
 @Component({
   selector: 'app-header',
@@ -35,7 +36,10 @@ import { RouterModule } from '@angular/router';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
-  constructor(private _dialog: MatDialog) {}
+  constructor(
+    private _dialog: MatDialog,
+    private _employeService: EmployeeService
+  ) {}
   addBooking() {
     console.log('Clicked!');
     this._dialog.open(BookingFormComponent);
@@ -46,5 +50,8 @@ export class HeaderComponent {
   }
   addEmploye() {
     this._dialog.open(AddemployeeFormComponent);
+  }
+  onLogout() {
+    this._employeService.logout();
   }
 }

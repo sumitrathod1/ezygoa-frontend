@@ -10,6 +10,7 @@ import { CalendarComponent } from '../calendar/calendar.component';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -66,7 +67,8 @@ export class HomeComponent {
 
   constructor(
     private _bookingservice: BookingService,
-    private _employeServices: EmployeeService
+    private _employeServices: EmployeeService,
+    private _toastr: ToastrService
   ) {}
 
   ngOnInit() {
@@ -77,8 +79,15 @@ export class HomeComponent {
     this._employeServices.employeCount$.subscribe((count) => {
       this.totalEmployees = count;
     });
+
+    this._bookingservice.bookingUpdated$.subscribe(() => {
+      this.loadAllbookings();
+    });
     this.loadAllbookings();
   }
+
+  todayBookingss: any[] = [];
+  upcomingBookings: any[] = [];
 
   loadAllbookings() {
     this.isLoading = true;
@@ -90,27 +99,72 @@ export class HomeComponent {
       '#ef4444',
       '#6366f1',
     ];
+
     this._bookingservice.loadBookings().subscribe({
       next: (data) => {
         this.isLoading = false;
 
-        console.log('API Response:', data);
-        this.bookings = data.bookings.map((booking: any, idx: number) => ({
-          ...booking,
+        const allBookings = data.bookings.map((b: any, idx: number) => ({
+          ...b,
           color: colorList[idx % colorList.length],
         }));
+
+        const todayStr = new Date().toDateString();
+
+        this.todayBookingss = allBookings.filter(
+          (b: any) => new Date(b.travelDate).toDateString() === todayStr
+        );
+
+        this.upcomingBookings = allBookings
+          .filter((b: any) => new Date(b.travelDate) > new Date())
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.travelDate).getTime() -
+              new Date(b.travelDate).getTime()
+          );
+
+        this.bookings = allBookings;
         this.revenue = data.revenueStats || {};
-        this.totalBookings = this.bookings.length;
-        this.todayBookings = this.bookings.filter(
-          (booking) =>
-            new Date(booking.date || booking.travelDate).toDateString() ===
-            new Date().toDateString()
-        ).length;
+        this.totalBookings = allBookings.length;
+        this.todayBookings = this.todayBookingss.length;
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Error loading bookings:', err);
+        this._toastr.error('Error loading bookings:', err);
       },
     });
   }
+
+  // loadAllbookings() {
+  //   this.isLoading = true;
+  //   const colorList = [
+  //     '#00bcd4',
+  //     '#f59e42',
+  //     '#22c55e',
+  //     '#a78bfa',
+  //     '#ef4444',
+  //     '#6366f1',
+  //   ];
+  //   this._bookingservice.loadBookings().subscribe({
+  //     next: (data) => {
+  //       this.isLoading = false;
+
+  //       this.bookings = data.bookings.map((booking: any, idx: number) => ({
+  //         ...booking,
+  //         color: colorList[idx % colorList.length],
+  //       }));
+  //       this.revenue = data.revenueStats || {};
+  //       this.totalBookings = this.bookings.length;
+  //       this.todayBookings = this.bookings.filter(
+  //         (booking) =>
+  //           new Date(booking.date || booking.travelDate).toDateString() ===
+  //           new Date().toDateString()
+  //       ).length;
+  //     },
+  //     error: (err) => {
+  //       this.isLoading = false;
+  //       this._toastr.error('Error loading bookings:', err);
+  //     },
+  //   });
+  // }
 }

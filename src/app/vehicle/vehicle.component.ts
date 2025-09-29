@@ -53,9 +53,7 @@ export class VehicleComponent {
   loadAllDocuments() {
     this._vehicleService.getAllDocuments().subscribe({
       next: (data) => {
-        console.log('Documents fetched successfully:', data);
         this.vehicleDocuments = Array.isArray(data) ? data : [];
-        console.log('Documents loaded:', this.vehicleDocuments);
       },
       error: (err) => {
         console.error('Error loading documents:', err);
@@ -66,7 +64,6 @@ export class VehicleComponent {
   loadExpenses() {
     this._vehicleService.getAllExpences().subscribe({
       next: (data) => {
-        console.log('Expenses fetched successfully:', data);
         this.expenses = Array.isArray(data) ? data : [];
         this.totalExpenseCost = this.expenses.reduce(
           (total: number, exp: any) => {
@@ -74,7 +71,6 @@ export class VehicleComponent {
           },
           0
         );
-        console.log('Total expense cost:', this.totalExpenseCost);
       },
       error: (error) => {
         console.error('Error loading expenses:', error);
@@ -85,7 +81,6 @@ export class VehicleComponent {
   loadMaintenance() {
     this._vehicleService.getAllMaintenances().subscribe({
       next: (data) => {
-        console.log('Vehicle maintenances fetched successfully:', data);
         this.vehicleMaintenances = Array.isArray(data) ? data : [];
         this.totlalMaintenanceCost = this.vehicleMaintenances.reduce(
           (total: number, maintenance: any) => {
@@ -93,7 +88,6 @@ export class VehicleComponent {
           },
           0
         );
-        console.log('Total maintenance cost:', this.totlalMaintenanceCost);
       },
       error: (err) => {
         console.error('Error loading expenses:', err);
@@ -145,7 +139,7 @@ export class VehicleComponent {
         icon: 'bi-credit-card-2-front-fill',
         iconBg: 'bg-green-light',
       };
-    } else if (daysLeft < 20) {
+    } else if (daysLeft > 0 && daysLeft < 20) {
       return {
         status: 'Soon',
         statusClass: 'badge-warning',
@@ -231,48 +225,71 @@ export class VehicleComponent {
     } else if (diff === 0) {
       return 'Today';
     } else {
-      return `${Math.abs(diff)} ecpired`;
+      return `${Math.abs(diff)} Expired`;
     }
   }
-
-  getMaintenanceDisplay(exp: any) {
+  getMaintenanceDisplay(exp: any): any {
+    let maintenanceDetails;
     switch (exp.maintenanceType) {
       case 'oilChange':
-        return {
-          icon: 'bi-droplet-half',
-          iconBg: 'bg-orange',
-        };
+        maintenanceDetails = { icon: 'bi-droplet-half', iconBg: 'bg-orange' };
+        break;
       case 'TireChange':
-        return {
-          icon: 'bi-circle-fill',
-          iconBg: 'bg-blue',
-        };
+        maintenanceDetails = { icon: 'bi-circle-fill', iconBg: 'bg-blue' };
+        break;
       case 'Fuel':
-        return {
+        maintenanceDetails = {
           icon: 'bi-fuel-pump',
           iconBg: 'bg-yellow-light',
         };
+        break;
       case 'Service':
-        return {
-          icon: 'bi-gear-fill',
-          iconBg: 'bg-green',
-        };
+        maintenanceDetails = { icon: 'bi-gear-fill', iconBg: 'bg-green' };
+        break;
       default:
-        return {
-          icon: 'bi-gear-fill',
-          iconBg: 'bg-green',
-        };
+        maintenanceDetails = { icon: 'bi-gear-fill', iconBg: 'bg-green' };
+        break;
     }
+
+    const daysLeft = this.getDaysLeftNumber(exp.nextduedate);
+
+    let maintenanceStatus;
+    if (daysLeft < 0) {
+      maintenanceStatus = { status: 'ORdue', statusClass: 'badge-expired' };
+    } else if (daysLeft >= 0 && daysLeft <= 20) {
+      maintenanceStatus = { status: 'due', statusClass: 'bg-orange-light' };
+    } else if (daysLeft <= 30) {
+      maintenanceStatus = { status: 'Soon', statusClass: 'badge-warning' };
+    } else {
+      maintenanceStatus = { status: 'Valid', statusClass: 'badge-valid' };
+    }
+
+    return { ...maintenanceDetails, ...maintenanceStatus };
   }
 
   get top4Documents() {
-    return this.vehicleDocuments.slice(0, 4);
+    //return this.vehicleDocuments.slice(0, 4);
+
+    return [...this.vehicleDocuments]
+      .sort((a, b) => {
+        const daysLeftA = this.getDaysLeftNumber(a.expiryDate);
+        const daysLeftB = this.getDaysLeftNumber(b.expiryDate);
+        return daysLeftA - daysLeftB;
+      })
+      .slice(0, 4);
   }
   get top4Expenses() {
     return this.expenses.slice(0, 4);
   }
 
   get top4Maintenances() {
-    return this.vehicleMaintenances.slice(0, 4);
+    //return this.vehicleMaintenances.slice(0, 4);
+    return [...this.vehicleMaintenances]
+      .sort((a, b) => {
+        const daysLeftA = this.getDaysLeftNumber(a.nextduedate);
+        const daysLeftB = this.getDaysLeftNumber(b.nextduedate);
+        return daysLeftA - daysLeftB;
+      })
+      .slice(0, 4);
   }
 }

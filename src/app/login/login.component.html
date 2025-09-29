@@ -1,10 +1,10 @@
 <div class="login-page">
   <div class="login-container">
     <div class="logo">
-      <i class="bi bi-rocket-takeoff-fill"></i>
+      <img src="assets/Ezy.png" alt="Logo" class="logo-image" />
     </div>
     <h2>Welcome Back</h2>
-    <p>Sign in to continue your journey</p>
+    <p>Sign in to continue</p>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -27,7 +27,7 @@
         />
       </div>
 
-      <div class="forgot-password">
+      <div class="forgot-password" routerLink="/forget-password">
         <a>Forgot Password?</a>
       </div>
 
@@ -35,12 +35,5 @@
         <i class="bi bi-box-arrow-in-right"></i> Sign In
       </button>
     </form>
-
-    <!-- <div class="social-login">
-      <button><i class="bi bi-google"></i> Google</button>
-      <button><i class="bi bi-facebook"></i> Facebook</button>
-    </div> -->
-
-    <!-- <p class="signup-link">Don't have an account? <a>Sign up</a></p> -->
   </div>
 </div>

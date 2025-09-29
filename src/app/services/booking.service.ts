@@ -17,7 +17,13 @@ export class BookingService {
   private bookingCountSubject = new BehaviorSubject<number>(0);
   bookingCount$ = this.bookingCountSubject.asObservable();
 
-  private bookingUpdatedSubject = new Subject<void>();
+  // private bookingUpdatedSubject = new Subject<void>();
+  // bookingUpdated$ = this.bookingUpdatedSubject.asObservable();
+
+  private bookingAddedSubject = new Subject<any>();
+  bookingAdded$ = this.bookingAddedSubject.asObservable();
+
+  private bookingUpdatedSubject = new BehaviorSubject<void>(undefined);
   bookingUpdated$ = this.bookingUpdatedSubject.asObservable();
 
   constructor(private _http: HttpClient) {}
@@ -57,8 +63,8 @@ export class BookingService {
 
     console.log('Booking data to be sent (bookingData object):', bookingData);
     return this._http.post(`${this.baseUrl}New-Booking`, bookingData).pipe(
-      tap(() => {
-        this.clearBookingsCache();
+      tap((res: any) => {
+        this.bookingAddedSubject.next(res.newBooking);
         this.bookingUpdatedSubject.next();
       })
     );
@@ -67,24 +73,50 @@ export class BookingService {
   // loadBookings(): Observable<any> {
   //   return this._http.get(`${this.baseUrl}View-Bookings`);
   // }
+  // loadBookings(): Observable<any> {
+  //   if (!this.bookingsCache$) {
+  //     this.bookingsCache$ = this._http
+  //       .get(`${this.baseUrl}View-Bookings`)
+  //       .pipe(shareReplay(1));
+  //   }
+  //   return this.bookingsCache$;
+  // }
+
   loadBookings(): Observable<any> {
-    if (!this.bookingsCache$) {
-      this.bookingsCache$ = this._http
-        .get(`${this.baseUrl}View-Bookings`)
-        .pipe(shareReplay(1));
-    }
-    return this.bookingsCache$;
+    return this._http.get(`${this.baseUrl}View-Bookings`);
   }
 
   // Agar aapko cache clear karna ho (e.g. new booking ke baad)
-  clearBookingsCache() {
-    this.bookingsCache$ = undefined;
-  }
+  // clearBookingsCache() {
+  //   this.bookingsCache$ = undefined;
+  // }
 
   updateBookingCount(count: number) {
     this.bookingCountSubject.next(count);
   }
-  notifyBookingUpdated(newBooking: any) {
-    this.bookingUpdatedSubject.next(newBooking);
+  notifyBookingUpdated() {
+    this.bookingUpdatedSubject.next();
+  }
+  filterBookings(
+    filter: any,
+    pageNumber: number,
+    pageSize: number
+  ): Observable<any> {
+    return this._http.get(`${this.baseUrl}BookingFilter`, {
+      params: {
+        particularDate: filter.particularDate || '',
+        startDate: filter.startDate || '',
+        endDate: filter.endDate || '',
+        from: filter.from || '',
+        to: filter.to || '',
+        status: filter.status || '',
+        vehicleId: filter.vehicleId || '',
+        userId: filter.userId || '',
+        bookingType: filter.bookingType || '',
+        travelTime: filter.travelTime || '',
+        pageNumber: pageNumber.toString(),
+        pageSize: pageSize.toString(),
+      },
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { BookingFormComponent } from '../booking/booking-form/booking-form.component';
 
 @Component({
@@ -11,11 +11,10 @@ import { BookingFormComponent } from '../booking/booking-form/booking-form.compo
   styleUrl: './footer.component.css',
 })
 export class FooterComponent {
-
-  constructor(private _dialog: MatDialog ) {}
+  constructor(private _dialog: MatDialog, private router: Router) {}
 
   addBooking() {
-      console.log('Clicked!');
-      this._dialog.open(BookingFormComponent);
-    }
+    console.log('Clicked!');
+    this._dialog.open(BookingFormComponent);
+  }
 }

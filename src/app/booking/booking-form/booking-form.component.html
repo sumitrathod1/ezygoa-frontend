@@ -38,7 +38,12 @@
       <div class="col-sm-6">
         <mat-form-field class="col-ms-6" appearance="outline" style="flex: 1">
           <mat-label>Customer Number</mat-label>
-          <input matInput type="text" formControlName="customerNumber" />
+          <input
+            matInput
+            type="text"
+            maxlength="12"
+            formControlName="customerNumber"
+          />
         </mat-form-field>
       </div>
     </div>
@@ -156,7 +161,7 @@
       <div class="col-sm-6">
         <mat-form-field appearance="outline" style="flex: 1">
           <mat-label>Amount</mat-label>
-          <input matInput type="number" formControlName="amount" />
+          <input matInput type="number" min="0" formControlName="amount" />
         </mat-form-field>
       </div>
       <div class="col-sm-6">
@@ -176,13 +181,13 @@
       <div class="col-sm-6">
         <mat-form-field appearance="outline" style="flex: 1">
           <mat-label>CustomerWillPay</mat-label>
-          <input matInput type="number" formControlName="customerPay" />
+          <input matInput type="number" min="0" formControlName="customerPay" />
         </mat-form-field>
       </div>
       <div class="col-sm-6">
         <mat-form-field appearance="outline" style="flex: 1">
           <mat-label>OwnerWillPay</mat-label>
-          <input matInput type="number" formControlName="ownerPay" />
+          <input matInput type="number" min="0" formControlName="ownerPay" />
         </mat-form-field>
       </div>
     </div>

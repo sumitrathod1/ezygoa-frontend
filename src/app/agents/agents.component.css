@@ -175,7 +175,8 @@ html {
 /* Agent Stats Row */
 .agent-stats {
   display: flex;
-  gap: 48px;
+  justify-content: space-between;
+
   color: #444;
   margin: 6px 0 10px 0;
   text-align: center;
@@ -189,11 +190,10 @@ html {
   font-weight: 600;
 }
 
-/* Agent Actions */
 .agent-actions {
   display: flex;
   align-items: center;
-  gap: 22px;
+  justify-content: space-between;
 }
 .agent-action-btn {
   background: linear-gradient(90deg, #2563eb 70%, #6366f1 100%);
@@ -215,7 +215,6 @@ html {
   box-shadow: 0 4px 18px #6366f13a;
 }
 
-/* Responsive (mobile) */
 @media (max-width: 600px) {
   .dashboard-container {
     max-width: 100vw;

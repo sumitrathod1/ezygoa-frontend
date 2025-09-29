@@ -22,7 +22,7 @@
     aria-label="Company Logo Menu"
     class="logo-button"
   >
-    <img src="assets/Ezy.png" alt="Ezy Logo" class="logo-image" />
+    <img src="assets/Ezy.png" alt="Logo" class="logo-image" />
   </button>
 
   <span class="app-title">Ezy</span>
@@ -35,7 +35,8 @@
 </mat-toolbar>
 
 <mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/agents">Agents</button>
-  <button mat-menu-item routerLink="/bookings">Bookings</button>
-  <button mat-menu-item routerLink="/profile">Profile</button>
+  <button mat-menu-item routerLink="/employee">Drivers</button>
+  <button mat-menu-item (click)="addVehicle()">Add Vehicle</button>
+  <button mat-menu-item routerLink="/email-booking">Enquery</button>
+  <button mat-menu-item (click)="onLogout()">Logout</button>
 </mat-menu>

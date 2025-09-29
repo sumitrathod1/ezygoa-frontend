@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MaintenanceFormComponent } from '../maintenance-form/maintenance-form.component';
 import { ExpenseFormComponent } from '../expense-form/expense-form.component';
 import { DocumentFormComponent } from '../document-form/document-form.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-vehicle-card',
@@ -17,16 +18,22 @@ export class VehicleCardComponent {
   vehicleList: any[] = [];
   constructor(
     private _vechicleService: VehicleService,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private _toastr: ToastrService,
+    private _vehicleService: VehicleService
   ) {}
 
   ngOnInit() {
     this.loadVehicles();
+    this._vehicleService.vehicleUpdated$.subscribe(() => {
+      this.loadVehicles();
+    });
   }
 
   loadVehicles() {
     this._vechicleService.getAllVehicles().subscribe({
       next: (data: any) => {
+        console.log(data);
         this.vehicleList = data;
       },
       error: (err) => {

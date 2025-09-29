@@ -3,6 +3,7 @@
   </mat-progress-spinner>
   <p class="loader-text">Loading, please wait...</p>
 </div>
+
 <div *ngIf="!isLoading">
   <div class="container mt-4">
     <div class="row g-3">
@@ -14,7 +15,6 @@
         >
           <div class="card-body">
             <i class="bi bi-car-front fs-2 text-primary"></i>
-
             <h6 class="mt-2">Total Bookings</h6>
             <h5 class="fw-bold">{{ totalBookings }}</h5>
           </div>
@@ -24,7 +24,7 @@
       <div class="col-6 col-md-3">
         <a
           style="cursor: pointer"
-          class="card text-center shadow-sm"
+          class="card text-center shadow-sm text-decoration-none"
           routerLink="/earnings"
         >
           <div class="card-body">

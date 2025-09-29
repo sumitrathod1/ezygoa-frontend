@@ -11,7 +11,7 @@
   <div class="calendar-subtitle">
     <p>
       <span class="color-dot" style="background-color: #00bcd4"></span>Dzire
-      <span class="color-dot" style="background-color: #f59e42"></span> TT20
+      <span class="color-dot" style="background-color: #f59e42"></span>Ertiga
       <span class="color-dot" style="background-color: #22c55e"></span>Crysta
       <span class="color-dot" style="background-color: #a78bfa"></span> TT17
     </p>
@@ -35,3 +35,11 @@
     </div>
   </div>
 </div>
+
+<app-date-per-bookings
+  *ngIf="showPopup"
+  [bookings]="selectedBookings"
+  [selectedDate]="selectedDate"
+  (close)="closePopup()"
+>
+</app-date-per-bookings>

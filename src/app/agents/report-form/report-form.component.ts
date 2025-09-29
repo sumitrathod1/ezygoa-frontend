@@ -20,6 +20,10 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { DialogRef } from '@angular/cdk/dialog';
 
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import { ToastrService } from 'ngx-toastr';
+
 @Component({
   selector: 'app-report-form',
   standalone: true,
@@ -57,6 +61,7 @@ export class ReportFormComponent {
     private fb: FormBuilder,
     private _agents: AgentService,
     private _dialog: DialogRef,
+    private _toaster: ToastrService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.agentId = data.agentId;
@@ -101,25 +106,54 @@ export class ReportFormComponent {
     const { reportType, fromDate, toDate } = this.reportForm.value;
 
     let fromDateStr = fromDate
-      ? fromDate.toISOString().substring(0, 10)
+      ? new Date(
+          fromDate.getTime() - fromDate.getTimezoneOffset() * 60000
+        ).toLocaleDateString('en-CA')
       : undefined;
-    let toDateStr = toDate ? toDate.toISOString().substring(0, 10) : undefined;
-    console.log(fromDateStr, toDateStr);
+
+    let toDateStr = toDate
+      ? new Date(
+          toDate.getTime() - toDate.getTimezoneOffset() * 60000
+        ).toLocaleDateString('en-CA')
+      : undefined;
+
     this._agents
       .downloadAgentReport(this.agentId, fromDateStr, toDateStr)
       .subscribe({
-        next: (blob: Blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Agent_${this.agentId}_Report.pdf`;
-          a.click();
-          window.URL.revokeObjectURL(url);
+        next: async (blob: Blob) => {
+          if (Capacitor.isNativePlatform()) {
+            const base64Data = await this.blobToBase64(blob);
+            await Filesystem.writeFile({
+              path: `Agent_${this.agentId}_Report.pdf`,
+              data: base64Data,
+              directory: Directory.External,
+              recursive: true,
+            });
+            this._toaster.success('✅ PDF saved in device Documents folder');
+          } else {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Agent_${this.agentId}_Report.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            this._toaster.success('✅ PDF saved in device Documents folder');
+          }
+
           this._dialog.close();
         },
         error: (err) => {
-          console.error('PDF download failed', err);
+          this._toaster.error('PDF download failed', err);
         },
       });
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 }
