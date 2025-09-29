@@ -66,17 +66,14 @@
             </div>
 
             <div class="mt-3 d-flex gap-2">
-              <button class="btn btn-success flex-fill">
-                <a
-                  [href]="'tel:' + booking.customer.contactNumber"
-                  class="text-white text-decoration-none"
-                >
-                  <i class="bi bi-telephone"></i> Call
-                </a>
+              <button
+                class="btn btn-success flex-fill"
+                (click)="callCustomer(booking.customer.customerNumber)"
+              >
+                <i class="bi bi-telephone"></i> Call
               </button>
               <button class="btn btn-primary flex-fill">
                 <a
-                  href="https://www.google.com/maps/dir/?api=1&origin=Panaji+Bus+Stand,+Goa&destination=Baga+Beach,+Goa"
                   target="_blank"
                   class="btn btn-primary flex-fill text-white text-decoration-none"
                 >
@@ -136,17 +133,14 @@
             </div>
 
             <div class="mt-3 d-flex gap-2">
-              <button class="btn btn-success flex-fill">
-                <a
-                  [href]="'tel:' + booking.customer.contactNumber"
-                  class="text-white text-decoration-none"
-                >
-                  <i class="bi bi-telephone"></i> Call
-                </a>
+              <button
+                class="btn btn-success flex-fill"
+                (click)="callCustomer(booking.customer.customerNumber)"
+              >
+                <i class="bi bi-telephone"></i> Call
               </button>
               <button class="btn btn-primary flex-fill">
                 <a
-                  href="https://www.google.com/maps/dir/?api=1&origin=Panaji+Bus+Stand,+Goa&destination=Baga+Beach,+Goa"
                   target="_blank"
                   class="btn btn-primary flex-fill text-white text-decoration-none"
                 >

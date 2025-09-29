@@ -54,6 +54,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './report-form.component.css',
 })
 export class ReportFormComponent {
+  [x: string]: any;
   reportForm!: FormGroup;
   agentId: number;
 
@@ -122,14 +123,19 @@ export class ReportFormComponent {
       .subscribe({
         next: async (blob: Blob) => {
           if (Capacitor.isNativePlatform()) {
-            const base64Data = await this.blobToBase64(blob);
-            await Filesystem.writeFile({
-              path: `Agent_${this.agentId}_Report.pdf`,
-              data: base64Data,
-              directory: Directory.External,
-              recursive: true,
-            });
-            this._toaster.success('✅ PDF saved in device Documents folder');
+            try {
+              await Filesystem.requestPermissions();
+              const base64Data = await this.blobToBase64(blob);
+              await Filesystem.writeFile({
+                path: `Agent_${this.agentId}_Report.pdf`,
+                data: base64Data,
+                directory: Directory.Documents,
+                recursive: true,
+              });
+              this._toaster.success('✅ PDF saved in device Documents folder');
+            } catch (err: any) {
+              this._toaster.error('PDF save failed', JSON.stringify(err));
+            }
           } else {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -139,7 +145,6 @@ export class ReportFormComponent {
             window.URL.revokeObjectURL(url);
             this._toaster.success('✅ PDF saved in device Documents folder');
           }
-
           this._dialog.close();
         },
         error: (err) => {

@@ -43,10 +43,8 @@ export class EmployeeService {
           : null,
     };
 
-    console.log('Employee data to be sent (emp object):', emp);
     return this._http.post(`${this.baseUrl}Register`, emp).pipe(
       tap(() => {
-        console.log('📢 Employee added, notifying components...');
         this.employeUpdatedSubject.next();
       })
     );
@@ -85,7 +83,6 @@ export class EmployeeService {
   decodeToken() {
     const jwthlper = new JwtHelperService();
     const token = this.getToken()!;
-    console.log(jwthlper.decodeToken(token));
     return jwthlper.decodeToken(token);
   }
 
@@ -123,7 +120,6 @@ export class EmployeeService {
   }
   getEmployeeBookings(): Observable<any> {
     const id = this.getUserIdFromToken();
-    console.log('User ID from token:', id);
     // const dumyID = 2;
     if (!id) throw new Error('User ID not found in token');
     // return this._http.get(`${this.baseUrl}ViewBookings`, {

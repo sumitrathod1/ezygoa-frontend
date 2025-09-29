@@ -20,11 +20,13 @@ export class EmailBookingComponent {
 
   ngOnInit() {
     this.loadInquiries();
+    this._emailService.emailUpdated$.subscribe(() => {
+      this.loadInquiries();
+    });
   }
   loadInquiries() {
     this._emailService.getAllAgents().subscribe({
       next: (data: any) => {
-        console.log(data);
         this.inquiries = data;
       },
       error: (error: any) => {
@@ -40,6 +42,17 @@ export class EmailBookingComponent {
   toggleReject(inquiry: any) {
     inquiry.isRejected = !inquiry.isRejected;
     if (inquiry.isRejected) inquiry.isConfirmed = false;
+    if (!inquiry.isRejected) return;
+
+    this._emailService.rejectInquiry(inquiry.id).subscribe({
+      next: (res) => {
+        this._toaster.success('Inquiry rejected:');
+        inquiry.isRejected = true;
+      },
+      error: (err) => {
+        console.error('Error rejecting inquiry:', err);
+      },
+    });
   }
 
   callCustomer(number: string) {
@@ -51,11 +64,10 @@ export class EmailBookingComponent {
     this._emailService.confirmInquiry(inquiry.id).subscribe({
       next: (res) => {
         this._toaster.success('Inquiry confirmed:');
-        inquiry.isConfirmed = true; // UI me instantly reflect karne ke liye
+        inquiry.isConfirmed = true;
       },
       error: (err) => {
-        this._toaster.error('Error confirming inquiry:', err);
-        alert('Failed to confirm inquiry');
+        console.error('Error confirming inquiry:', err);
       },
     });
   }

@@ -40,17 +40,16 @@ export class DriverComponent {
             (b: { travelDate: string }) => b.travelDate > todayDateStr
           );
 
-          console.log('Current Bookings:', this.currentBookings);
-          console.log('Upcoming Rides:', this.upcomingRides);
+          console.log('Bookings loaded:', bookings);
+          console.log('Current bookings:', this.currentBookings);
+          console.log('Upcoming rides:', this.upcomingRides);
 
           this.rides = bookings.length;
           return bookings;
         })
       )
       .subscribe({
-        next: (bookings) => {
-          console.log('Bookings loaded:', bookings);
-        },
+        next: (bookings) => {},
         error: (err) => {
           console.error('Error loading bookings:', err);
           this.currentBookings = [];
@@ -60,5 +59,10 @@ export class DriverComponent {
   }
   onLogout() {
     this._employeService.logout();
+  }
+
+  callCustomer(number: string) {
+    console.log('Calling number:', number);
+    window.open(`tel:${number}`, '_self');
   }
 }

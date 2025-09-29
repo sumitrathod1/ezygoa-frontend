@@ -36,6 +36,8 @@ export class AppComponent {
   userRole$!: Observable<string | null>;
   isLoginPage$!: Observable<boolean>;
   backButtonListener: any;
+  private history: string[] = [];
+  private skipNextPush = false;
 
   constructor(
     private _employeService: EmployeeService,
@@ -45,11 +47,29 @@ export class AppComponent {
     this.userRole$ = this._employeService.userRole$;
     console.log('', this.userRole$);
 
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        if (this.skipNextPush) {
+          this.skipNextPush = false;
+          return;
+        }
+        if (
+          this.history.length === 0 ||
+          this.history[this.history.length - 1] !== event.urlAfterRedirects
+        ) {
+          this.history.push(event.urlAfterRedirects);
+        }
+      });
+
     this.backButtonListener = App.addListener('backButton', () => {
-      if (this.router.url === '/home') {
-        App.exitApp();
+      if (this.history.length > 1) {
+        this.history.pop();
+        const previousUrl = this.history[this.history.length - 1];
+        this.skipNextPush = true;
+        this.router.navigateByUrl(previousUrl);
       } else {
-        this.router.navigate(['/home']);
+        App.exitApp();
       }
     });
 
