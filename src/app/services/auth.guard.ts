@@ -6,6 +6,11 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const helper = new JwtHelperService();
   const token = localStorage.getItem('token');
+
+  if (state.url.includes('/forget')) {
+    return true;
+  }
+
   if (!token || helper.isTokenExpired(token)) {
     localStorage.removeItem('token');
     router.navigate(['/login']);

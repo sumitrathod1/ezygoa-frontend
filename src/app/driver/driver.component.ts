@@ -40,10 +40,6 @@ export class DriverComponent {
             (b: { travelDate: string }) => b.travelDate > todayDateStr
           );
 
-          console.log('Bookings loaded:', bookings);
-          console.log('Current bookings:', this.currentBookings);
-          console.log('Upcoming rides:', this.upcomingRides);
-
           this.rides = bookings.length;
           return bookings;
         })

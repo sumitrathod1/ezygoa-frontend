@@ -45,7 +45,6 @@ export class AppComponent {
   ) {}
   ngOnInit(): void {
     this.userRole$ = this._employeService.userRole$;
-    console.log('', this.userRole$);
 
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -80,7 +79,7 @@ export class AppComponent {
     );
 
     this.userRole$.subscribe((role) => {
-      if (this.router.url === '/') {
+      if (this.router.url === '/' || this.router.url === '') {
         if (role) {
           this.router.navigate(['/home']);
         } else {

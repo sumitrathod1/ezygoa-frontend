@@ -10,11 +10,13 @@ export const routes: Routes = [
       import('./login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'forget-password',
+    path: 'forget',
     loadComponent: () =>
       import('./login/forget-password/forget-password.component').then(
         (m) => m.ForgetPasswordComponent
       ),
+    data: { role: 'Admin' },
+    canActivate: [authGuard],
   },
   // {
   //   path: '',
