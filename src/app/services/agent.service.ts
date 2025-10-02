@@ -27,7 +27,6 @@ export class AgentService {
   }
 
   public addAgetn(agent: any): Observable<any> {
-    console.log('Agent data to be sent:', agent);
     return this._http.post(`${this.baseUrl}AddAgent`, agent).pipe(
       tap((res: any) => {
         this.agentUpdatedSubject.next();

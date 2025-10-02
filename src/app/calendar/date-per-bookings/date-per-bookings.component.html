@@ -1,43 +1,3 @@
-<!-- <div class="popup-backdrop" (click)="onClose()"></div>
-<div class="popup-card">
-  <div class="popup-header">
-    <h3>{{ formattedDate }}</h3>
-    <button (click)="onClose()">✕</button>
-  </div>
-
-  <div *ngIf="bookings.length; else noData">
-    <div class="booking-card" *ngFor="let b of bookings">
-      <div class="row top-row">
-        <div class="name">{{ b.customer.customerName }}</div>
-        <div class="time">{{ b.travelDate | date : "shortTime" }}</div>
-        <div class="amount">₹{{ b.amount }}</div>
-      </div>
-
-      <div class="row bottom-row">
-        <div class="from">{{ b.from }}</div>
-        <div class="to">{{ b.to }}</div>
-        <div class="vehicle">{{ b.vehicle?.vehicleName }}</div>
-        <button
-          class="call-btn"
-          (click)="callCustomer(b.customer.customerNumber)"
-        >
-          📞
-        </button>
-        <button
-          class="btn call"
-          (click)="callCustomer(b.customer.customerNumber)"
-          aria-label="Call Customer"
-        >
-          <span class="phone-icon">&#9742;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-  <ng-template #noData>
-    <p>No bookings for this date.</p>
-  </ng-template>
-</div> -->
-
 <div class="popup-backdrop" (click)="onClose()"></div>
 
 <div class="popup-card">
@@ -50,6 +10,7 @@
     <div class="booking-card" *ngFor="let b of bookings">
       <div class="booking-top">
         <strong>{{ b.customer.customerName }}</strong>
+        <span class="text-success fw-bold">{{ b.bookingType }}</span>
         <span
           title="Call"
           class="icon-btn call"

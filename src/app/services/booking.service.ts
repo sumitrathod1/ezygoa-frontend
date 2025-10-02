@@ -26,6 +26,9 @@ export class BookingService {
   private bookingUpdatedSubject = new BehaviorSubject<void>(undefined);
   bookingUpdated$ = this.bookingUpdatedSubject.asObservable();
 
+  private agentBookingCountSubject = new BehaviorSubject<number>(0);
+  agentBookingCount$ = this.agentBookingCountSubject.asObservable();
+
   constructor(private _http: HttpClient) {}
 
   newBooking(booking: any): Observable<any> {
@@ -118,5 +121,8 @@ export class BookingService {
         pageSize: pageSize.toString(),
       },
     });
+  }
+  updateAgentBookingCount(count: number) {
+    this.agentBookingCountSubject.next(count);
   }
 }

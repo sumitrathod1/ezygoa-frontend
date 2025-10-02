@@ -11,16 +11,25 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
   loginForm!: FormGroup;
+
+  showOldPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  togglePassword(field: string) {
+    if (field === 'new') this.showNewPassword = !this.showNewPassword;
+  }
 
   constructor(
     private _employeService: EmployeeService,
@@ -67,5 +76,9 @@ export class LoginComponent {
         },
       });
     }
+  }
+
+  viewForget() {
+    this.router.navigate(['/forget']);
   }
 }

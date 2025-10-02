@@ -1,6 +1,8 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { EmployeeService } from './employee.service';
+import { co } from '@fullcalendar/core/internal-common';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
@@ -31,6 +33,5 @@ export const authGuard: CanActivateFn = (route, state) => {
     }
     return false;
   }
-
   return true;
 };

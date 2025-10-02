@@ -115,6 +115,12 @@ export class HomeComponent {
           (b: any) => new Date(b.travelDate).toDateString() === todayStr
         );
 
+        const agentBookingsCount = allBookings.filter(
+          (b: any) => b.travelAgentId !== null
+        ).length;
+
+        this._bookingservice.updateAgentBookingCount(agentBookingsCount);
+
         this.upcomingBookings = allBookings
           .filter((b: any) => new Date(b.travelDate) > new Date())
           .sort(

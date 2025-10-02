@@ -62,6 +62,15 @@ export class EmployeeService {
     return this._http.post(`${this.baseUrl}authenticate`, data);
   }
 
+  changePassword(data: any): Observable<any> {
+    const pasData = {
+      UserName: data.UserName,
+      OldPassword: data.oldPassword,
+      NewPassword: data.newPassword,
+    };
+    return this._http.post(`${this.baseUrl}changePassword`, pasData);
+  }
+
   storeTokan(tokenValue: string) {
     localStorage.setItem('token', tokenValue);
     this.updateUserRole();

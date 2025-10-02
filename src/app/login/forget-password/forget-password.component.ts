@@ -6,6 +6,10 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { er } from '@fullcalendar/core/internal-common';
+import { EmployeeService } from '../../services/employee.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-forget-password',
@@ -17,11 +21,28 @@ import {
 export class ForgetPasswordComponent {
   forgotForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  showOldPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  togglePassword(field: string) {
+    if (field === 'old') this.showOldPassword = !this.showOldPassword;
+    if (field === 'new') this.showNewPassword = !this.showNewPassword;
+    if (field === 'confirm')
+      this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private _employeServes: EmployeeService,
+    private _toaster: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.forgotForm = this.fb.group(
       {
+        UserName: ['', Validators.required],
         oldPassword: ['', Validators.required],
         newPassword: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
@@ -33,6 +54,7 @@ export class ForgetPasswordComponent {
   passwordMatchValidator(form: FormGroup) {
     const newPassword = form.get('newPassword')?.value;
     const confirmPassword = form.get('confirmPassword')?.value;
+    if (!newPassword || !confirmPassword) return null;
     return newPassword === confirmPassword ? null : { mismatch: true };
   }
 
@@ -43,9 +65,18 @@ export class ForgetPasswordComponent {
     }
 
     const { oldPassword, newPassword } = this.forgotForm.value;
-    console.log('Old Password:', oldPassword);
-    console.log('New Password:', newPassword);
+    this._employeServes.changePassword(this.forgotForm.value).subscribe({
+      next: (res) => {
+        this._toaster.success(res.message);
+        this.router.navigate(['/login']);
+      },
+      error: (err: any) => {
+        this._toaster.error(err?.error.message);
+      },
+    });
+  }
 
-    alert('Password changed successfully!');
+  backLogin() {
+    this.router.navigate(['/login']);
   }
 }

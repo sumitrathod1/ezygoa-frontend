@@ -82,12 +82,16 @@
         <div class="booking-info ms-2 flex-grow-1">
           <div class="d-flex justify-content-between">
             <div>
-              <h3 class="mb-1">{{ booking.customer.customerName }}</h3>
+              <h3 class="mb-1">
+                {{ booking.customer.customerName }}
+                <span class="text-warning">{{ booking.bookingType }}</span>
+              </h3>
+
               <h4 class="text-muted small mb-0">
                 {{ booking.customer.customerNumber }}
               </h4>
               <h4 class="text-muted small mb-0">
-                {{ booking.travelDate }}: {{ booking.traveltime }}
+                {{ booking.travelDate }}: {{ booking.traveltime?.slice(0, 5) }}
               </h4>
             </div>
             <div class="text-end">
@@ -120,12 +124,15 @@
         <div class="booking-info ms-2 flex-grow-1">
           <div class="d-flex justify-content-between">
             <div>
-              <h3 class="mb-1">{{ booking.customer.customerName }}</h3>
+              <h3 class="mb-1">
+                {{ booking.customer.customerName }}
+                <span class="text-warning">{{ booking.bookingType }}</span>
+              </h3>
               <h4 class="text-muted small mb-0">
                 {{ booking.customer.customerNumber }}
               </h4>
               <h4 class="text-muted small mb-0">
-                {{ booking.travelDate }} : {{ booking.traveltime }}
+                {{ booking.travelDate }} : {{ booking.traveltime?.slice(0, 5) }}
               </h4>
             </div>
             <div class="text-end">

@@ -15,8 +15,8 @@ export const routes: Routes = [
       import('./login/forget-password/forget-password.component').then(
         (m) => m.ForgetPasswordComponent
       ),
-    data: { role: 'Admin' },
-    canActivate: [authGuard],
+    //data: { role: 'Admin' },
+    //canActivate: [authGuard],
   },
   // {
   //   path: '',

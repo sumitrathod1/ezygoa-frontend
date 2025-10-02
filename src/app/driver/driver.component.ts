@@ -33,7 +33,8 @@ export class DriverComponent {
           const todayDateStr = new Date().toISOString().slice(0, 10);
 
           this.currentBookings = bookings.filter(
-            (b: { travelDate: string }) => b.travelDate === todayDateStr
+            (b: { travelDate: string }) =>
+              new Date(b.travelDate).toISOString().slice(0, 10) === todayDateStr
           );
 
           this.upcomingRides = bookings.filter(

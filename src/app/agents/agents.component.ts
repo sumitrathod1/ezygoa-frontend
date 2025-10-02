@@ -8,6 +8,7 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ReportFormComponent } from './report-form/report-form.component';
 import { ToastrService } from 'ngx-toastr';
+import { BookingService } from '../services/booking.service';
 
 @Component({
   selector: 'app-agents',
@@ -34,7 +35,8 @@ export class AgentsComponent {
     private route: Router,
     private _dilog: MatDialog,
     private _agents: AgentService,
-    private _toaster: ToastrService
+    private _toaster: ToastrService,
+    private _bookingService: BookingService
   ) {}
   onAgentClick() {
     this._dilog.open(AgentFormComponent);
@@ -47,6 +49,10 @@ export class AgentsComponent {
     this.getAllAgents();
     this._agents.agentUpdated$.subscribe(() => {
       this.getAllAgents();
+    });
+
+    this._bookingService.agentBookingCount$.subscribe((count) => {
+      this.totalBookings = count;
     });
   }
 
