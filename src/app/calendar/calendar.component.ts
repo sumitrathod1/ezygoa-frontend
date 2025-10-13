@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { DatePerBookingsComponent } from './date-per-bookings/date-per-bookings.component';
 
 const VEHICLE_COLOR_MAP: Record<string, string> = {
-  Dzire: '#00bcd4',
-  Ertiga: '#f59e42',
-  Crysta: '#22c55e',
-  TT20: '#a78bfa',
-  TT17: '#6366f1',
+  Swift_Dezire: '#ffff00ff',
+  ERTIGA: '#003cffff',
+  TT20Seater: '#22c55e',
+  // Crysta: '#a78bfa',
+  // TT17: '#6366f1',
 };
 
 @Component({

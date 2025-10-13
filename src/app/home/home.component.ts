@@ -103,7 +103,6 @@ export class HomeComponent {
     this._bookingservice.loadBookings().subscribe({
       next: (data) => {
         this.isLoading = false;
-
         const allBookings = data.bookings.map((b: any, idx: number) => ({
           ...b,
           color: colorList[idx % colorList.length],
@@ -173,4 +172,15 @@ export class HomeComponent {
   //     },
   //   });
   // }
+
+  formatTime(time?: string | null): string {
+    if (!time) return '';
+    const parts = time.split(':');
+    if (parts.length < 2) return time;
+    const h = parseInt(parts[0], 10);
+    const m = parts[1].padStart(2, '0');
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${m} ${suffix}`;
+  }
 }

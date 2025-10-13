@@ -1,1 +1,0 @@
-import{G as a}from"./chunk-2A3JAHJ7.js";import{Nc as d,X as e,fa as r}from"./chunk-EKVFFD3M.js";var x=(()=>{class t{static{this.\u0275fac=function(i){return new(i||t)}}static{this.\u0275mod=r({type:t})}static{this.\u0275inj=e({imports:[a,d,a]})}}return t})();export{x as a};

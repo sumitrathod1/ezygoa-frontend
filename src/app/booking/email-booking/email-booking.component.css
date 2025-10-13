@@ -94,3 +94,8 @@
 .inquiry-details span {
   min-width: 88px;
 }
+.no-bookings {
+  text-align: center;
+  color: #888;
+  font-size: 20px;
+}

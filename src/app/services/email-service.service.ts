@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Subject, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -35,5 +35,17 @@ export class EmailServiceService {
           this.emailUpdatedSubject.next();
         })
       );
+  }
+
+  getNotification(): Observable<any> {
+    return this._http.get(`${this.baseUrl}notifications`);
+  }
+
+  markNotificationRead(id: number) {
+    return this._http.put(`${this.baseUrl}notifications/mark-read/${id}`, {});
+  }
+
+  markAllNotificationsRead() {
+    return this._http.put(`${this.baseUrl}notifications/mark-all-read`, {});
   }
 }

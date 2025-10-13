@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewChild, OnInit } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,12 +24,18 @@ import { VehicleService } from '../../services/vehicle.service';
 import { AgentService } from '../../services/agent.service';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
+import { map, Observable, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-booking-form',
   standalone: true,
   imports: [
     NgxMaterialTimepickerModule,
+    MatAutocompleteModule,
     FormsModule,
     CommonModule,
     MatNativeDateModule,
@@ -46,7 +52,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './booking-form.component.html',
   styleUrl: './booking-form.component.css',
 })
-export class BookingFormComponent {
+export class BookingFormComponent implements OnInit {
   BookingType = [
     'AirportPickup',
     'AirportDrop',
@@ -69,6 +75,15 @@ export class BookingFormComponent {
   times: string[] = [];
   isEditMode = false;
 
+  filteredFrom$!: Observable<string[]>;
+  filteredTo$!: Observable<string[]>;
+
+  @ViewChild('fromTrigger', { read: MatAutocompleteTrigger })
+  fromTrigger!: MatAutocompleteTrigger;
+
+  @ViewChild('toTrigger', { read: MatAutocompleteTrigger })
+  toTrigger!: MatAutocompleteTrigger;
+
   constructor(
     private _fb: FormBuilder,
     private _bookingService: BookingService,
@@ -81,13 +96,15 @@ export class BookingFormComponent {
   ) {
     this.bookingForm = _fb.group({
       bookingId: data?.bookingId ?? null,
-      customerName: data?.customer?.customerName ?? '',
-      // customerNumber: data?.customer?.customerNumber ?? '',
+      customerName: [
+        data?.customer?.customerName ?? data?.customerName ?? '',
+        [Validators.required],
+      ],
       customerNumber: [
-        data?.customer?.customerNumber ?? '',
+        data?.customer?.customerNumber ?? data?.customerNumber ?? '',
         [
           Validators.required,
-          Validators.pattern(/^(\+91)?\d{10}$/), // +91 optional + 10 digits
+          Validators.pattern(/^(\+91\s*|91\s*|0)?[6-9][0-9]{9}$/),
         ],
       ],
       pax: data?.pax ?? '',
@@ -95,10 +112,13 @@ export class BookingFormComponent {
       to: Array.isArray(data?.to) ? data.to[0] : data?.to ?? '',
       travelDate: data?.travelDate ?? '',
       travelTime: data?.traveltime ?? '',
-      driver: data?.userid ?? '',
-      vehicle: data?.vehicleId ?? '',
+      driver: [data?.userid ?? '', [Validators.required]],
+      vehicle: [
+        data?.vehicle?.vehicleId ?? data?.vehicleId ?? '',
+        [Validators.required],
+      ],
       amount: data?.amount ?? '',
-      bookingType: data?.bookingType ?? '',
+      bookingType: [data?.bookingType ?? '', [Validators.required]],
       payment: data?.payment ?? '',
       ownerPay: data?.ownerPay ?? null,
       customerPay: data?.customerPay ?? null,
@@ -107,15 +127,40 @@ export class BookingFormComponent {
 
     if (data) {
       this.isEditMode = true;
-      this.bookingForm.patchValue(data);
+
+      const patch: any = { ...data };
+      if (data.vehicle && typeof data.vehicle === 'object') {
+        patch.vehicle = data.vehicle.vehicleId ?? data.vehicleId ?? '';
+      }
+
+      patch.driver = data.driver ?? data.userid ?? patch.driver;
+
+      if (Array.isArray(patch.from)) patch.from = patch.from[0];
+      if (Array.isArray(patch.to)) patch.to = patch.to[0];
+      this.bookingForm.patchValue(patch);
+      console.log('Form value:', this.bookingForm.value);
     }
   }
 
   ngOnInit() {
+    this.filteredFrom$ = this.bookingForm.get('from')!.valueChanges.pipe(
+      startWith(this.bookingForm.get('from')!.value || ''),
+      map((v) => this._filterStates(v))
+    );
+
+    this.filteredTo$ = this.bookingForm.get('to')!.valueChanges.pipe(
+      startWith(this.bookingForm.get('to')!.value || ''),
+      map((v) => this._filterStates(v))
+    );
     this.generateTimeSlots();
     this.loadEmployees();
     this.loadVehciles();
     this.loadAgents();
+  }
+
+  private _filterStates(value: string): string[] {
+    const filter = (value || '').toString().toLowerCase();
+    return this.states.filter((s) => s.toLowerCase().includes(filter));
   }
 
   loadAgents() {
@@ -189,13 +234,14 @@ export class BookingFormComponent {
 
   onFormSubmit() {
     if (this.bookingForm.valid) {
-      console.log(this.bookingForm.value);
-      this._bookingService.newBooking(this.bookingForm.value).subscribe({
+      const bookingData = this.bookingForm.value;
+      this._bookingService.newBooking(bookingData).subscribe({
         next: (val: any) => {
           this._bookingService.loadBookings().subscribe();
           this._toastr.success(val.message || 'Booking is added successfully');
         },
         error: (err: any) => {
+          console.error('Error response:', err);
           this._toastr.error(
             err?.error?.message || 'Error while adding booking',
             'Failed'
@@ -203,6 +249,8 @@ export class BookingFormComponent {
         },
       });
       this._dilog.closeAll();
+    } else {
+      console.warn('Form is invalid:', this.bookingForm.errors);
     }
   }
   clossBooking() {

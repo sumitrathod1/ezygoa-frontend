@@ -29,10 +29,32 @@
 
   <span class="example-spacer"></span>
 
-  <button mat-icon-button aria-label="Notifications">
-    <mat-icon>notifications</mat-icon>
+  <button
+    mat-icon-button
+    aria-label="Notifications"
+    (click)="toggleNotifications()"
+  >
+    <mat-icon
+      [matBadge]="unreadCount"
+      matBadgeColor="warn"
+      matBadgeOverlap="false"
+      [matBadgeHidden]="unreadCount === 0"
+      >notifications</mat-icon
+    >
   </button>
 </mat-toolbar>
+
+<div
+  class="notification-slide"
+  *ngIf="showNotifications"
+  (click)="closeOnOutside($event)"
+>
+  <app-notification
+    *ngIf="showNotifications"
+    class="notification-slide"
+    (close)="toggleNotifications()"
+  ></app-notification>
+</div>
 
 <mat-menu #menu="matMenu">
   <button mat-menu-item routerLink="/employee">Drivers</button>

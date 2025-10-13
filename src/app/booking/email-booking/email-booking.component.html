@@ -1,3 +1,4 @@
+<div *ngIf="inquiries.length; else noData"></div>
 <div class="inquiry-card" *ngFor="let inquiry of inquiries">
   <div class="inquiry-header">
     <div class="customer-name">{{ inquiry.customerName }}</div>
@@ -37,3 +38,7 @@
     <span><b>Vehicle:</b> {{ inquiry.vehicleName || "N/A" }}</span>
   </div>
 </div>
+
+<ng-template #noData>
+  <p class="no-bookings">There is No Enquiry found.</p>
+</ng-template>

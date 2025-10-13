@@ -9,7 +9,7 @@
   <div *ngIf="bookings.length; else noData">
     <div class="booking-card" *ngFor="let b of bookings">
       <div class="booking-top">
-        <strong>{{ b.customer.customerName }}</strong>
+        <strong (click)="editBooking(b)">{{ b.customer.customerName }}</strong>
         <span class="text-success fw-bold">{{ b.bookingType }}</span>
         <span
           title="Call"
@@ -33,6 +33,9 @@
       <div class="booking-row">
         <span><b>Pax:</b> {{ b.pax || 4 }}</span>
         <span><b>Vehicle:</b> {{ b.vehicle?.vehicleName }}</span>
+      </div>
+      <div class="booking-row">
+        <span><b>Time:</b> {{ formatTime(b.traveltime) }}</span>
       </div>
       <div class="action-icons"></div>
     </div>

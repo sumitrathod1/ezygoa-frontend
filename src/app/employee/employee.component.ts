@@ -33,6 +33,7 @@ export class EmployeeComponent {
       next: (data) => {
         this.drivers = Array.isArray(data) ? data : [];
         this.numberofDrivers = this.drivers.length;
+        console.log('Drivers loaded:', this.drivers);
       },
       error: (err) => {
         console.error('Error loading drivers:', err);

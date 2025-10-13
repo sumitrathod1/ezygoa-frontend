@@ -44,10 +44,10 @@
                   {{ booking.pax }}
                 </span>
               </div>
-              <div class="ms-auto text-success fw-bold fs-5">
+              <div class="ms-auto text-success fw-bold fs-6">
                 {{ booking.amount }}
                 <span class="text-muted fs-6 ms-1">
-                  {{ booking.traveltime?.slice(0, 5) }}
+                  {{ formatTime(booking.traveltime) }}
                 </span>
               </div>
             </div>
@@ -119,7 +119,7 @@
               <div class="ms-auto text-success fw-bold fs-6">
                 {{ booking.amount }}
                 <span class="text-muted fs-6 ms-1">
-                  {{ booking.traveltime?.slice(0, 5) }}
+                  {{ formatTime(booking.traveltime) }}
                 </span>
               </div>
             </div>

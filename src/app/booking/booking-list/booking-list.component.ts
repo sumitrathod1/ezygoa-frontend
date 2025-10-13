@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { BookingService } from '../../services/booking.service';
 import { CommonModule } from '@angular/common';
+import { co } from '@fullcalendar/core/internal-common';
 
 @Component({
   selector: 'app-booking-list',
@@ -14,6 +15,9 @@ export class BookingListComponent {
 
   constructor(private _bookingService: BookingService) {}
   ngOnInit() {
+    this._bookingService.bookingAdded$.subscribe(() => {
+      this.loadAllBookings();
+    });
     this.loadAllBookings();
   }
 

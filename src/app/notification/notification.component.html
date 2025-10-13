@@ -1,0 +1,80 @@
+<mat-card class="notifications-container">
+  <div class="header">
+    <h3>Notifications</h3>
+    <button class="close-btn" (click)="onClose()" matTooltip="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="filter-bar">
+    <button
+      class="filter-btn"
+      [class.active]="filter === 'All'"
+      (click)="setFilter('All')"
+    >
+      All
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filter === 'Inquiries'"
+      (click)="setFilter('Inquiries')"
+    >
+      Bookings
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filter === 'Payments'"
+      (click)="setFilter('Payments')"
+    >
+      Payments
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filter === 'Updates'"
+      (click)="setFilter('Updates')"
+    >
+      Updates
+    </button>
+  </div>
+
+  <div class="notification-list">
+    <div
+      *ngFor="let n of filteredNotifications"
+      class="notification-item"
+      [style.border-left-color]="n.colorTag"
+    >
+      <div class="icon" [style.background]="n.colorTag">
+        <mat-icon>notifications</mat-icon>
+      </div>
+
+      <div class="content">
+        <div class="top-row">
+          <strong>{{ n.title }}</strong>
+          <span class="time">{{ timeAgo(n.createdAt) }}</span>
+        </div>
+
+        <p class="body">{{ n.Message }}</p>
+
+        <div class="actions">
+          <button class="link" (click)="performAction(n)">
+            {{ n.actionLabel }}
+          </button>
+          <button class="link dismiss" (click)="markAsRead(n)">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredNotifications.length === 0" class="no-notifications">
+      No notifications 📭
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="footer-btn" (click)="markAllAsRead()">
+      Mark All as Read
+    </button>
+    <!-- <button class="footer-btn clear" (click)="clearAll()">
+      Clear All Notifications
+    </button> -->
+  </div>
+</mat-card>

@@ -28,6 +28,9 @@ export class BookingTableComponent {
     //   this.loadAllbookings();
     // });
     this.applyFilter();
+    this._bookingservice.bookingUpdated$.subscribe(() => {
+      this.applyFilter();
+    });
   }
 
   loadAllbookings() {
@@ -35,6 +38,7 @@ export class BookingTableComponent {
       next: (data) => {
         this.bookings = data.bookings;
         this._bookingservice.updateBookingCount(this.bookings.length);
+        console.log('Bookings :' + data);
       },
       error: (err) => {
         console.error('Error loading bookings:', err);
@@ -94,5 +98,16 @@ export class BookingTableComponent {
     if (page < 1 || page > this.pagination.totalPages) return;
     this.pagination.pageNumber = page;
     this.applyFilter();
+  }
+
+  formatTime(time?: string | null): string {
+    if (!time) return '';
+    const parts = time.split(':');
+    if (parts.length < 2) return time;
+    const h = parseInt(parts[0], 10);
+    const m = parts[1].padStart(2, '0');
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${m} ${suffix}`;
   }
 }

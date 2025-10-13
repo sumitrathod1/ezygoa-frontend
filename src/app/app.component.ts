@@ -78,8 +78,19 @@ export class AppComponent {
       startWith(this.router.url.includes('/login'))
     );
 
+    // this.userRole$.subscribe((role) => {
+    //   if (this.router.url === '/' || this.router.url === '') {
+    //     if (role) {
+    //       this.router.navigate(['/home']);
+    //     } else {
+    //       this.router.navigate(['/login']);
+    //     }
+    //   }
+    // });
+
     this.userRole$.subscribe((role) => {
-      if (this.router.url === '/' || this.router.url === '') {
+      const currentUrl = this.router.url;
+      if (currentUrl === '/' || currentUrl === '' || currentUrl === '/login') {
         if (role) {
           this.router.navigate(['/home']);
         } else {

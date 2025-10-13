@@ -16,12 +16,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
+import { NotificationComponent } from '../notification/notification.component';
+
+import { MatBadgeModule } from '@angular/material/badge';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     MatIconModule,
+    MatBadgeModule,
     MatMenuModule,
     MatButtonModule,
     MatToolbarModule,
@@ -31,11 +35,14 @@ import { EmployeeService } from '../services/employee.service';
     CommonModule,
     MatDatepickerModule,
     RouterModule,
+    NotificationComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
+  showNotifications = false;
+  unreadCount: number = 5;
   constructor(
     private _dialog: MatDialog,
     private _employeService: EmployeeService
@@ -53,5 +60,16 @@ export class HeaderComponent {
   }
   onLogout() {
     this._employeService.logout();
+  }
+
+  toggleNotifications() {
+    this.showNotifications = !this.showNotifications;
+  }
+
+  closeOnOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('notification-slide')) {
+      this.showNotifications = false;
+    }
   }
 }

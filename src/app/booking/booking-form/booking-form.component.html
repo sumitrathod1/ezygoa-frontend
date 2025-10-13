@@ -41,7 +41,7 @@
           <input
             matInput
             type="text"
-            maxlength="12"
+            maxlength="14"
             formControlName="customerNumber"
           />
         </mat-form-field>
@@ -103,7 +103,7 @@
     </div>
     <!-- Row 3 -->
     <div class="row">
-      <div class="col-sm-6">
+      <!-- <div class="col-sm-6">
         <mat-form-field appearance="outline" style="flex: 1">
           <mat-label>From</mat-label>
           <mat-select formControlName="from">
@@ -113,9 +113,29 @@
             }
           </mat-select>
         </mat-form-field>
-      </div>
+      </div> -->
 
       <div class="col-sm-6">
+        <mat-form-field appearance="outline" style="flex: 1">
+          <mat-label>From</mat-label>
+          <input
+            matInput
+            placeholder="Type or select"
+            formControlName="from"
+            [matAutocomplete]="autoFrom"
+            #fromTrigger="matAutocompleteTrigger"
+            (focus)="fromTrigger.openPanel()"
+            autocomplete="off"
+          />
+          <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
+            <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">
+              {{ s }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+
+      <!-- <div class="col-sm-6">
         <mat-form-field appearance="outline" style="flex: 1">
           <mat-label>TO</mat-label>
           <mat-select formControlName="to">
@@ -124,6 +144,26 @@
             <mat-option [value]="vtypes">{{ vtypes }}</mat-option>
             }
           </mat-select>
+        </mat-form-field>
+      </div> -->
+
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline" style="flex: 1">
+          <mat-label>TO</mat-label>
+          <input
+            matInput
+            placeholder="Type or select"
+            formControlName="to"
+            [matAutocomplete]="autoTo"
+            #toTrigger="matAutocompleteTrigger"
+            (focus)="toTrigger.openPanel()"
+            autocomplete="off"
+          />
+          <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
+            <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">
+              {{ s }}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
       </div>
     </div>

@@ -30,7 +30,8 @@ export class DriverComponent {
         map((response) => {
           const bookings = response ?? [];
 
-          const todayDateStr = new Date().toISOString().slice(0, 10);
+          //const todayDateStr = new Date().toISOString().slice(0, 10);
+          const todayDateStr = new Date().toLocaleDateString('en-CA');
 
           this.currentBookings = bookings.filter(
             (b: { travelDate: string }) =>
@@ -61,5 +62,16 @@ export class DriverComponent {
   callCustomer(number: string) {
     console.log('Calling number:', number);
     window.open(`tel:${number}`, '_self');
+  }
+
+  formatTime(time?: string | null): string {
+    if (!time) return '';
+    const parts = time.split(':');
+    if (parts.length < 2) return time;
+    const h = parseInt(parts[0], 10);
+    const m = parts[1].padStart(2, '0');
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${m} ${suffix}`;
   }
 }

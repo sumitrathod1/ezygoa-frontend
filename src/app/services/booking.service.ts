@@ -32,11 +32,22 @@ export class BookingService {
   constructor(private _http: HttpClient) {}
 
   newBooking(booking: any): Observable<any> {
+    const convertTo24Hour = (time12h: string): string => {
+      if (!time12h) return '';
+      const [time, modifier] = time12h.split(' ');
+      let [hours, minutes] = time.split(':');
+      let h = parseInt(hours, 10);
+
+      if (modifier?.toUpperCase() === 'PM' && h < 12) h += 12;
+      if (modifier?.toUpperCase() === 'AM' && h === 12) h = 0;
+
+      return `${h.toString().padStart(2, '0')}:${minutes}`;
+    };
     const bookingData = {
       bookingId: booking.bookingId ?? 0,
       customerName: booking.customerName,
       customerNumber: booking.customerNumber ?? '',
-      bookingTime: booking.travelTime?.split(' ')[0],
+      bookingTime: convertTo24Hour(booking.travelTime), //booking.travelTime?.split(' ')[0],
       from: booking.from,
       to: booking.to,
       pax: booking.pax,
@@ -63,8 +74,6 @@ export class BookingService {
       vehicleId: booking.vehicle,
       userId: booking.driver,
     };
-
-    console.log('Booking data to be sent (bookingData object):', bookingData);
     return this._http.post(`${this.baseUrl}New-Booking`, bookingData).pipe(
       tap((res: any) => {
         this.bookingAddedSubject.next(res.newBooking);

@@ -18,6 +18,15 @@ export const routes: Routes = [
     //data: { role: 'Admin' },
     //canActivate: [authGuard],
   },
+  {
+    path: 'notification',
+    loadComponent: () =>
+      import('./notification/notification.component').then(
+        (m) => m.NotificationComponent
+      ),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
   // {
   //   path: '',
   //   loadComponent: () =>
