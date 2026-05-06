@@ -22,6 +22,22 @@ export class VehicleService {
     return this._http.get(`${this.baseUrl}GetAllexpence`);
   }
 
+  getFilteredExpenses(params?: { vehicleId?: number; type?: string; startDate?: string; endDate?: string }) {
+    return this._http.get(`${this.baseUrl}GetFilteredExpenses`, { params: params as any });
+  }
+
+  getExpenseSummary(params?: { vehicleId?: number; startDate?: string; endDate?: string }) {
+    return this._http.get<any>(`${this.baseUrl}GetExpenseSummary`, { params: params as any });
+  }
+
+  updateExpense(id: number, data: any) {
+    return this._http.put(`${this.baseUrl}UpdateExpense/${id}`, data);
+  }
+
+  deleteExpense(id: number) {
+    return this._http.delete(`${this.baseUrl}DeleteExpense/${id}`);
+  }
+
   getAllDocuments() {
     return this._http.get(`${this.baseUrl}GetAllDocuments`);
   }

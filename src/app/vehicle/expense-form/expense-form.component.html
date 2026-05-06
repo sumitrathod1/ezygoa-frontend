@@ -3,7 +3,7 @@
   <div class="vf-header expense-header">
     <div class="vf-header-icon"><i class="bi bi-cash-coin"></i></div>
     <div class="vf-header-text">
-      <div class="vf-header-title">Add Expense</div>
+      <div class="vf-header-title">{{ isEditMode ? 'Edit Expense' : 'Add Expense' }}</div>
       <div class="vf-header-sub">Record vehicle expenditure</div>
     </div>
     <button class="vf-close-btn" type="button" (click)="onCloseExpense()">
@@ -69,12 +69,25 @@
         </span>
       </div>
 
+      <!-- Notes -->
+      <div class="vf-field">
+        <label class="vf-label">
+          <i class="bi bi-chat-left-text vf-lbl-icon"></i> Notes
+        </label>
+        <input
+          class="vf-input"
+          type="text"
+          placeholder="Optional description…"
+          formControlName="notes"
+        />
+      </div>
+
       <!-- Footer -->
       <div class="vf-footer">
         <button class="vf-btn-cancel" type="button" (click)="onCloseExpense()">Cancel</button>
         <button class="vf-btn-submit" type="submit" [disabled]="isSubmitting">
           <i class="bi bi-check-circle-fill"></i>
-          {{ isSubmitting ? 'Saving…' : 'Add Expense' }}
+          {{ isSubmitting ? 'Saving…' : (isEditMode ? 'Update Expense' : 'Add Expense') }}
         </button>
       </div>
 

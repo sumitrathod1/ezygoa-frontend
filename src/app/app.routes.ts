@@ -258,6 +258,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'expenses',
+    loadComponent: () =>
+      import('./expenses/expenses.component').then((m) => m.ExpensesComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
     path: 'bulk-upload',
     loadComponent: () =>
       import('./bulk-upload/bulk-upload.component').then((m) => m.BulkUploadComponent),

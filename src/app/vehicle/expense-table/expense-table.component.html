@@ -7,7 +7,7 @@
       <input
         class="vt-search"
         type="text"
-        placeholder="Search vehicle or type…"
+        placeholder="Search vehicle, type or notes…"
         [(ngModel)]="searchQuery"
       />
     </div>
@@ -34,7 +34,9 @@
           <th>Vehicle</th>
           <th>Date</th>
           <th>Type</th>
+          <th>Notes</th>
           <th class="text-end">Amount</th>
+          <th class="text-end">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -46,13 +48,23 @@
               {{ e.categoryType }}
             </span>
           </td>
+          <td class="vt-notes">{{ e.notes || '—' }}</td>
           <td class="text-end vt-amount">₹{{ e.amount | number }}</td>
+          <td class="text-end vt-actions">
+            <button class="vt-act-btn edit" (click)="editExpense(e)" title="Edit">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="vt-act-btn del" (click)="deleteExpense(e)" title="Delete">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="vt-total-row">
-          <td colspan="3">Total</td>
+          <td colspan="4">Total</td>
           <td class="text-end">₹{{ totalAmount | number }}</td>
+          <td></td>
         </tr>
       </tfoot>
     </table>
