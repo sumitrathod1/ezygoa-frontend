@@ -10,8 +10,8 @@
     <ng-container *ngIf="role === 'Admin'">
       <app-header></app-header>
       <div class="app-body">
-        <!-- Desktop sidebar (hidden on mobile/tablet) -->
-        <nav class="desktop-sidebar">
+        <!-- Desktop sidebar (hidden on mobile/tablet, hidden on login) -->
+        <nav class="desktop-sidebar" *ngIf="!(isLoginPage$ | async)">
           <a class="ds-item" routerLink="/home" routerLinkActive="ds-active">
             <i class="bi bi-house-heart-fill"></i><span>Home</span>
           </a>
@@ -47,7 +47,7 @@
           <router-outlet></router-outlet>
         </div>
       </div>
-      <app-footer></app-footer>
+      <app-footer *ngIf="!(isLoginPage$ | async)"></app-footer>
     </ng-container>
 
     <ng-container *ngIf="role === 'Employee'">

@@ -14,18 +14,46 @@
 </mat-toolbar>
 
 <mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/employee">Drivers</button>
-  <button mat-menu-item (click)="addVehicle()">Add Vehicle</button>
-  <button mat-menu-item routerLink="/email-booking">Enquery</button>
-  <button mat-menu-item routerLink="/vendor-settlements">Extra</button>
+  <button mat-menu-item routerLink="/home">
+    <i class="bi bi-house-heart-fill" style="margin-right:6px;color:#6366f1"></i> Home
+  </button>
+  <button mat-menu-item routerLink="/booking">
+    <i class="bi bi-calendar-date" style="margin-right:6px;color:#6366f1"></i> Bookings
+  </button>
+  <button mat-menu-item routerLink="/vehicle">
+    <i class="bi bi-car-front-fill" style="margin-right:6px;color:#6366f1"></i> Vehicles
+  </button>
+  <button mat-menu-item routerLink="/employee">
+    <i class="bi bi-people-fill" style="margin-right:6px;color:#6366f1"></i> Drivers
+  </button>
+  <button mat-menu-item (click)="addVehicle()">
+    <i class="bi bi-plus-circle-fill" style="margin-right:6px;color:#22c55e"></i> Add Vehicle
+  </button>
+  <button mat-menu-item routerLink="/agents">
+    <i class="bi bi-person-badge-fill" style="margin-right:6px;color:#6366f1"></i> Agents
+  </button>
+  <button mat-menu-item routerLink="/earnings">
+    <i class="bi bi-graph-up-arrow" style="margin-right:6px;color:#10b981"></i> Earnings
+  </button>
+  <button mat-menu-item routerLink="/expenses">
+    <i class="bi bi-cash-stack" style="margin-right:6px;color:#f97316"></i> Expenses
+  </button>
+  <button mat-menu-item routerLink="/email-booking">
+    <i class="bi bi-envelope-fill" style="margin-right:6px;color:#6366f1"></i> Enquiry
+  </button>
+  <button mat-menu-item routerLink="/vendor-settlements">
+    <i class="bi bi-cash-coin" style="margin-right:6px;color:#d97706"></i> Extra
+  </button>
   <button mat-menu-item routerLink="/business-hub">
     <i class="bi bi-briefcase-fill" style="margin-right:6px;color:#0d6e6e"></i> Business Hub
   </button>
   <button mat-menu-item routerLink="/document-vault">
-    <i class="bi bi-folder2-open" style="margin-right:6px;color:#0d6e6e"></i> Document Vault
+    <i class="bi bi-folder2-open" style="margin-right:6px;color:#0d6e6e"></i> Documents
   </button>
   <button mat-menu-item routerLink="/bulk-upload">
     <i class="bi bi-cloud-upload-fill" style="margin-right:6px;color:#0d6e6e"></i> Bulk Upload
   </button>
-  <button mat-menu-item (click)="onLogout()">Logout</button>
+  <button mat-menu-item (click)="onLogout()">
+    <i class="bi bi-box-arrow-right" style="margin-right:6px;color:#ef4444"></i> Logout
+  </button>
 </mat-menu>
