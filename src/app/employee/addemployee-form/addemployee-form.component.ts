@@ -62,7 +62,7 @@ export class AddemployeeFormComponent {
       ],
       Number: [
         editData?.number || editData?.phone || '',
-        Validators.pattern(/^[6-9][0-9]{9}$/),
+        Validators.pattern(/^(\+91[\s-]?)?[6-9]\d{9}$/),
       ],
       Salary: editData?.salary || '',
       SalaryDay: [editData?.salaryDay ?? editData?.SalaryDay ?? 1],

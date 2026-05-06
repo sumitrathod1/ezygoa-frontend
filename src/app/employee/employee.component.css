@@ -202,6 +202,12 @@
   }
 }
 
+@media (min-width: 900px) {
+  .driver-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (min-width: 1024px) {
   .dashboard-container {
     padding: 24px;
@@ -209,12 +215,9 @@
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  .driver-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1200px) {
   .driver-list {
     grid-template-columns: repeat(4, 1fr);
   }

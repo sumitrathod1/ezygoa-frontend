@@ -95,12 +95,15 @@
   .hub-grid { grid-template-columns: 1fr; }
 }
 
+@media (min-width: 768px) {
+  .hub-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (min-width: 1024px) {
   .hub-page { padding: 24px; }
-  .hub-grid { grid-template-columns: repeat(3, 1fr); max-width: 1200px; margin: 0 auto; }
+  .hub-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (min-width: 1440px) {
   .hub-page { padding: 32px; }
-  .hub-grid { grid-template-columns: repeat(4, 1fr); max-width: 1400px; }
 }

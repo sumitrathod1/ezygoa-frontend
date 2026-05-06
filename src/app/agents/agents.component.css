@@ -207,13 +207,16 @@
   .ag-kpi { min-width: calc(50% - 4px); }
 }
 
+@media (min-width: 768px) {
+  .ag-list { grid-template-columns: 1fr 1fr; }
+}
+
 @media (min-width: 1024px) {
   .ag-page { padding: 24px 24px 24px; }
-  .ag-list { grid-template-columns: 1fr 1fr; }
+  .ag-list { grid-template-columns: repeat(3, 1fr); }
   .ag-kpi-row { flex-wrap: nowrap; }
 }
 
 @media (min-width: 1440px) {
   .ag-page { padding: 32px; }
-  .ag-list { grid-template-columns: repeat(3, 1fr); }
 }
