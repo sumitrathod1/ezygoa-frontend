@@ -1,23 +1,62 @@
 <div class="dashboard-container">
+  <!-- Top KPI cards -->
   <div class="stats-grid">
     <div class="stat-card" routerLink="/employee-list">
-      <p class="stat-label">Active Drivers</p>
+      <div class="stat-icon-wrap">
+        <i class="bi bi-person-check-fill"></i>
+      </div>
       <p class="stat-value">{{ numberofDrivers }}</p>
+      <p class="stat-label">Active Drivers</p>
     </div>
-
     <div class="stat-card" (click)="addDriver()">
-      <p class="stat-label">Add driver</p>
-      <a class="stat-value"><i class="bi bi-person-plus-fill"></i></a>
+      <div class="stat-icon-wrap add-icon">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <p class="stat-value">+</p>
+      <p class="stat-label">Add Driver</p>
     </div>
   </div>
 
-  <h3 class="section-title">Active Drivers</h3>
+  <!-- Section header -->
+  <div class="section-header">
+    <h3 class="section-title">Driver List</h3>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Search by name or location…"
+      [(ngModel)]="searchQuery"
+    />
+  </div>
+
+  <!-- Driver list -->
   <div class="driver-list">
-    <div class="driver-card" *ngFor="let driver of drivers">
-      <div>
-        <p class="driver-name">{{ driver.employeeName }}</p>
-        <p class="driver-location">Location: {{ driver.address }}</p>
+    <div class="driver-card" *ngFor="let driver of filteredDrivers">
+      <div
+        class="driver-avatar"
+        [style.background]="getAvatarColor(driver.employeeName)"
+      >
+        {{ getInitials(driver.employeeName) }}
       </div>
+      <div class="driver-info">
+        <div class="driver-name">{{ driver.employeeName || 'Unknown Driver' }}</div>
+        <div class="driver-location">
+          <i class="bi bi-geo-alt-fill"></i> {{ driver.address || 'No location' }}
+        </div>
+        <div class="driver-phone" *ngIf="driver.number || driver.phone">
+          <i class="bi bi-telephone-fill"></i> {{ driver.number || driver.phone }}
+        </div>
+      </div>
+      <span class="status-badge active">Active</span>
+    </div>
+
+    <div *ngIf="filteredDrivers.length === 0" class="empty-state">
+      <i class="bi bi-person-x fs-2 d-block mb-2"></i>
+      No drivers found.
     </div>
   </div>
 </div>

@@ -19,13 +19,44 @@ export class VehicleComponent {
   vehicleDocuments: any = [];
   expenses: any = [];
   vehicleMaintenances: any = [];
+  vehicles: any[] = [];
 
   totlalMaintenanceCost: number = 0;
   totalExpenseCost: number = 0;
 
-  //allExpenses = this.totalExpenseCost + this.totlalMaintenanceCost;
   get allExpenses() {
     return this.totalExpenseCost + this.totlalMaintenanceCost;
+  }
+
+  get totalVehicles() { return this.vehicles.length; }
+
+  get inMaintenanceCount() {
+    const vehicleIds = new Set(
+      this.vehicleMaintenances
+        .filter((m: any) => this.getDaysLeftNumber(m.nextduedate) <= 7)
+        .map((m: any) => m.vehicle?.vehicleId)
+    );
+    return vehicleIds.size;
+  }
+
+  get activeVehicles() {
+    return Math.max(0, this.totalVehicles - this.inMaintenanceCount);
+  }
+
+  get expensesByVehicle(): { name: string; amount: number }[] {
+    const map: Record<string, { name: string; amount: number }> = {};
+    this.expenses.forEach((e: any) => {
+      const id = e.vehicle?.vehicleId ?? 'unknown';
+      const name = e.vehicle?.vehicleName || 'Unknown';
+      if (!map[id]) map[id] = { name, amount: 0 };
+      map[id].amount += e.amount || 0;
+    });
+    return Object.values(map).sort((a, b) => b.amount - a.amount);
+  }
+
+  get maxVehicleExpense(): number {
+    const vals = this.expensesByVehicle.map((v) => v.amount);
+    return vals.length ? Math.max(...vals) : 1;
   }
   constructor(
     private _dilog: MatDialog,
@@ -45,18 +76,24 @@ export class VehicleComponent {
   }
 
   ngOnInit() {
+    this.loadVehicles();
     this.loadAllDocuments();
     this.loadExpenses();
     this.loadMaintenance();
+  }
+
+  loadVehicles() {
+    this._vehicleService.getAllVehicles().subscribe({
+      next: (data: any) => {
+        this.vehicles = Array.isArray(data) ? data : [];
+      },
+    });
   }
 
   loadAllDocuments() {
     this._vehicleService.getAllDocuments().subscribe({
       next: (data) => {
         this.vehicleDocuments = Array.isArray(data) ? data : [];
-      },
-      error: (err) => {
-        console.error('Error loading documents:', err);
       },
     });
   }
@@ -66,14 +103,9 @@ export class VehicleComponent {
       next: (data) => {
         this.expenses = Array.isArray(data) ? data : [];
         this.totalExpenseCost = this.expenses.reduce(
-          (total: number, exp: any) => {
-            return total + (exp.amount || 0);
-          },
+          (total: number, exp: any) => total + (exp.amount || 0),
           0
         );
-      },
-      error: (error) => {
-        console.error('Error loading expenses:', error);
       },
     });
   }
@@ -83,14 +115,9 @@ export class VehicleComponent {
       next: (data) => {
         this.vehicleMaintenances = Array.isArray(data) ? data : [];
         this.totlalMaintenanceCost = this.vehicleMaintenances.reduce(
-          (total: number, maintenance: any) => {
-            return total + (maintenance.cost || 0);
-          },
+          (total: number, maintenance: any) => total + (maintenance.cost || 0),
           0
         );
-      },
-      error: (err) => {
-        console.error('Error loading expenses:', err);
       },
     });
   }

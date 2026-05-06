@@ -1,12 +1,314 @@
-.card {
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 12px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-}
-.container {
-  max-width: 1200px;
+.el-page {
+  padding: 12px 10px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 20px;
+}
+
+/* 2-column grid on mobile, 1-col if very narrow */
+.el-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Card */
+.el-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e0e7ff;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.08);
+  padding: 14px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.el-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(99,102,241,0.16);
+}
+
+/* Top row */
+.el-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Avatar */
+.el-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Name + role */
+.el-id {
+  flex: 1;
+  min-width: 0;
+}
+.el-name {
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.el-role {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Status badge */
+.el-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.el-badge.active {
+  background: #d1fae5;
+  color: #059669;
+}
+
+/* Divider */
+.el-divider {
+  height: 1px;
+  background: #f3f4f6;
+}
+
+/* Details */
+.el-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.el-detail {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #4b5563;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.el-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.el-icon.age   { color: #f59e0b; }
+.el-icon.loc   { color: #6366f1; }
+.el-icon.phone { color: #22c55e; }
+.el-icon.lic   { color: #3b82f6; }
+.el-icon.sal   { color: #ef4444; }
+
+/* Action buttons */
+.el-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.el-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border: none;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.el-btn:hover {
+  opacity: 0.88;
+  transform: scale(1.04);
+}
+.el-btn.doc {
+  background: #dbeafe;
+  color: #2563eb;
+}
+.el-btn.edit {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+/* Empty */
+.el-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 0;
+  font-size: 0.95rem;
+}
+
+/* Toolbar */
+.el-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.el-toolbar-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.el-count {
+  background: #e0e7ff;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+.el-count.dim {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+.el-toggle-btn {
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.el-toggle-btn.active {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+/* Delete button */
+.el-btn.del {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Restore button */
+.el-btn.restore {
+  background: #d1fae5;
+  color: #059669;
+  flex: 1;
+}
+
+/* Deleted card */
+.el-card.deleted {
+  opacity: 0.78;
+  border-color: #fecaca;
+  box-shadow: none;
+}
+.el-badge.deleted {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.el-name.muted {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+.el-icon.del-date { color: #f87171; }
+
+/* Confirm overlay */
+.el-confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 12px;
+}
+.el-card {
+  position: relative;
+}
+.el-confirm-box {
+  text-align: center;
+}
+.el-confirm-icon {
+  font-size: 1.6rem;
+  color: #f59e0b;
+  display: block;
+  margin-bottom: 6px;
+}
+.el-confirm-msg {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+.el-confirm-sub {
+  font-size: 10px;
+  color: #6b7280;
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.el-confirm-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.el-cbtn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.el-cbtn.cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.el-cbtn.confirm {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Deleted section */
+.el-deleted-section {
+  margin-top: 24px;
+}
+.el-deleted-header {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 360px) {
+  .el-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { HomeComponent } from './home/home.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
 import { FooterComponent } from './footer/footer.component';
@@ -12,6 +12,9 @@ import { EmployeeService } from './services/employee.service';
 import { CommonModule } from '@angular/common';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { App } from '@capacitor/app';
+import { PushNotificationService } from './services/push-notification.service';
+import { BookingService } from './services/booking.service';
+import { LoadingService } from './services/loading.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +24,7 @@ import { App } from '@capacitor/app';
     MatToolbarModule,
     MatSidenavModule,
     MatMenuModule,
+    RouterModule,
     RouterOutlet,
     MatButtonModule,
     CommonModule,
@@ -30,24 +34,40 @@ import { App } from '@capacitor/app';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'TravelManagement';
-  //userRole: string | null = null;
   userRole$!: Observable<string | null>;
   isLoginPage$!: Observable<boolean>;
   backButtonListener: any;
   private history: string[] = [];
   private skipNextPush = false;
 
+  private destroyRef = inject(DestroyRef);
+  readonly loading$: Observable<boolean>;
+
   constructor(
     private _employeService: EmployeeService,
-    private router: Router
-  ) {}
+    private pushService: PushNotificationService,
+    private router: Router,
+    private bookingService: BookingService,
+    loadingService: LoadingService
+  ) {
+    this.loading$ = loadingService.loading$;
+    this.pushService.initPush();
+  }
+
   ngOnInit(): void {
     this.userRole$ = this._employeService.userRole$;
 
+    if (this._employeService.isloggedIn()) {
+      this.bookingService.connectSignalRAfterLogin();
+    }
+
     this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe((event: NavigationEnd) => {
         if (this.skipNextPush) {
           this.skipNextPush = false;
@@ -78,26 +98,18 @@ export class AppComponent {
       startWith(this.router.url.includes('/login'))
     );
 
-    // this.userRole$.subscribe((role) => {
-    //   if (this.router.url === '/' || this.router.url === '') {
-    //     if (role) {
-    //       this.router.navigate(['/home']);
-    //     } else {
-    //       this.router.navigate(['/login']);
-    //     }
-    //   }
-    // });
-
-    this.userRole$.subscribe((role) => {
-      const currentUrl = this.router.url;
-      if (currentUrl === '/' || currentUrl === '' || currentUrl === '/login') {
-        if (role) {
-          this.router.navigate(['/home']);
-        } else {
-          this.router.navigate(['/login']);
+    this._employeService.userRole$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((role) => {
+        const currentUrl = this.router.url;
+        if (currentUrl === '/' || currentUrl === '' || currentUrl === '/login') {
+          if (role) {
+            this.router.navigate(['/home']);
+          } else {
+            this.router.navigate(['/login']);
+          }
         }
-      }
-    });
+      });
   }
 
   ngOnDestroy(): void {

@@ -1,0 +1,12 @@
+<div class="container">
+  <h3 mat-dialog-title>{{ data.title }}</h3>
+
+  <mat-dialog-content>
+    <p>{{ data.message }}</p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="dialog-actions">
+    <button class="btn btn-danger" (click)="onNo()">No</button>
+    <button class="btn btn-success" (click)="onYes()">Yes</button>
+  </mat-dialog-actions>
+</div>

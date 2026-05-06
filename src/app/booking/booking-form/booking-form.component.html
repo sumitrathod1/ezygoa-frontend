@@ -1,245 +1,416 @@
-<div mat-dialog-title>Add Booking</div>
+<div mat-dialog-title class="bf-title">
+  <i class="bi bi-calendar-plus-fill me-2"></i>
+  {{ isEditMode ? 'Edit Booking' : 'Add Booking' }}
+</div>
+
 <form [formGroup]="bookingForm" (ngSubmit)="onFormSubmit()">
-  <div mat-dialog-content>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Agents</mat-label>
-          <mat-select formControlName="agent">
-            <mat-option>None</mat-option>
-            <!-- <mat-option
-              *ngFor="let atypes of agentTypes"
-              [value]="atypes.AgentId"
-            >
-              {{ atypes.name }}
-            </mat-option> -->
-            @for (atypes of agentTypes; track atypes) {
-            <mat-option [value]="atypes.agentId ? +atypes.agentId : null">{{
-              atypes.name
-            }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-    <!-- Row 1 -->
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Customer Name</mat-label>
-          <input
-            matInput
-            type="text"
-            placeholder="Name"
-            formControlName="customerName"
-          />
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline" style="flex: 1">
-          <mat-label>Customer Number</mat-label>
-          <input
-            matInput
-            type="text"
-            maxlength="14"
-            formControlName="customerNumber"
-          />
-        </mat-form-field>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>No Pax</mat-label>
-          <input
-            matInput
-            type="number"
-            placeholder="No Pax"
-            min="1"
-            formControlName="pax"
-          />
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline" style="flex: 1">
-          <mat-label>payment</mat-label>
-          <mat-select formControlName="payment">
-            <mat-option>None</mat-option>
-            @for (paytypes of paytypes; track paytypes) {
-            <mat-option [value]="paytypes">{{ paytypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-    <!-- Row 2 -->
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Select a date</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker"
-            formControlName="travelDate"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Time</mat-label>
-          <mat-select formControlName="travelTime">
-            <mat-option>None</mat-option>
-            @for (ttypes of times; track ttypes) {
-            <mat-option [value]="ttypes">{{ ttypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-    <!-- Row 3 -->
-    <div class="row">
-      <!-- <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>From</mat-label>
-          <mat-select formControlName="from">
-            <mat-option>None</mat-option>
-            @for (vtypes of states; track vtypes) {
-            <mat-option [value]="vtypes">{{ vtypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div> -->
+  <div mat-dialog-content class="bf-content">
 
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>From</mat-label>
-          <input
-            matInput
-            placeholder="Type or select"
-            formControlName="from"
-            [matAutocomplete]="autoFrom"
-            #fromTrigger="matAutocompleteTrigger"
-            (focus)="fromTrigger.openPanel()"
-            autocomplete="off"
-          />
-          <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
-            <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">
-              {{ s }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+    <!-- SECTION 1: Options -->
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-toggles"></i> Options
       </div>
+      <div class="toggle-row" *ngIf="!isExternalBooking">
+        <mat-checkbox formControlName="isPackage" (change)="toggleFields()">
+          Package (Day Wise)
+        </mat-checkbox>
+      </div>
+      <div class="toggle-row">
+        <mat-checkbox formControlName="isExternalBooking">
+          External Employee Booking
+        </mat-checkbox>
+      </div>
+    </div>
 
-      <!-- <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>TO</mat-label>
-          <mat-select formControlName="to">
-            <mat-option>None</mat-option>
-            @for (vtypes of states; track vtypes) {
-            <mat-option [value]="vtypes">{{ vtypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div> -->
+    <!-- Day-wise bookings -->
+    <div class="form-section day-section" *ngIf="bookingForm.get('isPackage')!.value">
+      <div class="section-title">
+        <i class="bi bi-calendar-range"></i> Day Wise Bookings
+      </div>
+      <div formArrayName="dayWiseBookings">
+        <div
+          *ngFor="let dayCtrl of dayWiseBookings.controls; let i = index"
+          [formGroupName]="i"
+          class="day-item"
+        >
+          <div class="row g-2">
+            <div class="col-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="dayPicker" formControlName="travelDate" />
+                <mat-datepicker-toggle matSuffix [for]="dayPicker"></mat-datepicker-toggle>
+                <mat-datepicker #dayPicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+            <div class="col-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>From</mat-label>
+                <input
+                  matInput
+                  placeholder="Type or select"
+                  formControlName="from"
+                  [matAutocomplete]="autoFrom"
+                  #fromTrigger="matAutocompleteTrigger"
+                  (focus)="fromTrigger.openPanel()"
+                  autocomplete="off"
+                />
+                <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
+                  <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">{{ s }}</mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+            <div class="col-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>To</mat-label>
+                <input
+                  matInput
+                  placeholder="Type or select"
+                  formControlName="to"
+                  [matAutocomplete]="autoTo"
+                  #toTrigger="matAutocompleteTrigger"
+                  (focus)="toTrigger.openPanel()"
+                  autocomplete="off"
+                />
+                <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
+                  <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">{{ s }}</mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+            <div class="col-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Booking Type</mat-label>
+                <mat-select formControlName="bookingType">
+                  <mat-option>None</mat-option>
+                  @for (bt of BookingType; track bt) {
+                    <mat-option [value]="bt">{{ bt }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Time</mat-label>
+                <mat-select formControlName="travelTime">
+                  <mat-option>None</mat-option>
+                  @for (tt of times; track tt) {
+                    <mat-option [value]="tt">{{ tt }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-5">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Amount</mat-label>
+                <input matInput type="number" min="0" formControlName="amount" />
+              </mat-form-field>
+            </div>
+            <div class="col-1 d-flex align-items-center justify-content-center pb-3">
+              <button mat-icon-button color="warn" type="button" (click)="removeDay(i)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add-day" type="button" (click)="addDay()">
+        <i class="bi bi-plus-circle me-1"></i> Add Day
+      </button>
+    </div>
 
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>TO</mat-label>
-          <input
-            matInput
-            placeholder="Type or select"
-            formControlName="to"
-            [matAutocomplete]="autoTo"
-            #toTrigger="matAutocompleteTrigger"
-            (focus)="toTrigger.openPanel()"
-            autocomplete="off"
-          />
-          <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
-            <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">
-              {{ s }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+    <!-- SECTION 2: Customer Details -->
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-person-fill"></i> Customer Details
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-person"></i> Customer Name</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="text" placeholder="Full name" formControlName="customerName" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-telephone"></i> Customer Number</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input
+                matInput
+                type="text"
+                placeholder="+91 XXXXXXXXXX"
+                formControlName="customerNumber"
+                (input)="normalizePhone($event)"
+              />
+            </mat-form-field>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Row 4 -->
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Vehicle</mat-label>
-          <mat-select formControlName="vehicle">
-            <mat-option>None</mat-option>
-            @for (vhtypes of vehcilesType; track vhtypes) {
-            <mat-option [value]="vhtypes.vehicleId">{{
-              vhtypes.vehicleName
-            }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+
+    <!-- SECTION 3: Assignment -->
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-people-fill"></i> Assignment
       </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Driver</mat-label>
-          <mat-select formControlName="driver">
-            <mat-option>None</mat-option>
-            @for (drtypes of driverType; track drtypes) {
-            <mat-option [value]="drtypes.userId">{{
-              drtypes.employeeName
-            }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <div class="row g-2">
+        <div class="col-12">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-person-badge"></i> Agent</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select formControlName="agent">
+                <mat-option>None</mat-option>
+                @for (a of agentTypes; track a) {
+                  <mat-option [value]="a.agentId ? +a.agentId : null">{{ a.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <ng-container *ngIf="!isExternalBooking">
+          <div class="col-12 col-sm-6">
+            <div class="field-wrap">
+              <label class="field-label"><i class="bi bi-car-front"></i> Vehicle</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-select formControlName="vehicle">
+                  <mat-option>None</mat-option>
+                  @for (v of vehcilesType; track v) {
+                    <mat-option [value]="v.vehicleId">{{ v.vehicleName }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="field-wrap">
+              <label class="field-label"><i class="bi bi-person-circle"></i> Driver</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-select formControlName="driver">
+                  <mat-option>None</mat-option>
+                  @for (d of driverType; track d) {
+                    <mat-option [value]="d.userId">{{ d.employeeName }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isExternalBooking">
+          <div class="col-12 col-sm-6">
+            <div class="field-wrap">
+              <label class="field-label"><i class="bi bi-person-x"></i> External Driver Name</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input matInput formControlName="externalEmployee" />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="field-wrap">
+              <label class="field-label"><i class="bi bi-telephone-x"></i> External Driver Number</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input
+                  matInput
+                  type="text"
+                  formControlName="externalEmployeeNumber"
+                  (input)="normalizePhone($event)"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="field-wrap">
+              <label class="field-label"><i class="bi bi-cash"></i> Commission Amount</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input matInput type="number" min="0" formControlName="commissionAmount" />
+              </mat-form-field>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
-    <!-- Row 5 -->
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Amount</mat-label>
-          <input matInput type="number" min="0" formControlName="amount" />
-        </mat-form-field>
+
+    <!-- SECTION 4: Booking Details (hidden if package) -->
+    <div class="form-section" [ngClass]="{ 'hide-field': isPackage }">
+      <div class="section-title">
+        <i class="bi bi-calendar-check-fill"></i> Booking Details
       </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>Booking Type</mat-label>
-          <mat-select formControlName="bookingType">
-            <mat-option>None</mat-option>
-            @for (btypes of BookingType; track btypes) {
-            <mat-option [value]="btypes">{{ btypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-tag"></i> Booking Type</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select formControlName="bookingType">
+                <mat-option>None</mat-option>
+                @for (bt of BookingType; track bt) {
+                  <mat-option [value]="bt">{{ bt }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-calendar3"></i> Travel Date</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput [matDatepicker]="picker" formControlName="travelDate" />
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Custom Time Picker -->
+        <div class="col-12">
+          <div class="time-picker-wrapper">
+            <div class="time-picker-label"><i class="bi bi-clock"></i> Travel Time</div>
+            <div class="time-picker-row">
+              <div class="time-col">
+                <span class="time-sub-label">Hour</span>
+                <select
+                  class="time-select"
+                  [(ngModel)]="timeHour"
+                  [ngModelOptions]="{ standalone: true }"
+                  (change)="updateMainTime()"
+                >
+                  <option *ngFor="let h of hours" [value]="h">{{ pad(h) }}</option>
+                </select>
+              </div>
+              <div class="time-sep">:</div>
+              <div class="time-col">
+                <span class="time-sub-label">Min</span>
+                <select
+                  class="time-select"
+                  [(ngModel)]="timeMinute"
+                  [ngModelOptions]="{ standalone: true }"
+                  (change)="updateMainTime()"
+                >
+                  <option *ngFor="let m of minutes" [value]="m">{{ m }}</option>
+                </select>
+              </div>
+              <div class="ampm-toggle">
+                <button type="button" class="ampm-btn" [class.active]="timeAmPm === 'AM'" (click)="setAmPm('AM')">AM</button>
+                <button type="button" class="ampm-btn" [class.active]="timeAmPm === 'PM'" (click)="setAmPm('PM')">PM</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-geo-alt"></i> From</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input
+                matInput
+                placeholder="Type or select"
+                formControlName="from"
+                [matAutocomplete]="autoFrom"
+                #fromTrigger="matAutocompleteTrigger"
+                (focus)="fromTrigger.openPanel()"
+                autocomplete="off"
+              />
+              <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
+                <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">{{ s }}</mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-geo-alt-fill"></i> To</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input
+                matInput
+                placeholder="Type or select"
+                formControlName="to"
+                [matAutocomplete]="autoTo"
+                #toTrigger="matAutocompleteTrigger"
+                (focus)="toTrigger.openPanel()"
+                autocomplete="off"
+              />
+              <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
+                <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">{{ s }}</mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-people"></i> No. of Pax</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" placeholder="Passengers" min="1" formControlName="pax" />
+            </mat-form-field>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Row 6 -->
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>CustomerWillPay</mat-label>
-          <input matInput type="number" min="0" formControlName="customerPay" />
-        </mat-form-field>
+
+    <!-- SECTION 5: Financials -->
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-currency-rupee"></i> Financials
       </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline" style="flex: 1">
-          <mat-label>OwnerWillPay</mat-label>
-          <input matInput type="number" min="0" formControlName="ownerPay" />
-        </mat-form-field>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6" [ngClass]="{ 'hide-field': isPackage }">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-cash-stack"></i> Amount (₹)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" min="0" formControlName="amount" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-wallet2"></i> Advance Paid (₹)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" min="0" formControlName="advancePaid" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-person-check"></i> Customer Will Pay (₹)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" min="0" formControlName="customerPay" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6" *ngIf="!isExternalBooking">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-building"></i> Owner Will Pay (₹)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" min="0" formControlName="ownerPay" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-credit-card"></i> Payment Type</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select formControlName="payment">
+                <mat-option>None</mat-option>
+                @for (pt of paytypes; track pt) {
+                  <mat-option [value]="pt">{{ pt }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
       </div>
     </div>
+
   </div>
-  <div
-    mat-dialog-actions
-    class="action"
-    style="display: flex; justify-content: flex-end; gap: 16px"
-  >
-    <button mat-raised-button (click)="clossBooking()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit">
-      {{ bookingForm.get("id")?.value ? "Update" : "Submit" }}
+
+  <!-- Action Buttons -->
+  <div mat-dialog-actions class="bf-actions">
+    <button class="btn-cancel" type="button" (click)="clossBooking()">
+      <i class="bi bi-x-lg me-1"></i> Cancel
+    </button>
+    <button class="btn-submit" type="submit" [disabled]="isSubmitting">
+      <i class="bi bi-check-circle me-1"></i>
+      {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Booking' : 'Save Booking') }}
     </button>
   </div>
 </form>

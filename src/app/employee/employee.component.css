@@ -1,125 +1,221 @@
-/* Parent Container: Soft background & center */
 .dashboard-container {
-  max-width: 600px;
-  margin: auto;
-  padding: 18px;
+  padding: 12px;
   font-family: "Inter", "Segoe UI", sans-serif;
-  background: linear-gradient(120deg, #f7fafb 85%, #e0e7ff 100%);
-  min-height: 100vh;
-  border-radius: 18px;
-  box-shadow: 0 6px 32px rgba(99, 102, 241, 0.07);
 }
 
-/* Stats Grid (Top) */
+/* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 26px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
-/* Stat Card: neumorphic effect */
 .stat-card {
   background: #fff;
-  padding: 22px 12px;
+  padding: 18px 12px 14px;
   border-radius: 16px;
   text-align: center;
-  box-shadow: 0 2px 14px #a5b4fc44, 0 1.5px 6px #dbeafe77;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
   border: 1.5px solid #e0e7ff;
-  transition: box-shadow 0.18s, border-color 0.18s;
   cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s;
 }
 .stat-card:hover {
-  box-shadow: 0 8px 24px #6366f122, 0 1px 3px #6366f1aa;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.18);
   border-color: #6366f1;
 }
-.stat-label {
-  color: #555;
-  font-size: 14px;
-  margin-bottom: 8px;
-  letter-spacing: 0.065em;
+
+.stat-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 1.2rem;
+  color: #fff;
 }
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 2px;
+.stat-icon-wrap.add-icon {
+  background: linear-gradient(135deg, #22c55e, #15803d);
 }
 
-/* Section Title */
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 2px;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* Section header */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 .section-title {
-  font-size: 1.18rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 15px;
-  color: #2d3748;
-  letter-spacing: 0.03em;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Search */
+.search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 0.93rem;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.05);
+  transition: border-color 0.18s;
+}
+.search-input:focus {
+  border-color: #6366f1;
 }
 
 /* Driver List */
 .driver-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
-/* Driver Card: soft shadow, color accent, padding */
+/* Driver Card */
 .driver-card {
-  background: linear-gradient(90deg, #fff 80%, #e0e7ff 100%);
   display: flex;
   align-items: center;
-  padding: 16px 18px;
+  gap: 14px;
+  padding: 14px 14px;
   border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(120, 180, 255, 0.08);
-  border: 1.3px solid #e0e7ff;
-  font-weight: 500;
-  transition: box-shadow 0.16s, border 0.16s;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.07);
+  border: 1.5px solid #e0e7ff;
+  transition: box-shadow 0.16s, border-color 0.16s;
 }
 .driver-card:hover {
-  box-shadow: 0 8px 24px #6366f1aa;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
   border-color: #6366f1;
 }
 
-/* Driver Name + Location */
-.driver-name {
-  font-weight: 600;
-  font-size: 1.07rem;
-  margin-right: 12px;
-  color: #2563eb;
-}
-.driver-location {
-  color: #4b5563;
-  font-size: 0.99rem;
-  margin-top: 3px;
-  font-weight: 400;
+/* Avatar */
+.driver-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
 }
 
-/* Responsive adjustments */
-@media (max-width: 680px) {
+/* Info */
+.driver-info {
+  flex: 1;
+  min-width: 0;
+}
+.driver-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.driver-location,
+.driver-phone {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.driver-location i,
+.driver-phone i {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Status badge */
+.status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-badge.active {
+  background: #d1fae5;
+  color: #059669;
+}
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  color: #9ca3af;
+  padding: 36px 0;
+  font-size: 0.95rem;
+}
+
+@media (min-width: 600px) {
+  .driver-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
   .dashboard-container {
-    padding: 7px;
-    border-radius: 10px;
+    padding: 24px;
   }
   .stats-grid {
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
   }
-  .stat-card,
-  .driver-card {
-    border-radius: 8px;
-    padding: 11px 7px;
+  .driver-list {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Add Driver Btn: (optional, if you use it) */
-.add-driver-btn {
-  background: linear-gradient(90deg, #6366f1 70%, #2563eb 100%);
-  color: #fff;
-  font-size: 1.08rem;
-  padding: 12px 25px;
-  border-radius: 14px;
-  font-weight: 600;
-  border: none;
-  transition: background 0.17s;
-}
-.add-driver-btn:hover {
-  background: #2563eb;
+@media (min-width: 1440px) {
+  .driver-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }

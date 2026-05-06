@@ -1,0 +1,314 @@
+<div class="rce-page" *ngIf="chart; else loading">
+
+  <!-- ── Top bar ── -->
+  <div class="rce-topbar">
+    <button class="rce-back-btn" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+
+    <div class="rce-topbar-title">
+      <span *ngIf="!editMode" class="rce-tname">{{ chart.templateName }}</span>
+      <input *ngIf="editMode" class="rce-tname-input" [(ngModel)]="chart.templateName" placeholder="Template Name" />
+      <span class="rce-tmode" [class.mode-peak]="chart.seasonMode === 'peak'">
+        {{ chart.seasonMode === 'peak' ? '🔥 Peak' : '🌿 Regular' }} Season
+      </span>
+    </div>
+
+    <div class="rce-topbar-actions">
+      <!-- Currency -->
+      <select class="rce-currency-sel" [(ngModel)]="displayCurrency" title="Display currency">
+        <option *ngFor="let c of currencies" [value]="c">{{ c }}</option>
+      </select>
+
+      <!-- Season toggle -->
+      <button class="rce-act-btn season-btn" *ngIf="editMode"
+        (click)="chart.seasonMode = chart.seasonMode === 'regular' ? 'peak' : 'regular'"
+        [class.active-peak]="chart.seasonMode === 'peak'">
+        <i class="bi bi-sun-fill"></i>
+        {{ chart.seasonMode === 'peak' ? 'Peak' : 'Regular' }}
+      </button>
+
+      <!-- Edit / Done -->
+      <button class="rce-act-btn edit-toggle" (click)="editMode = !editMode" [class.active-edit]="editMode">
+        <i class="bi" [class.bi-pencil-fill]="!editMode" [class.bi-check2-circle]="editMode"></i>
+        {{ editMode ? 'Done' : 'Edit' }}
+      </button>
+
+      <!-- Save -->
+      <button class="rce-act-btn save-btn" *ngIf="editMode" (click)="save()" [disabled]="saving">
+        <i class="bi bi-floppy-fill"></i>
+        {{ saving ? 'Saving…' : 'Save' }}
+      </button>
+
+      <!-- PDF -->
+      <button class="rce-act-btn pdf-btn" (click)="downloadPDF()" [disabled]="pdfLoading" title="Download PDF">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        {{ pdfLoading ? '…' : 'PDF' }}
+      </button>
+
+      <!-- Share -->
+      <button class="rce-act-btn wa-btn" (click)="shareWhatsApp()" title="Share on WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+      </button>
+      <button class="rce-act-btn email-btn" (click)="shareEmail()" title="Share via Email">
+        <i class="bi bi-envelope-fill"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Bulk rate updater (edit mode only) ── -->
+  <div class="rce-bulk-bar" *ngIf="editMode">
+    <span class="rce-bulk-label">Bulk Price Adjust:</span>
+    <input class="rce-bulk-input" type="number" [(ngModel)]="bulkPercent" min="1" max="100" />
+    <span class="rce-bulk-pct">%</span>
+    <button class="rce-bulk-btn up" (click)="applyBulkUpdate(1)">
+      <i class="bi bi-arrow-up-circle-fill"></i> +{{ bulkPercent }}%
+    </button>
+    <button class="rce-bulk-btn down" (click)="applyBulkUpdate(-1)">
+      <i class="bi bi-arrow-down-circle-fill"></i> -{{ bulkPercent }}%
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       RATE CHART PAPER (captured for PDF)
+  ══════════════════════════════════════════════════════════ -->
+  <div class="rce-paper" #paperRef>
+
+    <!-- ── Header ── -->
+    <div class="rce-header">
+      <div class="rce-header-left">
+        <div class="rce-company-icon"><i class="bi bi-briefcase-fill"></i></div>
+        <div>
+          <div class="rce-company-name" *ngIf="!editMode">{{ chart.companyName }}</div>
+          <input class="rce-edit-field lg" *ngIf="editMode" [(ngModel)]="chart.companyName" placeholder="Company Name" />
+          <div class="rce-tagline" *ngIf="!editMode">{{ chart.tagline }}</div>
+          <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="chart.tagline" placeholder="Tagline" />
+        </div>
+      </div>
+      <div class="rce-header-right">
+        <div class="rce-validity-pill">
+          <i class="bi bi-calendar-check-fill"></i>
+          <span *ngIf="!editMode">{{ chart.validFrom | date:'d MMM yy' }} – {{ chart.validTo | date:'d MMM yy' }}</span>
+          <span *ngIf="editMode" class="rce-date-row">
+            <input type="date" class="rce-edit-field date" [(ngModel)]="chart.validFrom" />
+            <span>–</span>
+            <input type="date" class="rce-edit-field date" [(ngModel)]="chart.validTo" />
+          </span>
+        </div>
+        <div class="rce-season-badge" [class.peak-badge]="chart.seasonMode === 'peak'">
+          {{ chart.seasonMode === 'peak' ? '🔥 Peak Season Rates' : '🌿 Regular Season Rates' }}
+        </div>
+        <div class="rce-currency-badge">{{ displayCurrency }} {{ currencySymbol }}</div>
+      </div>
+    </div>
+
+    <!-- ── Agent bar ── -->
+    <div class="rce-agent-bar" *ngIf="chart.agentName || editMode">
+      <i class="bi bi-building"></i>
+      <span *ngIf="!editMode">Prepared for: <strong>{{ chart.agentName }}</strong>
+        <span *ngIf="chart.agentNumber"> · {{ chart.agentNumber }}</span>
+      </span>
+      <span *ngIf="editMode" class="rce-agent-edit-row">
+        <input class="rce-edit-field" [(ngModel)]="chart.agentName" placeholder="Agent / Client Name (optional)" />
+        <input class="rce-edit-field" [(ngModel)]="chart.agentNumber" placeholder="Agent WhatsApp number (optional)" />
+      </span>
+    </div>
+
+    <!-- ── Fleet strip ── -->
+    <div class="rce-fleet-strip">
+      <div class="rce-fleet-item" *ngFor="let v of chart.vehicles">
+        <span class="rce-fleet-icon" *ngIf="!editMode">{{ v.icon }}</span>
+        <input class="rce-edit-field icon-input" *ngIf="editMode" [(ngModel)]="v.icon" maxlength="2" />
+        <div class="rce-fleet-info">
+          <span class="rce-fleet-name" *ngIf="!editMode">{{ v.name }}</span>
+          <input class="rce-edit-field" *ngIf="editMode" [(ngModel)]="v.name" placeholder="Name" />
+          <span class="rce-fleet-cap" *ngIf="!editMode">{{ v.capacity }}</span>
+          <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="v.capacity" placeholder="Capacity" />
+          <span class="rce-fleet-ref" *ngIf="v.fleetRef">{{ v.fleetRef }}</span>
+        </div>
+        <button class="rce-remove-btn" *ngIf="editMode" (click)="removeVehicle(v)" title="Remove">✕</button>
+      </div>
+      <div class="rce-fleet-actions" *ngIf="editMode">
+        <button class="rce-add-fleet-btn" (click)="addVehicle()">
+          <i class="bi bi-plus-circle"></i> Custom
+        </button>
+        <div class="rce-fleet-suggest-wrap">
+          <button class="rce-add-fleet-btn suggest-btn" (click)="showFleetPanel = !showFleetPanel">
+            <i class="bi bi-truck"></i> From Fleet
+            <span class="rce-fleet-badge" *ngIf="fleetVehicles.length">{{ fleetVehicles.length }}</span>
+          </button>
+          <div class="rce-fleet-panel" *ngIf="showFleetPanel">
+            <div class="rce-fleet-panel-header">
+              <span>Fleet Vehicles</span>
+              <button class="rce-fleet-add-all-btn" (click)="addAllFromFleet()">Add All</button>
+              <button class="rce-fleet-close-btn" (click)="showFleetPanel = false">✕</button>
+            </div>
+            <div class="rce-fleet-panel-empty" *ngIf="fleetVehicles.length === 0">
+              No vehicles in fleet
+            </div>
+            <div class="rce-fleet-suggest-item" *ngFor="let fv of fleetVehicles"
+                 [class.already-added]="isAlreadyAdded(fv)">
+              <span class="rce-fs-icon">{{ fleetIcon(fv) }}</span>
+              <div class="rce-fs-info">
+                <span class="rce-fs-name">{{ fv.vehicleName || fv.VehicleName || fv.vehicleNumber || fv.VehicleNumber }}</span>
+                <span class="rce-fs-sub">{{ fv.vehicleNumber || fv.VehicleNumber }} · {{ fv.seatingcapacity || fv.Seatingcapacity }} Pax</span>
+              </div>
+              <button class="rce-fs-add-btn" (click)="addFromFleet(fv)" [disabled]="isAlreadyAdded(fv)">
+                {{ isAlreadyAdded(fv) ? '✓' : '+' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Location banner ── -->
+    <div class="rce-location-banner">
+      <i class="bi bi-geo-alt-fill rce-loc-icon"></i>
+      <div class="rce-loc-text" *ngIf="!editMode">
+        <span *ngFor="let line of chart.locations.split('\n')">{{ line }}<br/></span>
+      </div>
+      <textarea class="rce-edit-field textarea" *ngIf="editMode" [(ngModel)]="chart.locations" rows="3" placeholder="Coverage locations"></textarea>
+    </div>
+
+    <!-- ── Rate table ── -->
+    <div class="rce-section">
+      <div class="rce-section-header">
+        <i class="bi bi-table"></i> Rate Table
+        <span class="rce-season-label" [class.peak-text]="chart.seasonMode === 'peak'">
+          ({{ chart.seasonMode === 'peak' ? 'Peak Season' : 'Regular Season' }})
+        </span>
+      </div>
+      <div class="rce-table-wrap">
+        <table class="rce-table">
+          <thead>
+            <tr>
+              <th class="rce-th route-col">Route</th>
+              <th class="rce-th" *ngFor="let v of chart.vehicles">
+                {{ v.icon }} {{ v.name }}<br/><span class="rce-cap-sub">{{ v.capacity }}</span>
+              </th>
+              <th class="rce-th" *ngIf="editMode">✕</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="rce-tr" *ngFor="let r of chart.routes">
+              <td class="rce-td route-td">
+                <span class="rce-route-emoji" *ngIf="!editMode">{{ r.emoji }}</span>
+                <input class="rce-edit-field icon-input" *ngIf="editMode" [(ngModel)]="r.emoji" maxlength="2" />
+                <span *ngIf="!editMode">{{ r.name }}</span>
+                <input class="rce-edit-field route-name" *ngIf="editMode" [(ngModel)]="r.name" placeholder="Route name" />
+              </td>
+              <td class="rce-td price-td" *ngFor="let v of chart.vehicles">
+                <span *ngIf="!editMode">{{ currencySymbol }}{{ convert(getPrice(r, v.id)) }}</span>
+                <input *ngIf="editMode" class="rce-price-input"
+                  type="number" [value]="getPrice(r, v.id)"
+                  (change)="setPrice(r, v.id, $any($event.target).value)" />
+              </td>
+              <td class="rce-td" *ngIf="editMode">
+                <button class="rce-remove-btn" (click)="removeRoute(r)">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="rce-add-row-btn" *ngIf="editMode" (click)="addRoute()">
+        <i class="bi bi-plus-circle"></i> Add Route
+      </button>
+    </div>
+
+    <!-- ── Surcharges ── -->
+    <div class="rce-section">
+      <div class="rce-section-header"><i class="bi bi-lightning-fill"></i> Surcharges &amp; Extras</div>
+      <div class="rce-table-wrap">
+        <table class="rce-table">
+          <thead>
+            <tr>
+              <th class="rce-th route-col">Type</th>
+              <th class="rce-th" *ngFor="let v of chart.vehicles">{{ v.icon }} {{ v.name }}</th>
+              <th class="rce-th" *ngIf="editMode">✕</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="rce-tr" *ngFor="let s of chart.surcharges">
+              <td class="rce-td route-td">
+                <span *ngIf="!editMode">{{ s.label }}</span>
+                <input class="rce-edit-field" *ngIf="editMode" [(ngModel)]="s.label" placeholder="Surcharge label" />
+              </td>
+              <td class="rce-td price-td" *ngFor="let v of chart.vehicles">
+                <span *ngIf="!editMode">{{ currencySymbol }}{{ convert(getSurcharge(s, v.id)) }}</span>
+                <input *ngIf="editMode" class="rce-price-input"
+                  type="number" [value]="getSurcharge(s, v.id)"
+                  (change)="setSurcharge(s, v.id, $any($event.target).value)" />
+              </td>
+              <td class="rce-td" *ngIf="editMode">
+                <button class="rce-remove-btn" (click)="removeSurcharge(s)">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="rce-add-row-btn" *ngIf="editMode" (click)="addSurcharge()">
+        <i class="bi bi-plus-circle"></i> Add Surcharge
+      </button>
+    </div>
+
+    <!-- ── Special days note ── -->
+    <div class="rce-special-days">
+      <i class="bi bi-star-fill"></i>
+      <span *ngIf="!editMode">{{ chart.specialDaysNote }}</span>
+      <input class="rce-edit-field flex1" *ngIf="editMode" [(ngModel)]="chart.specialDaysNote" placeholder="Special days / surcharge note" />
+    </div>
+
+    <!-- ── Notes grid ── -->
+    <div class="rce-section">
+      <div class="rce-section-header"><i class="bi bi-info-circle-fill"></i> Terms &amp; Notes</div>
+      <div class="rce-notes-grid">
+        <div class="rce-note-card" *ngFor="let n of chart.notes">
+          <div class="rce-note-header">
+            <span class="rce-note-icon" *ngIf="!editMode">{{ n.icon }}</span>
+            <input class="rce-edit-field icon-input" *ngIf="editMode" [(ngModel)]="n.icon" maxlength="2" />
+            <span class="rce-note-title" *ngIf="!editMode">{{ n.title }}</span>
+            <input class="rce-edit-field" *ngIf="editMode" [(ngModel)]="n.title" placeholder="Title" />
+            <button class="rce-remove-btn sm" *ngIf="editMode" (click)="removeNote(n)">✕</button>
+          </div>
+          <div class="rce-note-body" *ngIf="!editMode">
+            <span *ngFor="let line of n.content.split('\n')">{{ line }}<br/></span>
+          </div>
+          <textarea class="rce-edit-field textarea sm" *ngIf="editMode" [(ngModel)]="n.content" rows="4" placeholder="Note content (one item per line)"></textarea>
+        </div>
+      </div>
+      <button class="rce-add-row-btn" *ngIf="editMode" (click)="addNote()">
+        <i class="bi bi-plus-circle"></i> Add Note
+      </button>
+    </div>
+
+    <!-- ── Footer ── -->
+    <div class="rce-footer">
+      <div class="rce-footer-logo">
+        <i class="bi bi-briefcase-fill"></i>
+        <span *ngIf="!editMode">{{ chart.footer.companyName }}</span>
+        <input class="rce-edit-field" *ngIf="editMode" [(ngModel)]="chart.footer.companyName" placeholder="Company" />
+      </div>
+      <div class="rce-footer-links">
+        <span *ngIf="!editMode"><i class="bi bi-globe"></i> {{ chart.footer.website }}</span>
+        <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="chart.footer.website" placeholder="Website" />
+        <span *ngIf="!editMode"><i class="bi bi-telephone-fill"></i> {{ chart.footer.phone }}</span>
+        <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="chart.footer.phone" placeholder="Phone" />
+        <span *ngIf="!editMode"><i class="bi bi-envelope-fill"></i> {{ chart.footer.email }}</span>
+        <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="chart.footer.email" placeholder="Email" />
+      </div>
+      <div class="rce-footer-year">
+        <span *ngIf="!editMode">© {{ chart.footer.yearRange }}</span>
+        <input class="rce-edit-field sm" *ngIf="editMode" [(ngModel)]="chart.footer.yearRange" placeholder="Year range" />
+      </div>
+    </div>
+
+  </div><!-- /rce-paper -->
+
+</div>
+
+<ng-template #loading>
+  <div style="text-align:center;padding:60px 20px;color:#9ca3af;font-size:14px;">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+</ng-template>

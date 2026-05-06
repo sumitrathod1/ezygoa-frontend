@@ -1,3 +1,70 @@
+/* ── Period chips ── */
+.period-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.chip {
+  padding: 4px 13px;
+  border-radius: 20px;
+  border: 1.5px solid #6366f1;
+  background: #fff;
+  color: #6366f1;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.chip.active, .chip:hover {
+  background: #6366f1;
+  color: #fff;
+}
+
+/* ── Filter panel ── */
+.filter-panel {
+  background: #f8faff;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.custom-range {
+  border-bottom: 1px solid #e0e7ff;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+/* ── Summary bar ── */
+.summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+.summary-label {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.summary-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+/* ── existing styles below ── */
 .table-responsive {
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(60, 60, 60, 0.08);
@@ -153,4 +220,74 @@
   font-weight: bold;
   color: #5f3dc4;
   font-size: 18px;
+}
+
+/* =============== Responsive Fix for Booking Cards =============== */
+
+/* Make cards stack vertically and stretch full width on small screens */
+/* @media (max-width: 768px) {
+  .booking-card {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    padding: 14px;
+  }
+
+  .booking-middle,
+  .booking-right {
+    width: 100%;
+  }
+
+  .booking-right {
+    text-align: left;
+    margin-top: 10px;
+  }
+
+  .dates {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pax {
+    margin-left: 0;
+    font-size: 14px;
+    color: #777;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  .booking-card button {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .price {
+    font-size: 16px;
+  }
+} */
+
+/* Ensure the parent container doesn’t clip content */
+.container,
+.container-fluid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix pagination wrapping */
+.pagination {
+  flex-wrap: wrap;
+}
+
+.pagination .page-link {
+  min-width: 36px;
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .pagination .page-link {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }

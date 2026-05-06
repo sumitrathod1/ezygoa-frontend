@@ -1,0 +1,151 @@
+<div class="bu-page">
+
+  <!-- Header -->
+  <div class="bu-header">
+    <div class="bu-header-icon"><i class="bi bi-cloud-upload-fill"></i></div>
+    <div>
+      <h1 class="bu-title">Bulk Upload</h1>
+      <p class="bu-sub">Import multiple records at once using Excel templates</p>
+    </div>
+  </div>
+
+  <!-- Type Selector -->
+  <div class="bu-card bu-type-card">
+    <label class="bu-label">Select Upload Type</label>
+    <div class="bu-type-grid">
+      <button *ngFor="let opt of typeOptions"
+              class="bu-type-btn"
+              [class.bu-type-active]="selectedType === opt.value"
+              (click)="selectedType = opt.value; onTypeChange()">
+        <i class="bi" [ngClass]="{
+          'bi-calendar-check-fill': opt.value === 'booking',
+          'bi-receipt': opt.value === 'expense',
+          'bi-folder2-open': opt.value === 'document',
+          'bi-wrench-adjustable-circle-fill': opt.value === 'maintenance'
+        }"></i>
+        <span>{{ opt.label }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 1: Download Template -->
+  <div class="bu-card">
+    <div class="bu-step-header">
+      <span class="bu-step-num">1</span>
+      <span class="bu-step-title">Download Template</span>
+    </div>
+    <p class="bu-step-desc">
+      Download the Excel template for <strong>{{ typeLabel }}</strong>.
+      It includes column headers, a sample row, and dropdown lists.
+    </p>
+    <button class="bu-download-btn" (click)="downloadTemplate()" [disabled]="downloading()">
+      <i class="bi" [class.bi-download]="!downloading()" [class.bu-spin]="downloading()">
+        <span *ngIf="downloading()">⏳</span>
+      </i>
+      {{ downloading() ? 'Downloading…' : 'Download Excel Template' }}
+    </button>
+  </div>
+
+  <!-- Step 2: Instructions -->
+  <div class="bu-card">
+    <div class="bu-step-header">
+      <span class="bu-step-num">2</span>
+      <span class="bu-step-title">Fill the Template</span>
+    </div>
+    <ul class="bu-instructions">
+      <li><i class="bi bi-check-circle-fill text-green"></i> Open the downloaded template in Excel or Google Sheets</li>
+      <li><i class="bi bi-check-circle-fill text-green"></i> Add your data starting from <strong>Row 3</strong> (Row 2 is the sample)</li>
+      <li><i class="bi bi-check-circle-fill text-green"></i> Use the dropdown menus where provided</li>
+      <li><i class="bi bi-x-circle-fill text-red"></i> Do <strong>not</strong> change or delete the column headers in Row 1</li>
+      <li><i class="bi bi-star-fill text-orange"></i> Fields marked with <strong>*</strong> are required</li>
+      <li><i class="bi bi-calendar3 text-blue"></i> Dates must be in <strong>YYYY-MM-DD</strong> format</li>
+    </ul>
+  </div>
+
+  <!-- Step 3: Upload -->
+  <div class="bu-card">
+    <div class="bu-step-header">
+      <span class="bu-step-num">3</span>
+      <span class="bu-step-title">Upload &amp; Process</span>
+    </div>
+
+    <div class="bu-dropzone" [class.bu-dropzone-has-file]="!!selectedFile">
+      <i class="bi bi-file-earmark-spreadsheet bu-dropzone-icon"></i>
+      <div *ngIf="!selectedFile">
+        <p class="bu-dropzone-text">Select your filled Excel file</p>
+        <p class="bu-dropzone-sub">.xlsx files only</p>
+      </div>
+      <div *ngIf="selectedFile" class="bu-file-info">
+        <span class="bu-file-name">{{ selectedFile.name }}</span>
+        <span class="bu-file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
+      </div>
+      <input type="file" accept=".xlsx" class="bu-file-input" (change)="onFileSelect($event)" />
+    </div>
+
+    <!-- Error message -->
+    <div class="bu-error" *ngIf="errorMessage()">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage() }}
+    </div>
+
+    <!-- Progress bar -->
+    <div class="bu-progress-wrap" *ngIf="uploading()">
+      <div class="bu-progress-bar" [style.width.%]="uploadProgress()"></div>
+    </div>
+
+    <div class="bu-upload-actions">
+      <button class="bu-reset-btn" *ngIf="selectedFile" (click)="reset()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
+      <button class="bu-upload-btn" [disabled]="!selectedFile || uploading()" (click)="uploadFile()">
+        <i class="bi" [class.bi-cloud-upload]="!uploading()" [class.bu-spin]="uploading()">
+          <span *ngIf="uploading()">⏳</span>
+        </i>
+        {{ uploading() ? 'Processing…' : 'Upload & Import' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="bu-card bu-result-card" *ngIf="result() as res">
+    <div class="bu-result-header">
+      <i class="bi bi-clipboard-check-fill"></i>
+      <span>Upload Complete</span>
+    </div>
+    <div class="bu-result-stats">
+      <div class="bu-stat bu-stat-total">
+        <span class="bu-stat-val">{{ res.total }}</span>
+        <span class="bu-stat-lbl">Total Rows</span>
+      </div>
+      <div class="bu-stat bu-stat-ok">
+        <i class="bi bi-check-circle-fill"></i>
+        <span class="bu-stat-val">{{ res.successful }}</span>
+        <span class="bu-stat-lbl">Imported</span>
+      </div>
+      <div class="bu-stat bu-stat-fail" *ngIf="res.failed > 0">
+        <i class="bi bi-x-circle-fill"></i>
+        <span class="bu-stat-val">{{ res.failed }}</span>
+        <span class="bu-stat-lbl">Failed</span>
+      </div>
+    </div>
+
+    <!-- Error details -->
+    <div class="bu-errors-list" *ngIf="res.errors.length > 0">
+      <div class="bu-errors-title">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ res.errors.length }} row(s) had errors:
+      </div>
+      <div class="bu-error-row" *ngFor="let e of res.errors">
+        <span class="bu-err-row-num">Row {{ e.row }}</span>
+        <span class="bu-err-msgs">{{ e.messages.join(' · ') }}</span>
+      </div>
+      <button class="bu-download-errors-btn" (click)="downloadErrorReport()">
+        <i class="bi bi-download"></i> Download Error Report (CSV)
+      </button>
+    </div>
+
+    <div class="bu-success-msg" *ngIf="res.failed === 0">
+      <i class="bi bi-check-circle-fill"></i> All rows imported successfully!
+    </div>
+  </div>
+
+</div>

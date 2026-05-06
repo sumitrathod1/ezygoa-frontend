@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,8 +9,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatRippleModule } from '@angular/material/core';
-// import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-// import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { EmailServiceService } from '../services/email-service.service';
 
@@ -32,10 +29,9 @@ export interface NotificationItem {
 @Component({
   selector: 'app-notification',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    // BrowserModule,
     CommonModule,
-    // BrowserAnimationsModule,
     MatChipsModule,
     MatListModule,
     MatIconModule,
@@ -46,41 +42,48 @@ export interface NotificationItem {
     MatTooltipModule,
     MatBadgeModule,
     MatRippleModule,
-    MatChipsModule,
   ],
   templateUrl: './notification.component.html',
   styleUrl: './notification.component.css',
 })
 export class NotificationComponent {
   filter: NotificationKind | 'All' = 'All';
-
-  // mock data (replace by real service)
   notifications: NotificationItem[] = [];
+  isLoading = false;
+
+  private cdr = inject(ChangeDetectorRef);
 
   get filteredNotifications(): NotificationItem[] {
     if (this.filter === 'All') return this.notifications;
     return this.notifications.filter((n) => n.category === this.filter);
   }
 
-  constructor(private _emialService: EmailServiceService) {}
+  constructor(private _emailService: EmailServiceService) {}
 
   ngOnInit() {
     this.getNotifications();
   }
+
   getNotifications() {
-    this._emialService.getNotification().subscribe({
+    this.isLoading = true;
+    this._emailService.getNotification().subscribe({
       next: (res: any[]) => {
         this.notifications = res.map((n) => ({
           id: n.notificationId || n.NotificationId,
           title: 'Inquiries',
           Message: n.message,
-          category: 'Inquiries',
+          category: 'Inquiries' as NotificationKind,
           createdAt: new Date(n.createdAt),
           isRead: n.isRead,
           colorTag: n.isRead ? '#9E9E9E' : '#2196F3',
         }));
+        this.isLoading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => console.error('Failed to load notifications', err),
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
     });
   }
 
@@ -88,68 +91,39 @@ export class NotificationComponent {
     this.filter = kind;
   }
 
-  // toggleRead(n: NotificationItem) {
-  //   n.isRead = !n.isRead;
-  // }
-
   dismiss(n: NotificationItem) {
     this.notifications = this.notifications.filter((x) => x.id !== n.id);
+    this.cdr.markForCheck();
   }
 
   markAsRead(n: any) {
-    if (!n || !n.id) {
-      console.error('Notification ID is missing:', n);
-      return;
-    }
-
+    if (!n?.id) return;
     const id = Number(n.id);
-    this._emialService.markNotificationRead(id).subscribe({
-      next: () => {
-        console.log(`Notification ${id} marked as read`);
-        this.getNotifications(); // refresh list after marking
-      },
-      error: (err) => console.error('Failed to mark as read', err),
+    this._emailService.markNotificationRead(id).subscribe({
+      next: () => this.getNotifications(),
     });
   }
 
-  // toggleRead(n: NotificationItem) {
-  //   n.isRead = true;
-
-  //   this._emialService.markNotificationRead(Number(n.id)).subscribe({
-  //     next: () => {
-  //       console.log(`Marked notification ${n.id} as read`);
-  //       n.colorTag = '#9E9E9E';
-  //     },
-  //     error: (err) =>
-  //       console.error('Failed to mark notification as read:', err),
-  //   });
-  // }
-
   markAllAsRead() {
-    this._emialService.markAllNotificationsRead().subscribe({
-      next: (res: any) => {
-        console.log(res.message);
-        this.getNotifications();
-      },
-      error: (err) => console.error('Failed to mark all as read', err),
+    this._emailService.markAllNotificationsRead().subscribe({
+      next: () => this.getNotifications(),
     });
   }
 
   clearAll() {
     this.notifications = [];
+    this.cdr.markForCheck();
   }
 
   performAction(n: NotificationItem) {
     if (n.actionUrl) {
       window.open(n.actionUrl, '_blank');
-    } else {
-      //this.toggleRead(n);
-      console.log('Action clicked for', n.id);
     }
   }
 
   timeAgo(date: Date) {
-    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    const istTime = date.getTime() + 5.5 * 60 * 60 * 1000;
+    const diff = Math.floor((Date.now() - istTime) / 1000);
     if (diff < 60) return `${diff}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;

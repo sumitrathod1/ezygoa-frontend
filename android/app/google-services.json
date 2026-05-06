@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "661137464375",
+    "project_id": "ezytravel-89107",
+    "storage_bucket": "ezytravel-89107.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661137464375:android:ba6c365958f383b4a133b2",
+        "android_client_info": {
+          "package_name": "com.ezytravel.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIBWGy-ByAKgjhEoXMLYFrT1Flk50kJDs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

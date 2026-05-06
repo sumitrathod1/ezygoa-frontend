@@ -23,9 +23,6 @@ export class EmployeeTableComponent {
         this.Employees = data;
         this._employeeService.updateEmployeeCount(this.Employees.length);
       },
-      error: (err) => {
-        console.error('Error fetching employees', err);
-      },
     });
   }
   onEmployeeClick(data: any) {}

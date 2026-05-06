@@ -1,0 +1,90 @@
+<div class="rcl-page">
+
+  <!-- Page header -->
+  <div class="rcl-top">
+    <button class="rcl-back-btn" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+      <h1 class="rcl-title">Rate Charts</h1>
+      <p class="rcl-sub">{{ charts.length }} template{{ charts.length !== 1 ? 's' : '' }} saved</p>
+    </div>
+    <button class="rcl-new-btn" (click)="createNew()">
+      <i class="bi bi-plus-lg"></i> New
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="rcl-toolbar">
+    <div class="rcl-search-wrap">
+      <i class="bi bi-search rcl-search-icon"></i>
+      <input
+        class="rcl-search"
+        type="text"
+        placeholder="Search by name or agent…"
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+    <select class="rcl-sort" [(ngModel)]="sortBy">
+      <option value="date">Latest</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="rcl-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+
+  <!-- Empty state -->
+  <div class="rcl-empty" *ngIf="!loading && filteredCharts.length === 0">
+    <i class="bi bi-file-earmark-bar-graph rcl-empty-icon"></i>
+    <p *ngIf="charts.length === 0">No rate charts yet. Create your first one!</p>
+    <p *ngIf="charts.length > 0">No results match your search.</p>
+    <button class="rcl-new-btn mt-3" (click)="createNew()" *ngIf="charts.length === 0">
+      <i class="bi bi-plus-lg"></i> Create Rate Chart
+    </button>
+  </div>
+
+  <!-- Chart cards -->
+  <div class="rcl-grid" *ngIf="!loading && filteredCharts.length > 0">
+    <div
+      class="rcl-card"
+      *ngFor="let c of filteredCharts"
+      (click)="editChart(c)"
+    >
+      <div class="rcl-card-top">
+        <div class="rcl-card-info">
+          <div class="rcl-card-name">{{ c.templateName }}</div>
+          <div class="rcl-card-agent" *ngIf="c.agentName">
+            <i class="bi bi-building"></i> {{ c.agentName }}
+          </div>
+        </div>
+        <span class="rcl-status" [ngClass]="getStatus(c).cls">
+          {{ getStatus(c).label }}
+        </span>
+      </div>
+
+      <div class="rcl-card-dates">
+        <span><i class="bi bi-calendar3"></i> {{ c.validFrom | date:'dd MMM yy' }} – {{ c.validTo | date:'dd MMM yy' }}</span>
+        <span class="rcl-updated"><i class="bi bi-clock"></i> {{ c.updatedAt | date:'dd MMM yy' }}</span>
+      </div>
+
+      <div class="rcl-card-actions">
+        <button class="rcl-act-btn preview" (click)="editChart(c); $event.stopPropagation()" title="Edit / Preview">
+          <i class="bi bi-eye-fill"></i> Preview
+        </button>
+        <button class="rcl-act-btn edit" (click)="editChart(c); $event.stopPropagation()" title="Edit">
+          <i class="bi bi-pencil-fill"></i> Edit
+        </button>
+        <button class="rcl-act-btn copy" (click)="duplicateChart(c, $event)" title="Duplicate">
+          <i class="bi bi-copy"></i>
+        </button>
+        <button class="rcl-act-btn del" (click)="deleteChart(c, $event)" title="Delete">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

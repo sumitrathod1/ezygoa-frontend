@@ -1,48 +1,27 @@
 import { Component, Inject } from '@angular/core';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import {
   FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-} from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { VehicleService } from '../../services/vehicle.service';
 import { ToastrService } from 'ngx-toastr';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-maintenance-form',
   standalone: true,
-  imports: [
-    NgxMaterialTimepickerModule,
-    FormsModule,
-    MatNativeDateModule,
-    MatFormFieldModule,
-    MatDatepickerModule,
-    MatDialogModule,
-    MatInputModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatGridListModule,
-  ],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, MatDialogModule],
   templateUrl: './maintenance-form.component.html',
   styleUrl: './maintenance-form.component.css',
 })
 export class MaintenanceFormComponent {
   maintenanceForm!: FormGroup;
   maintenanceTypes = ['oilChange', 'TireChange', 'Service'];
+  isSubmitting = false;
 
   constructor(
     private _fb: FormBuilder,
@@ -62,19 +41,18 @@ export class MaintenanceFormComponent {
   }
 
   onMaintenanceFormSubmit() {
-    if (this.maintenanceForm.valid) {
-      console.log('Maintenance Form Submitted:', this.maintenanceForm.value);
-      this._vehicleService
-        .addMaintenance(this.maintenanceForm.value)
-        .subscribe({
-          next: (val: any) => {
-            this._toastr.success('Maintenance added successfully:', 'Success');
-          },
-          error: (err: any) => {
-            this._toastr.error('Error adding maintenance:', err);
-          },
-        });
-      this._dialog.closeAll();
+    if (this.maintenanceForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      this._vehicleService.addMaintenance(this.maintenanceForm.value).subscribe({
+        next: () => {
+          this._toastr.success('Maintenance added successfully', 'Success');
+          this._dialog.closeAll();
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          this._toastr.error('Error adding maintenance', err?.message || '');
+        },
+      });
     }
   }
 

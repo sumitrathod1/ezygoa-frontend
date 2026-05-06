@@ -1,0 +1,119 @@
+<div class="booking-list-container">
+  <!-- Top Filters -->
+  <div class="list-header">
+    <input class="search-box" placeholder="Search bookings..." />
+
+    <select class="filter" (change)="onStatusFilterChange($event)">
+      <option value="all">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="settled">Settled</option>
+    </select>
+
+    <!-- <button class="more-btn">More Filters</button> -->
+    <button routerLink="/vendor-earnings" class="outline-btn">
+      View Earnings
+    </button>
+  </div>
+
+  <!-- Booking Card -->
+  <div class="booking-card mb-2" *ngFor="let b of vendorBookings">
+    <!-- Header -->
+    <div class="card-header">
+      <div class="left">
+        <div>
+          <div class="title">
+            Booking #{{ b.bookingId }}
+            <span
+              class="status"
+              [ngClass]="b.isSettled ? 'settled' : 'pending'"
+            >
+              {{ b.isSettled ? "Settled" : "Pending" }}
+            </span>
+
+            <!-- <div class="sub">Customer: {{ b.customerName }}</div> -->
+          </div>
+
+          <div class="sub muted">
+            {{ b.from }} → {{ b.to }} &nbsp; | &nbsp; 📅 {{ b.bookingDate }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amount Section -->
+    <div class="amount-grid">
+      <div>
+        <label
+          >Amount: <b>₹{{ b.bookingAmount }}</b></label
+        >
+        <!-- <span>₹{{ b.bookingAmount }}</span> -->
+      </div>
+
+      <div>
+        <label
+          >Commission: <b class="blue">₹{{ b.commission }}</b></label
+        >
+        <!-- <span class="blue">₹{{ b.commission }}</span> -->
+      </div>
+
+      <div>
+        <label
+          >Receivable: <b class="green">₹{{ b.ownerReceivable }}</b></label
+        >
+        <!-- <span class="green">₹{{ b.ownerReceivable }}</span> -->
+      </div>
+
+      <div>
+        <label
+          >Payable: <b class="red">₹{{ b.vendorPayable }}</b></label
+        >
+        <!-- <span class="red">₹{{ b.vendorPayable }}</span> -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="footer-left">
+        👤 {{ b.vendorName }} |
+        <b (click)="callCustomer(b.vendorNumber)">📞 {{ b.vendorNumber }}</b> |
+        💰 Cash by
+        <span
+          class="badge"
+          [ngClass]="
+            b.cashCollectedBy === 'Admin' ? 'badge-admin' : 'badge-vendor'
+          "
+        >
+          <i
+            class="bi"
+            [ngClass]="
+              b.cashCollectedBy === 'Admin' ? 'bi-building' : 'bi-person'
+            "
+          ></i>
+
+          {{ b.cashCollectedBy === "Admin" ? "Admin" : "Driver" }}
+        </span>
+
+        <span class="muted">
+          🔄
+          {{
+            b.settlementDirection === "VendorToOwner"
+              ? "Driver → Owner"
+              : "Owner → Driver"
+          }}
+        </span>
+
+        <span *ngIf="b.settledAt" class="muted">
+          ✔ Settled on {{ b.settledAt | date : "dd MMM yyyy" }}
+        </span>
+      </div>
+
+      <div class="footer-right">
+        <button *ngIf="!b.isSettled" class="primary-btn" (click)="settle(b)">
+          Settle
+        </button>
+
+        <button class="outline-btn" (click)="viewDetail(b)">Detail</button>
+      </div>
+    </div>
+  </div>
+</div>

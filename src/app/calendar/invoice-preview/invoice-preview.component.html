@@ -1,0 +1,149 @@
+<div class="inv-container">
+  <!-- Top bar -->
+  <div class="inv-top-bar">
+    <div class="inv-top-title">
+      <i class="bi bi-file-earmark-text-fill inv-title-icon"></i>
+      Invoice Preview
+    </div>
+    <button class="inv-close" (click)="close()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Scrollable invoice body -->
+  <div class="inv-scroll">
+    <div class="inv-paper">
+      <!-- Company Header -->
+      <div class="inv-header">
+        <div class="inv-logo-wrap">
+          <i class="bi bi-car-front-fill inv-logo-icon"></i>
+        </div>
+        <h1 class="inv-company">EZY GOA TRAVELS</h1>
+        <p class="inv-tagline">Your Trusted Travel Partner</p>
+        <div class="inv-contacts">
+          <span><i class="bi bi-telephone-fill"></i>&nbsp;+91 7406008393</span>
+          <span class="inv-sep">|</span>
+          <span
+            ><i class="bi bi-envelope-fill"></i
+            >&nbsp;contact&#64;ezygoataxiservices.in</span
+          >
+        </div>
+      </div>
+
+      <!-- Invoice meta row -->
+      <div class="inv-meta-bar">
+        <div class="inv-badge-label">INVOICE</div>
+        <div class="inv-meta-right">
+          <div class="inv-no">{{ invoiceNo }}</div>
+          <div class="inv-date">{{ today | date : "dd MMM yyyy" }}</div>
+        </div>
+      </div>
+
+      <!-- Customer Details -->
+      <div class="inv-section">
+        <div class="inv-sec-hdr">
+          <i class="bi bi-person-fill"></i>&nbsp;CUSTOMER DETAILS
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Name</span>
+          <span class="inv-v">{{
+            booking?.customer?.customerName || "—"
+          }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Phone</span>
+          <span class="inv-v">{{
+            booking?.customer?.customerNumber || "—"
+          }}</span>
+        </div>
+      </div>
+
+      <!-- Trip Details -->
+      <div class="inv-section">
+        <div class="inv-sec-hdr">
+          <i class="bi bi-geo-alt-fill"></i>&nbsp;TRIP DETAILS
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">From</span>
+          <span class="inv-v">{{ booking?.from || "—" }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">To</span>
+          <span class="inv-v">{{ booking?.to || "—" }}</span>
+        </div>
+        <div class="inv-row" *ngIf="booking?.travelDate">
+          <span class="inv-k">Date</span>
+          <span class="inv-v">{{
+            booking.travelDate | date : "dd MMM yyyy"
+          }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Time</span>
+          <span class="inv-v">{{ formatTime(booking?.traveltime) }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Type</span>
+          <span class="inv-v">{{ booking?.bookingType || "—" }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Vehicle</span>
+          <span class="inv-v">{{
+            booking?.vehicle?.vehicleName || "External"
+          }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Driver</span>
+          <span class="inv-v">{{ booking?.user?.employeeName || "TBD" }}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-k">Passengers</span>
+          <span class="inv-v">{{ booking?.pax || 1 }}</span>
+        </div>
+      </div>
+
+      <!-- Payment Details -->
+      <div class="inv-section inv-pay-section">
+        <div class="inv-sec-hdr">
+          <i class="bi bi-cash-coin"></i>&nbsp;PAYMENT DETAILS
+        </div>
+        <div class="inv-pay-row">
+          <span class="inv-pay-k">Total Amount</span>
+          <span class="inv-total-amt"
+            >&#8377;{{ booking?.amount || 0 | number }}</span
+          >
+        </div>
+        <div class="inv-pay-row">
+          <span class="inv-pay-k">Advance Paid</span>
+          <span class="inv-advance-amt"
+            >&#8377;{{ booking?.advancePaid || 0 | number }}</span
+          >
+        </div>
+        <div class="inv-pay-row inv-bal-row">
+          <span class="inv-pay-k"><strong>Balance Due</strong></span>
+          <span [class]="balance <= 0 ? 'inv-bal-zero' : 'inv-bal-due'">
+            &#8377;{{ balance | number }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Paper footer -->
+      <div class="inv-paper-footer">
+        <div class="inv-thanks">Thank you for choosing Ezy Goa! &#128591;</div>
+        <div class="inv-sub">Have a safe and wonderful journey.</div>
+        <div class="inv-note">
+          * Computer generated invoice. No signature required.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="inv-action-bar">
+    <button class="inv-btn inv-btn-dl" (click)="downloadPDF()">
+      <i class="bi bi-download"></i> Download PDF
+    </button>
+    <button class="inv-btn inv-btn-wa" (click)="sendWhatsApp()">
+      <i class="bi bi-whatsapp"></i> Send on WhatsApp
+    </button>
+  </div>
+</div>

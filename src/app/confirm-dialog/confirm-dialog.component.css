@@ -1,0 +1,5 @@
+.dialog-actions {
+  display: flex;
+  gap: 10px; /* 👈 spacing between buttons */
+  justify-content: center;
+}

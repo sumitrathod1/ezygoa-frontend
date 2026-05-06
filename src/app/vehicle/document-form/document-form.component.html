@@ -1,47 +1,137 @@
-<div mat-dialog-title>Vehicle Document</div>
-<form [formGroup]="documentForm" (ngSubmit)="onDocumentFormSubmit()">
-  <div mat-dialog-content>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Title</mat-label>
-          <input
-            matInput
-            type="text"
-            placeholder="Title"
-            formControlName="title"
-          />
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Description</mat-label>
-          <textarea matInput formControlName="description"></textarea>
-        </mat-form-field>
-      </div>
+<div class="vf-dialog">
+  <!-- Header -->
+  <div class="vf-header document-header">
+    <div class="vf-header-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
+    <div class="vf-header-text">
+      <div class="vf-header-title">{{ isEditMode ? 'Edit Document' : 'Add Document' }}</div>
+      <div class="vf-header-sub">{{ isEditMode ? 'Update document details' : 'Save to Document Vault' }}</div>
     </div>
-    <div class="row">
-      <div class="col-sm-6" appearance="outline">
-        <mat-form-field>
-          <mat-label>Expiry Date</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker"
-            formControlName="expiryDate"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
-    </div>
-  </div>
-  <div mat-dialog-actions class="action">
-    <button mat-raised-button type="button" (click)="onCloseDocument()">
-      Cancel
+    <button class="vf-close-btn" type="button" (click)="onCloseDocument()">
+      <i class="bi bi-x-lg"></i>
     </button>
-    <button mat-raised-button color="primary" type="submit">Submit</button>
   </div>
-</form>
+
+  <!-- Body -->
+  <div class="vf-body">
+    <form [formGroup]="documentForm" (ngSubmit)="onDocumentFormSubmit()">
+
+      <!-- Category -->
+      <div class="vf-field">
+        <label class="vf-label">
+          <i class="bi bi-folder2-open vf-lbl-icon"></i> Category
+        </label>
+        <div class="vf-category-row">
+          <label class="vf-cat-chip" [class.active]="documentForm.get('category')?.value === 'Vehicle'">
+            <input type="radio" formControlName="category" value="Vehicle" hidden />
+            🚗 Vehicle
+          </label>
+          <label class="vf-cat-chip" [class.active]="documentForm.get('category')?.value === 'Driver'">
+            <input type="radio" formControlName="category" value="Driver" hidden />
+            👤 Driver
+          </label>
+          <label class="vf-cat-chip" [class.active]="documentForm.get('category')?.value === 'Company'">
+            <input type="radio" formControlName="category" value="Company" hidden />
+            🏢 Company
+          </label>
+        </div>
+      </div>
+
+      <!-- Vehicle select (Vehicle category only) -->
+      <div class="vf-field" *ngIf="isVehicleCategory">
+        <label class="vf-label">
+          <i class="bi bi-car-front-fill vf-lbl-icon"></i> Vehicle
+        </label>
+        <select class="vf-select" formControlName="vehicleID">
+          <option value="">Select vehicle…</option>
+          <option *ngFor="let v of vehicles" [value]="v.vehicleId">
+            {{ v.vehicleName }} · {{ v.vehicleNumber }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Driver name (Driver category only) -->
+      <div class="vf-field" *ngIf="isDriverCategory">
+        <label class="vf-label">
+          <i class="bi bi-person-fill vf-lbl-icon"></i> Driver Name
+        </label>
+        <input class="vf-input" type="text" placeholder="e.g. Raju Naik" formControlName="driverName" />
+      </div>
+
+      <!-- Document Type + Title -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-file-earmark-text vf-lbl-icon"></i> Document Type
+          </label>
+          <select class="vf-select" formControlName="documentType">
+            <option value="" disabled>Select type</option>
+            <option *ngFor="let t of docTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-input-cursor-text vf-lbl-icon"></i> Title <span class="vf-optional">(optional)</span>
+          </label>
+          <input class="vf-input" type="text" placeholder="Custom label" formControlName="title" />
+        </div>
+      </div>
+
+      <!-- Doc Number + Issued By -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-hash vf-lbl-icon"></i> Document No.
+          </label>
+          <input class="vf-input" type="text" placeholder="Policy / Reg / Lic no." formControlName="documentNumber" />
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-building vf-lbl-icon"></i> Issued By
+          </label>
+          <input class="vf-input" type="text" placeholder="Authority / insurer" formControlName="issuedBy" />
+        </div>
+      </div>
+
+      <!-- Issue Date + Expiry Date -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-calendar-plus vf-lbl-icon"></i> Issue Date
+          </label>
+          <input class="vf-input" type="date" formControlName="issueDate" />
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-calendar-x vf-lbl-icon"></i> Expiry Date
+          </label>
+          <div class="vf-expiry-row">
+            <input class="vf-input" type="date" formControlName="expiryDate" [disabled]="!hasExpiry" />
+            <label class="vf-no-expiry-toggle">
+              <input type="checkbox" [checked]="!hasExpiry"
+                (change)="documentForm.patchValue({ hasExpiry: !$any($event.target).checked })" />
+              None
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="vf-field">
+        <label class="vf-label">
+          <i class="bi bi-card-text vf-lbl-icon"></i> Notes
+        </label>
+        <textarea class="vf-textarea" rows="2" placeholder="Any additional info…" formControlName="description"></textarea>
+      </div>
+
+      <!-- Footer -->
+      <div class="vf-footer">
+        <button class="vf-btn-cancel" type="button" (click)="onCloseDocument()">Cancel</button>
+        <button class="vf-btn-submit document-submit" type="submit" [disabled]="isSubmitting">
+          <i class="bi bi-floppy-fill"></i>
+          {{ isSubmitting ? 'Saving…' : (isEditMode ? 'Update Document' : 'Save Document') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

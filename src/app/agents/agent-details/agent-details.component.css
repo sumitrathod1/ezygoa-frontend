@@ -1,33 +1,226 @@
-.dashboard-container {
-  max-width: 600px;
-  margin: auto;
-  padding: 16px;
-  font-family: "Segoe UI", sans-serif;
-  background-color: #f9fafb;
+.ad-page {
+  padding: 12px 10px 24px;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
-.driver-list {
+/* Agent profile card */
+.ad-agent-card {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  border-radius: 18px;
+  padding: 18px 16px;
+  color: #fff;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(13,148,136,0.25);
+}
+.ad-agent-top {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 14px;
 }
-
-.driver-card {
+.ad-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
   display: flex;
   align-items: center;
-  background-color: #fff;
-  padding: 12px 16px;
-  border-radius: 10px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.4);
+}
+.ad-agent-info { flex: 1; min-width: 0; }
+.ad-agent-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.ad-agent-type {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.ad-agent-contact {
+  font-size: 12px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+}
+.ad-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.ad-status-badge.active {
+  background: rgba(255,255,255,0.3);
 }
 
-.driver-name {
+/* Stats row */
+.ad-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ad-stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 12px 10px;
+  border: 1.5px solid #e0e7ff;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.ad-stat-card.revenue { border-color: #c7d2fe; }
+.ad-stat-card.commission { border-color: #fde68a; }
+.ad-stat-card.bookings { border-color: #bbf7d0; }
+.ad-stat-card.balance { border-color: #e0e7ff; }
+.ad-stat-card.balance.overdue { border-color: #fecaca; background: #fff7f7; }
+.ad-stat-icon { font-size: 1.1rem; color: #6366f1; margin-bottom: 2px; }
+.ad-stat-card.commission .ad-stat-icon { color: #d97706; }
+.ad-stat-card.bookings  .ad-stat-icon { color: #16a34a; }
+.ad-stat-card.balance.overdue .ad-stat-icon { color: #dc2626; }
+.ad-stat-val { font-size: 1.05rem; font-weight: 800; color: #1e293b; }
+.ad-stat-label { font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Section title */
+.ad-section-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ad-count {
+  background: #e0e7ff;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+
+/* Booking cards */
+.ad-booking-list { display: flex; flex-direction: column; gap: 12px; }
+.ad-booking-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e0e7ff;
+  box-shadow: 0 2px 10px rgba(99,102,241,0.06);
+  padding: 13px 13px 11px;
+}
+.ad-bk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ad-bk-customer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ad-bk-phone { font-size: 11px; color: #9ca3af; font-weight: 500; }
+.ad-bk-type {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.ad-bk-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin-bottom: 8px;
+}
+.ad-bk-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.ad-bk-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
   font-weight: 500;
-  margin: 0;
 }
+.ad-bk-icon { font-size: 11px; flex-shrink: 0; }
+.ad-bk-icon.date    { color: #6366f1; }
+.ad-bk-icon.vehicle { color: #0ea5e9; }
+.ad-bk-icon.driver  { color: #22c55e; }
+.ad-bk-icon.loc     { color: #f59e0b; }
 
-.driver-location {
-  color: #4c759a;
-  font-size: 14px;
-  margin: 2px 0 0 0;
+/* Financials */
+.ad-bk-financials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+.ad-bk-fin-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ad-bk-fin-label { font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.04em; }
+.ad-bk-fin-val { font-size: 0.85rem; font-weight: 800; color: #1e293b; }
+.ad-bk-fin-val.amount { color: #059669; }
+.ad-bk-fin-val.commission { color: #d97706; }
+.ad-bk-fin-val.overdue { color: #dc2626; }
+.ad-bk-status {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+.ad-bk-status.confirmed { background: #d1fae5; color: #059669; }
+.ad-bk-status.pending   { background: #fef3c7; color: #d97706; }
+.ad-bk-status.canceled  { background: #fee2e2; color: #dc2626; }
+
+/* Empty */
+.ad-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 0;
+  font-size: 0.95rem;
 }

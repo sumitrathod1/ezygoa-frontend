@@ -54,7 +54,6 @@ export class AgentFormComponent {
     });
   }
   onAgentFormSubmit() {
-    console.log('Agent Form Submitted', this.agentForm.value);
     this._agetnservice.addAgetn(this.agentForm.value).subscribe({
       next: (res) => {
         this._toastr.success('Agent added successfully', 'Success');

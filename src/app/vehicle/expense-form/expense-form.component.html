@@ -1,51 +1,83 @@
-<div mat-dialog-title>Vehicle Expense</div>
-<form [formGroup]="expenseForm" (ngSubmit)="onExpenseFormSubmit()">
-  <div mat-dialog-content>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Expense Date</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker"
-            formControlName="expenseDate"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Amount</mat-label>
-          <input
-            matInput
-            type="number"
-            placeholder="Amount"
-            min="1"
-            formControlName="amount"
-          />
-        </mat-form-field>
-      </div>
+<div class="vf-dialog">
+  <!-- Header -->
+  <div class="vf-header expense-header">
+    <div class="vf-header-icon"><i class="bi bi-cash-coin"></i></div>
+    <div class="vf-header-text">
+      <div class="vf-header-title">Add Expense</div>
+      <div class="vf-header-sub">Record vehicle expenditure</div>
     </div>
-    <div class="row">
-      <div class="col-sm-6" appearance="outline">
-        <mat-form-field>
-          <mat-label>Category</mat-label>
-          <mat-select formControlName="categoryType">
-            <mat-option>None</mat-option>
-            @for (ctypes of CategoryType; track ctypes) {
-            <mat-option [value]="ctypes">{{ ctypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+    <button class="vf-close-btn" type="button" (click)="onCloseExpense()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="vf-body">
+    <form [formGroup]="expenseForm" (ngSubmit)="onExpenseFormSubmit()">
+
+      <!-- Date + Category -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-calendar3 vf-lbl-icon"></i> Expense Date
+          </label>
+          <input class="vf-input" type="date" formControlName="expenseDate" />
+          <span class="vf-err"
+            *ngIf="expenseForm.get('expenseDate')?.touched && expenseForm.get('expenseDate')?.invalid">
+            Date required
+          </span>
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-tag-fill vf-lbl-icon"></i> Category
+          </label>
+          <select class="vf-select" formControlName="categoryType">
+            <option value="" disabled>Select type</option>
+            <option *ngFor="let cat of CategoryType" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
       </div>
-    </div>
+
+      <!-- Vehicle (Employee only) -->
+      <div class="vf-field" *ngIf="role === 'Employee'">
+        <label class="vf-label">
+          <i class="bi bi-truck vf-lbl-icon"></i> Vehicle
+        </label>
+        <select class="vf-select" formControlName="vehicle">
+          <option value="" disabled>Select vehicle</option>
+          <option *ngFor="let v of vehcilesType" [value]="v.vehicleId">
+            {{ v.vehicleName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Amount -->
+      <div class="vf-field">
+        <label class="vf-label">
+          <i class="bi bi-currency-rupee vf-lbl-icon"></i> Amount (₹)
+        </label>
+        <input
+          class="vf-input"
+          type="number"
+          placeholder="Enter amount"
+          min="1"
+          formControlName="amount"
+        />
+        <span class="vf-err"
+          *ngIf="expenseForm.get('amount')?.touched && expenseForm.get('amount')?.invalid">
+          Valid amount required
+        </span>
+      </div>
+
+      <!-- Footer -->
+      <div class="vf-footer">
+        <button class="vf-btn-cancel" type="button" (click)="onCloseExpense()">Cancel</button>
+        <button class="vf-btn-submit" type="submit" [disabled]="isSubmitting">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ isSubmitting ? 'Saving…' : 'Add Expense' }}
+        </button>
+      </div>
+
+    </form>
   </div>
-  <div mat-dialog-actions class="action">
-    <button mat-raised-button (click)="onCloseExpense()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit">Submit</button>
-  </div>
-</form>
+</div>

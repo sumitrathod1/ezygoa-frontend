@@ -1,19 +1,48 @@
-<!-- <div class="app-container">
-  <app-header *ngIf="(userRole$ | async) === 'Admin'"></app-header>
-
-  <div class="content">
-    <router-outlet></router-outlet>
+<div class="global-loader" *ngIf="loading$ | async">
+  <div class="spinner-border text-light" role="status">
+    <span class="visually-hidden">Loading...</span>
   </div>
-
-  <app-footer *ngIf="(userRole$ | async) === 'Admin'"></app-footer>
-</div> -->
+</div>
 
 <ng-container *ngIf="userRole$ | async as role; else maybeLogin">
   <div class="app-container" *ngIf="role">
+
     <ng-container *ngIf="role === 'Admin'">
       <app-header></app-header>
-      <div class="content">
-        <router-outlet></router-outlet>
+      <div class="app-body">
+        <!-- Desktop sidebar (hidden on mobile/tablet) -->
+        <nav class="desktop-sidebar">
+          <a class="ds-item" routerLink="/home" routerLinkActive="ds-active">
+            <i class="bi bi-house-heart-fill"></i><span>Home</span>
+          </a>
+          <a class="ds-item" routerLink="/booking" routerLinkActive="ds-active">
+            <i class="bi bi-calendar-date"></i><span>Bookings</span>
+          </a>
+          <a class="ds-item" routerLink="/vehicle" routerLinkActive="ds-active">
+            <i class="bi bi-car-front-fill"></i><span>Vehicles</span>
+          </a>
+          <a class="ds-item" routerLink="/employee" routerLinkActive="ds-active">
+            <i class="bi bi-people-fill"></i><span>Drivers</span>
+          </a>
+          <a class="ds-item" routerLink="/agents" routerLinkActive="ds-active">
+            <i class="bi bi-person-badge-fill"></i><span>Agents</span>
+          </a>
+          <a class="ds-item" routerLink="/earnings" routerLinkActive="ds-active">
+            <i class="bi bi-graph-up-arrow"></i><span>Earnings</span>
+          </a>
+          <a class="ds-item" routerLink="/business-hub" routerLinkActive="ds-active">
+            <i class="bi bi-briefcase-fill"></i><span>Business Hub</span>
+          </a>
+          <a class="ds-item" routerLink="/document-vault" routerLinkActive="ds-active">
+            <i class="bi bi-folder2-open"></i><span>Documents</span>
+          </a>
+          <a class="ds-item" routerLink="/bulk-upload" routerLinkActive="ds-active">
+            <i class="bi bi-cloud-upload-fill"></i><span>Bulk Upload</span>
+          </a>
+        </nav>
+        <div class="content">
+          <router-outlet></router-outlet>
+        </div>
       </div>
       <app-footer></app-footer>
     </ng-container>
@@ -23,6 +52,7 @@
         <router-outlet></router-outlet>
       </div>
     </ng-container>
+
   </div>
 </ng-container>
 

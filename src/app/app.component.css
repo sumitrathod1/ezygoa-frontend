@@ -1,26 +1,125 @@
-.example-spacer {
-  flex: 1 1 auto;
-}
-/* app.component.css or styles.css */
-
 html,
 body {
   height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 .app-container {
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
+app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(90deg, #4b2aad, #7b3fe4);
+  padding-top: var(--safe-area-inset-top, 0px);
+  flex-shrink: 0;
+}
+
+:root {
+  --header-height: 56px;
+  --footer-height: 64px;
+  --sidebar-width: 220px;
+}
+
+/* ── App body (flex row for sidebar + content) ── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Desktop Sidebar ── */
+.desktop-sidebar {
+  display: none;
+}
+
+/* ── Scrollable content area ── */
 .content {
   flex: 1;
+  overflow-y: auto;
+  padding-bottom: calc(var(--footer-height) + var(--safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
-app-footer {
-  background-color: #f9fafb;
-  padding: 1rem;
+.custom-toolbar {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+}
+
+.global-loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: all;
+}
+
+/* ── Tablet (768px+) ── */
+@media (min-width: 768px) {
+  .content {
+    padding-bottom: calc(var(--footer-height) + 8px);
+  }
+}
+
+/* ── Desktop / Laptop (1024px+) ── */
+@media (min-width: 1024px) {
+  .desktop-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width);
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    padding: 16px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .content {
+    padding-bottom: 24px;
+    overflow-y: auto;
+  }
+
+  app-footer {
+    display: none;
+  }
+}
+
+/* ── Desktop Sidebar styles ── */
+.ds-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  color: #4b5563;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 0;
+  transition: background 0.15s, color 0.15s;
+  border-left: 3px solid transparent;
+}
+.ds-item i {
+  font-size: 1.1rem;
+  width: 20px;
   text-align: center;
+  flex-shrink: 0;
+}
+.ds-item:hover {
+  background: #f5f3ff;
+  color: #6366f1;
+}
+.ds-active {
+  background: #f5f3ff;
+  color: #6366f1;
+  border-left-color: #6366f1;
 }

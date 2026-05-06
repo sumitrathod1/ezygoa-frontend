@@ -70,15 +70,36 @@ export class VehicleFormComponent {
     });
   }
 
+  toUppercase(controlName: string) {
+  const ctrl = this.vehicleForm.get(controlName);
+  if (!ctrl) return;
+
+  const value = ctrl.value;
+  if (value) {
+    ctrl.setValue(value.toUpperCase(), { emitEvent: false });
+  }
+}
+
+
   onVehicleFormSubmit() {
     if (this.vehicleForm.valid) {
+      const formatDateOnly = (d: any) => {
+        if (!d) return null;
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return null;
+        dt.setHours(12, 0, 0, 0);
+        return dt.toISOString().split('T')[0];
+      };
       const payload = {
         VehicleName: this.vehicleForm.value.VehicleName,
         VehicleNumber: this.vehicleForm.value.VehicleNumber,
         VehicleType: this.vehicleForm.value.VehicleType,
-        RegistrationDate: new Date(this.vehicleForm.value.RegistrationDate)
-          .toISOString()
-          .split('T')[0],
+        RegistrationDate: formatDateOnly(
+          this.vehicleForm.value.RegistrationDate
+        ),
+        // RegistrationDate: new Date(this.vehicleForm.value.RegistrationDate)
+        //   .toISOString()
+        //   .split('T')[0],
         Seatingcapacity: this.vehicleForm.value.Seatingcapacity,
       };
       this._vehicleService.addVehicle(payload).subscribe({

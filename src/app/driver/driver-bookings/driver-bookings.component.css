@@ -1,0 +1,43 @@
+/* Table shadow and rounded corners */
+.table {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+/* Table header style */
+.table thead {
+  background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+  color: #fff;
+  border: none;
+}
+
+.table thead th {
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+
+/* Table row hover effect */
+.table-hover tbody tr:hover {
+  background-color: #f1f7ff;
+  transition: background 0.2s;
+}
+
+/* Bold title column */
+.table td.fw-bold {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Responsive padding */
+@media (max-width: 768px) {
+  .table td,
+  .table th {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    justify-content: space-between;
+  }
+}

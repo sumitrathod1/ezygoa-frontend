@@ -1,91 +1,58 @@
-<div *ngIf="isLoading" class="loader-overlay">
-  <mat-progress-spinner diameter="60" color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-  <p class="loader-text">Loading, please wait...</p>
-</div>
+<div class="container mt-3">
 
-<div *ngIf="!isLoading">
-  <div class="container mt-4">
-    <div class="row g-3">
-      <div class="col-6 col-md-3">
-        <a
-          class="card text-center shadow-sm text-decoration-none"
-          routerLink="/booking-table"
-          style="cursor: pointer"
-        >
-          <div class="card-body">
-            <i class="bi bi-car-front fs-2 text-primary"></i>
-            <h6 class="mt-2">Total Bookings</h6>
-            <h5 class="fw-bold">{{ totalBookings }}</h5>
-          </div>
-        </a>
-      </div>
-
-      <div class="col-6 col-md-3">
-        <a
-          style="cursor: pointer"
-          class="card text-center shadow-sm text-decoration-none"
-          routerLink="/earnings"
-        >
-          <div class="card-body">
-            <i class="bi bi-calendar-event fs-2 text-success"></i>
-            <h6 class="mt-2">Booking Statistics</h6>
-            <h5 class="fw-bold">VV</h5>
-          </div>
-        </a>
-      </div>
-
-      <!-- <div class="col-6 col-md-3">
-      <a
-        style="cursor: pointer"
-        class="card text-center shadow-sm border-warning"
-        routerLink="/calendar"
-      >
-        <div class="card-body">
-          <i class="bi bi-calendar-heart fs-2 text-warning"></i>
-          <h6 class="mt-2">Booking Calendar</h6>
-          <h5 class="fw-bold">5</h5>
-        </div>
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md">
+      <a class="kpi-card total text-decoration-none d-block" routerLink="/booking-table">
+        <i class="bi bi-calendar2-check kpi-icon"></i>
+        <div class="kpi-value">{{ totalBookings }}</div>
+        <div class="kpi-label">Total Bookings</div>
       </a>
-    </div> -->
-
-      <!-- <div class="col-6 col-md-3">
-      <a
-        style="cursor: pointer"
-        class="card text-center shadow-sm border-danger"
-      >
-        <div class="card-body">
-          <i class="bi bi-currency-rupee fs-2 text-danger"></i>
-          <h6 class="mt-2">Total Revenue</h6>
-          <h5 class="fw-bold">₹ stats.revenue</h5>
-        </div>
-      </a>
-    </div> -->
     </div>
-
-    <div class="row g-4 mt-2">
-      <div class="col-12 col-md-6">
-        <div class="card p-3 chart-card shadow-effect">
-          <h5>Monthly Bookings</h5>
-          <canvas
-            baseChart
-            [data]="barChartData"
-            [type]="barChartType"
-            [options]="barChartOptions"
-          ></canvas>
-        </div>
+    <div class="col-6 col-md">
+      <a class="kpi-card revenue text-decoration-none d-block" routerLink="/earnings">
+        <i class="bi bi-cash-stack kpi-icon"></i>
+        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
+        <div class="kpi-label">Total Revenue</div>
+      </a>
+    </div>
+    <div class="col-4 col-md">
+      <div class="kpi-card pending">
+        <i class="bi bi-clock kpi-icon"></i>
+        <div class="kpi-value">{{ pendingCount }}</div>
+        <div class="kpi-label">Pending</div>
       </div>
-      <div class="col-12 col-md-6">
-        <div class="card p-3 chart-card shadow-effect">
-          <h5>Bookings Distribution</h5>
-          <canvas
-            baseChart
-            [data]="pieChartData"
-            [type]="pieChartType"
-            [options]="pieChartOptions"
-          ></canvas>
-        </div>
+    </div>
+    <div class="col-4 col-md">
+      <div class="kpi-card completed">
+        <i class="bi bi-check-circle kpi-icon"></i>
+        <div class="kpi-value">{{ completedCount }}</div>
+        <div class="kpi-label">Completed</div>
+      </div>
+    </div>
+    <div class="col-4 col-md">
+      <div class="kpi-card cancelled">
+        <i class="bi bi-x-circle kpi-icon"></i>
+        <div class="kpi-value">{{ cancelledCount }}</div>
+        <div class="kpi-label">Cancelled</div>
       </div>
     </div>
   </div>
+
+  <!-- Charts -->
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-md-6">
+      <div class="card p-3 chart-card shadow-effect">
+        <h5>Monthly Bookings</h5>
+        <canvas baseChart [data]="barChartData" [type]="barChartType" [options]="barChartOptions"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card p-3 chart-card shadow-effect">
+        <h5>Bookings by Type</h5>
+        <canvas baseChart [data]="pieChartData" [type]="pieChartType" [options]="pieChartOptions"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>

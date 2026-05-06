@@ -1,0 +1,231 @@
+<div class="sal-page">
+
+  <!-- Top bar -->
+  <div class="sal-topbar">
+    <button class="sal-back-btn" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
+    <div class="sal-topbar-title">
+      <i class="bi bi-cash-coin"></i>
+      <span>Salary Management</span>
+    </div>
+    <div class="sal-topbar-actions">
+      <select class="sal-sel" [(ngModel)]="filterMonth">
+        <option *ngFor="let m of months; let i = index" [value]="i + 1">{{ m }}</option>
+      </select>
+      <select class="sal-sel" [(ngModel)]="filterYear">
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+      <button class="sal-act-btn gen-btn" (click)="generateMonth()" [disabled]="generating">
+        <i class="bi bi-magic"></i> {{ generating ? 'Generating…' : 'Auto-Generate' }}
+      </button>
+      <button class="sal-act-btn add-btn" (click)="openCreate()">
+        <i class="bi bi-plus-circle"></i> Add
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="sal-summary-row">
+    <div class="sal-sum-card total">
+      <div class="sal-sum-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="sal-sum-info">
+        <div class="sal-sum-val">₹{{ totalNet | number:'1.0-0' }}</div>
+        <div class="sal-sum-lbl">Total Payroll · {{ filtered.length }} staff</div>
+      </div>
+    </div>
+    <div class="sal-sum-card paid">
+      <div class="sal-sum-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="sal-sum-info">
+        <div class="sal-sum-val">₹{{ totalPaid | number:'1.0-0' }}</div>
+        <div class="sal-sum-lbl">Paid</div>
+      </div>
+    </div>
+    <div class="sal-sum-card pending">
+      <div class="sal-sum-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="sal-sum-info">
+        <div class="sal-sum-val">₹{{ totalPending | number:'1.0-0' }}</div>
+        <div class="sal-sum-lbl">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="sal-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+
+  <!-- Empty state -->
+  <div class="sal-empty" *ngIf="!loading && filtered.length === 0">
+    <i class="bi bi-cash-stack"></i>
+    <p>No salary records for {{ monthLabel(filterMonth) }} {{ filterYear }}</p>
+    <button class="sal-act-btn gen-btn" (click)="generateMonth()">
+      <i class="bi bi-magic"></i> Auto-Generate for this Month
+    </button>
+  </div>
+
+  <!-- Records list -->
+  <div class="sal-list" *ngIf="!loading && filtered.length > 0">
+    <div class="sal-card" *ngFor="let r of filtered" [class.sal-card-paid]="r.isPaid">
+      <div class="sal-card-left">
+        <div class="sal-avatar">{{ (r.user?.employeeName || r.user?.EmployeeName || 'E')[0].toUpperCase() }}</div>
+        <div class="sal-emp-info">
+          <div class="sal-emp-name">
+            {{ r.user?.employeeName || r.user?.EmployeeName || 'Employee #' + r.userID }}
+            <span class="sal-auto-badge" *ngIf="isAutoRecord(r)">Auto</span>
+            <span class="sal-manual-badge" *ngIf="!isAutoRecord(r)">Manual</span>
+          </div>
+          <div class="sal-emp-meta">{{ monthLabel(r.month) }} {{ r.year }}</div>
+          <div class="sal-next-auto" *ngIf="isAutoRecord(r) && nextAutoDate(r)">
+            Next: {{ nextAutoDate(r) }}
+          </div>
+        </div>
+      </div>
+      <div class="sal-card-mid">
+        <div class="sal-breakdown">
+          <span class="sal-bk-item">Base: ₹{{ r.baseSalay | number:'1.0-0' }}</span>
+          <span class="sal-bk-item" *ngIf="r.overtimepay > 0">OT: +₹{{ r.overtimepay | number:'1.0-0' }}</span>
+          <span class="sal-bk-item deduct" *ngIf="r.deduction > 0">Ded: -₹{{ r.deduction | number:'1.0-0' }}</span>
+        </div>
+        <div class="sal-net">₹{{ r.netSalaey | number:'1.0-0' }}</div>
+      </div>
+      <div class="sal-card-right">
+        <span class="sal-status-badge" [class.badge-paid]="r.isPaid" [class.badge-pending]="!r.isPaid">
+          {{ r.isPaid ? '✓ Paid' : '⏳ Pending' }}
+        </span>
+        <span class="sal-paid-date" *ngIf="r.isPaid && r.paidDate">{{ r.paidDate | date:'d MMM yy' }}</span>
+        <button class="sal-pay-btn" *ngIf="!r.isPaid" (click)="openPayModal(r)">
+          <i class="bi bi-check2"></i> Mark Paid
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Create form modal ────────────────────────────────────── -->
+<div class="sal-modal-overlay" *ngIf="showCreateForm" (click)="showCreateForm = false">
+  <div class="sal-modal" (click)="$event.stopPropagation()">
+    <div class="sal-modal-header">
+      <i class="bi bi-plus-circle-fill"></i> Add Salary Record
+      <button class="sal-modal-close" (click)="showCreateForm = false">✕</button>
+    </div>
+    <div class="sal-modal-body">
+
+      <!-- Employee searchable dropdown -->
+      <div class="sal-form-row">
+        <label>Employee</label>
+        <div class="sal-emp-wrap">
+          <div class="sal-emp-input-row">
+            <i class="bi bi-search sal-emp-search-icon"></i>
+            <input
+              class="sal-emp-input"
+              type="text"
+              [(ngModel)]="empSearch"
+              (focus)="onEmpFocus()"
+              (input)="onEmpSearch()"
+              placeholder="Search employee…"
+              autocomplete="off"
+            />
+            <button class="sal-emp-clear" *ngIf="selectedEmployee" (click)="clearEmployee()" title="Clear">✕</button>
+          </div>
+
+          <!-- Dropdown list -->
+          <div class="sal-emp-list" *ngIf="showEmpList">
+            <div class="sal-emp-empty" *ngIf="filteredEmployees.length === 0">
+              No employees found
+            </div>
+            <div
+              class="sal-emp-option"
+              *ngFor="let e of filteredEmployees"
+              (mousedown)="selectEmployee(e)"
+            >
+              <div class="sal-emp-opt-avatar">{{ empName(e)[0].toUpperCase() }}</div>
+              <div class="sal-emp-opt-info">
+                <span class="sal-emp-opt-name">{{ empName(e) }}</span>
+                <span class="sal-emp-opt-role">{{ empRoleLabel(e) }}</span>
+              </div>
+              <span class="sal-emp-opt-sal">₹{{ (e.salary ?? e.Salary ?? 0) | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected employee details card -->
+      <div class="sal-emp-detail-card" *ngIf="selectedEmployee">
+        <span>👤 {{ empName(selectedEmployee) }}</span>
+        <span *ngIf="selectedEmployee.address || selectedEmployee.Address">
+          📍 {{ selectedEmployee.address || selectedEmployee.Address }}
+        </span>
+        <span>💰 ₹{{ (selectedEmployee.salary ?? selectedEmployee.Salary ?? 0) | number:'1.0-0' }}/mo</span>
+        <span class="sal-role-chip">{{ empRoleLabel(selectedEmployee) }}</span>
+      </div>
+
+      <!-- Month / Year -->
+      <div class="sal-form-2col">
+        <div class="sal-form-row">
+          <label>Month</label>
+          <select [(ngModel)]="createData.month">
+            <option *ngFor="let m of months; let i = index" [value]="i + 1">{{ m }}</option>
+          </select>
+        </div>
+        <div class="sal-form-row">
+          <label>Year</label>
+          <select [(ngModel)]="createData.year">
+            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Salary fields -->
+      <div class="sal-form-row">
+        <label>Base Salary (₹)</label>
+        <input type="number" [(ngModel)]="createData.baseSalay" min="0" />
+      </div>
+      <div class="sal-form-2col">
+        <div class="sal-form-row">
+          <label>Overtime Pay</label>
+          <input type="number" [(ngModel)]="createData.overtimepay" min="0" />
+        </div>
+        <div class="sal-form-row">
+          <label>Deduction</label>
+          <input type="number" [(ngModel)]="createData.deduction" min="0" />
+        </div>
+      </div>
+
+      <div class="sal-net-preview">
+        Net: ₹{{ (createData.baseSalay + createData.overtimepay - createData.deduction) | number:'1.0-0' }}
+      </div>
+    </div>
+    <div class="sal-modal-footer">
+      <button class="sal-cancel-btn" (click)="showCreateForm = false">Cancel</button>
+      <button class="sal-submit-btn" (click)="submitCreate()" [disabled]="!createData.userID">
+        <i class="bi bi-floppy-fill"></i> Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Mark Paid modal ──────────────────────────────────────── -->
+<div class="sal-modal-overlay" *ngIf="showPayModal" (click)="showPayModal = false">
+  <div class="sal-modal" (click)="$event.stopPropagation()">
+    <div class="sal-modal-header">
+      <i class="bi bi-check2-circle"></i> Mark as Paid
+      <button class="sal-modal-close" (click)="showPayModal = false">✕</button>
+    </div>
+    <div class="sal-modal-body" *ngIf="selectedRecord">
+      <p class="sal-pay-confirm">
+        Mark <strong>{{ selectedRecord.user?.employeeName || 'Employee' }}</strong>'s salary of
+        <strong>₹{{ selectedRecord.netSalaey | number:'1.0-0' }}</strong> as paid?
+      </p>
+      <div class="sal-form-row">
+        <label>Notes (optional)</label>
+        <input type="text" [(ngModel)]="payNotes" placeholder="e.g. Bank transfer XXXX" />
+      </div>
+    </div>
+    <div class="sal-modal-footer">
+      <button class="sal-cancel-btn" (click)="showPayModal = false">Cancel</button>
+      <button class="sal-submit-btn paid-btn" (click)="confirmPay()">
+        <i class="bi bi-check2"></i> Confirm Payment
+      </button>
+    </div>
+  </div>
+</div>

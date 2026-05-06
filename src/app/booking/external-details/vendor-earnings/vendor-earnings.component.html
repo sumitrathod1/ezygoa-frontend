@@ -1,0 +1,59 @@
+<div *ngIf="isLoading" class="loader">
+  <p>Loading earnings...</p>
+</div>
+
+<div *ngIf="!isLoading" class="container py-3">
+  <!-- SUMMARY CARDS -->
+  <div class="row g-3">
+    <div class="col-6 col-md-3">
+      <div class="card summary-card">
+        <div class="label">Total Bookings</div>
+        <div class="value">{{ summary.totalBookings }}</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card summary-card">
+        <div class="label">Total Amount</div>
+        <div class="value">
+          {{ summary.totalAmount | indianCurrency }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card summary-card green">
+        <div class="label">Commission Earned</div>
+        <div class="value">
+          {{ summary.adminEarned | indianCurrency }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card summary-card blue">
+        <div class="label">Vendors Earned</div>
+        <div class="value">
+          {{ summary.vendorsEarned | indianCurrency }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NET EARNING -->
+  <!-- <div class="card net-card mt-3">
+    💰 Net Earning:
+    <span>{{ summary.netEarning | indianCurrency }}</span>
+  </div> -->
+
+  <!-- PIE CHART -->
+  <div class="card mt-4 p-3">
+    <h5 class="mb-2">Earnings Distribution</h5>
+    <canvas
+      baseChart
+      [type]="pieChartType"
+      [data]="pieChartData"
+      [options]="pieChartOptions"
+    ></canvas>
+  </div>
+</div>

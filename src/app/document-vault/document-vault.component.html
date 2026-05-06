@@ -1,0 +1,224 @@
+<div class="dv-page">
+
+  <!-- ── Header ── -->
+  <div class="dv-header">
+    <button class="dv-back-btn" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
+    <div class="dv-header-info">
+      <h1 class="dv-title">Document Vault</h1>
+      <p class="dv-sub">Vehicle · Driver · Company documents</p>
+    </div>
+    <button class="dv-add-btn" (click)="openAddForm()">
+      <i class="bi bi-plus-lg"></i> Add Document
+    </button>
+  </div>
+
+  <!-- ── Stats banner ── -->
+  <div class="dv-stats">
+    <div class="dv-stat" (click)="statusFilter='all'; activeCategory='all'">
+      <div class="dv-stat-icon dv-si-gray"><i class="bi bi-files"></i></div>
+      <div class="dv-stat-value">{{ stats.total }}</div>
+      <div class="dv-stat-label">Total</div>
+    </div>
+    <div class="dv-stat dv-stat-green" (click)="statusFilter='valid'">
+      <div class="dv-stat-icon dv-si-green"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="dv-stat-value">{{ stats.valid }}</div>
+      <div class="dv-stat-label">Valid</div>
+    </div>
+    <div class="dv-stat dv-stat-yellow" (click)="statusFilter='expiring'">
+      <div class="dv-stat-icon dv-si-yellow"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="dv-stat-value">{{ stats.expiring }}</div>
+      <div class="dv-stat-label">Expiring</div>
+    </div>
+    <div class="dv-stat dv-stat-red" (click)="statusFilter='expired'">
+      <div class="dv-stat-icon dv-si-red"><i class="bi bi-x-circle-fill"></i></div>
+      <div class="dv-stat-value">{{ stats.expired }}</div>
+      <div class="dv-stat-label">Expired</div>
+    </div>
+  </div>
+
+  <!-- ── Alert banner ── -->
+  <div class="dv-alert" *ngIf="stats.expired > 0 || stats.expiring > 0">
+    <i class="bi bi-exclamation-triangle-fill dv-alert-icon"></i>
+    <span class="dv-alert-text">
+      <strong *ngIf="stats.expired > 0">{{ stats.expired }} document{{ stats.expired !== 1 ? 's' : '' }} expired.</strong>
+      <strong *ngIf="stats.expiring > 0"> {{ stats.expiring }} expiring within 60 days.</strong>
+    </span>
+    <button class="dv-alert-wa" (click)="shareExpiryListWhatsApp()">
+      <i class="bi bi-whatsapp"></i> Send Alert
+    </button>
+  </div>
+
+  <!-- ── Toolbar ── -->
+  <div class="dv-toolbar">
+    <div class="dv-search-wrap">
+      <i class="bi bi-search dv-search-icon"></i>
+      <input class="dv-search" type="text" placeholder="Search by type, vehicle, doc number…" [(ngModel)]="searchQuery" />
+    </div>
+    <select class="dv-filter-sel" [(ngModel)]="statusFilter">
+      <option value="all">All Status</option>
+      <option value="valid">✅ Valid</option>
+      <option value="expiring">⚠️ Expiring</option>
+      <option value="expired">🔴 Expired</option>
+    </select>
+    <select class="dv-filter-sel" [(ngModel)]="sortBy">
+      <option value="expiry">↑ Expiry Date</option>
+      <option value="name">A–Z Name</option>
+    </select>
+    <div class="dv-view-toggle">
+      <button [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Card view">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+      </button>
+      <button [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List view">
+        <i class="bi bi-list-ul"></i>
+      </button>
+    </div>
+    <button class="dv-csv-btn" (click)="exportCSV()" title="Export CSV">
+      <i class="bi bi-download"></i> CSV
+    </button>
+  </div>
+
+  <!-- ── Category tabs ── -->
+  <div class="dv-tabs">
+    <button class="dv-tab" [class.tab-active]="activeCategory === 'all'" (click)="activeCategory = 'all'">
+      <i class="bi bi-files"></i> All
+      <span class="dv-tab-badge">{{ categoryCount('all') }}</span>
+    </button>
+    <button class="dv-tab" [class.tab-active]="activeCategory === 'vehicle'" (click)="activeCategory = 'vehicle'">
+      <i class="bi bi-car-front-fill"></i> Vehicle
+      <span class="dv-tab-badge">{{ categoryCount('vehicle') }}</span>
+    </button>
+    <button class="dv-tab" [class.tab-active]="activeCategory === 'driver'" (click)="activeCategory = 'driver'">
+      <i class="bi bi-person-badge-fill"></i> Driver
+      <span class="dv-tab-badge">{{ categoryCount('driver') }}</span>
+    </button>
+    <button class="dv-tab" [class.tab-active]="activeCategory === 'company'" (click)="activeCategory = 'company'">
+      <i class="bi bi-building-fill"></i> Company
+      <span class="dv-tab-badge">{{ categoryCount('company') }}</span>
+    </button>
+  </div>
+
+  <!-- ── Count row ── -->
+  <div class="dv-count-row" *ngIf="!loading && filteredDocuments.length > 0">
+    <span>{{ filteredDocuments.length }} document{{ filteredDocuments.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div class="dv-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading documents…
+  </div>
+
+  <!-- ── Empty ── -->
+  <div class="dv-empty" *ngIf="!loading && filteredDocuments.length === 0">
+    <i class="bi bi-folder2-open dv-empty-icon"></i>
+    <p *ngIf="documents.length === 0">No documents in the vault yet.</p>
+    <p *ngIf="documents.length > 0">No documents match your filters.</p>
+    <button class="dv-add-btn mt-3" (click)="openAddForm()" *ngIf="documents.length === 0">
+      <i class="bi bi-plus-lg"></i> Add First Document
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════
+       CARD VIEW
+  ══════════════════════════════════ -->
+  <div class="dv-card-grid" *ngIf="!loading && filteredDocuments.length > 0 && viewMode === 'card'">
+    <div class="dv-card" *ngFor="let d of filteredDocuments"
+      [class.border-expired]="getExpiryInfo(d).cls === 'exp-expired'"
+      [class.border-critical]="getExpiryInfo(d).cls === 'exp-critical'"
+      [class.border-soon]="getExpiryInfo(d).cls === 'exp-soon'"
+      [class.border-warning]="getExpiryInfo(d).cls === 'exp-warning'"
+      [class.border-valid]="getExpiryInfo(d).cls === 'exp-valid'"
+      [class.border-none]="getExpiryInfo(d).cls === 'exp-none'">
+
+      <div class="dv-card-top">
+        <div class="dv-card-icon-wrap">
+          <i class="bi {{ getDocTypeIcon(d.documentType) }} dv-card-type-icon"></i>
+        </div>
+        <div class="dv-card-meta">
+          <div class="dv-card-type">{{ d.documentType || d.title || 'Document' }}</div>
+          <div class="dv-card-entity">
+            <i class="bi {{ getCategoryIcon(d.category) }}"></i>
+            {{ getEntityLabel(d) }}
+          </div>
+        </div>
+        <span class="dv-status-badge" [ngClass]="getExpiryInfo(d).cls">
+          {{ getExpiryInfo(d).label }}
+        </span>
+      </div>
+
+      <div class="dv-card-details">
+        <span *ngIf="d.documentNumber" class="dv-detail">
+          <i class="bi bi-hash"></i> {{ d.documentNumber }}
+        </span>
+        <span *ngIf="d.issuedBy" class="dv-detail">
+          <i class="bi bi-building"></i> {{ d.issuedBy }}
+        </span>
+        <span *ngIf="d.issueDate" class="dv-detail">
+          <i class="bi bi-calendar-plus"></i> {{ d.issueDate | date:'dd MMM yy' }}
+        </span>
+        <span *ngIf="d.expiryDate && d.hasExpiry !== false" class="dv-detail"
+          [class.detail-red]="getExpiryInfo(d).cls === 'exp-expired' || getExpiryInfo(d).cls === 'exp-critical'">
+          <i class="bi bi-calendar-x"></i> {{ d.expiryDate | date:'dd MMM yy' }}
+        </span>
+        <span *ngIf="d.description" class="dv-detail dv-detail-notes">
+          <i class="bi bi-sticky"></i> {{ d.description }}
+        </span>
+      </div>
+
+      <div class="dv-card-actions">
+        <button class="dv-act-btn dv-act-edit" (click)="editDocument(d)">
+          <i class="bi bi-pencil-fill"></i> Edit
+        </button>
+        <button class="dv-act-btn dv-act-del" (click)="deleteDocument(d)">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       LIST VIEW
+  ══════════════════════════════════ -->
+  <div class="dv-list-wrap" *ngIf="!loading && filteredDocuments.length > 0 && viewMode === 'list'">
+    <table class="dv-list-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Vehicle / Driver</th>
+          <th>Doc No.</th>
+          <th>Issued By</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="dv-list-row" *ngFor="let d of filteredDocuments">
+          <td class="dv-list-type">
+            <i class="bi {{ getDocTypeIcon(d.documentType) }} dv-list-icon"></i>
+            {{ d.documentType || d.title || '—' }}
+          </td>
+          <td class="dv-list-entity">{{ getEntityLabel(d) }}</td>
+          <td class="dv-list-num">{{ d.documentNumber || '—' }}</td>
+          <td class="dv-list-issuer">{{ d.issuedBy || '—' }}</td>
+          <td class="dv-list-expiry">
+            {{ (d.expiryDate && d.hasExpiry !== false) ? (d.expiryDate | date:'dd MMM yy') : 'No expiry' }}
+          </td>
+          <td>
+            <span class="dv-status-badge sm" [ngClass]="getExpiryInfo(d).cls">
+              {{ getExpiryInfo(d).label }}
+            </span>
+          </td>
+          <td class="dv-list-actions">
+            <button class="dv-act-btn sm dv-act-edit" (click)="editDocument(d)" title="Edit">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="dv-act-btn sm dv-act-del" (click)="deleteDocument(d)" title="Delete">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

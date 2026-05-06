@@ -4,62 +4,336 @@
   align-items: stretch;
   padding: 0;
   width: 100%;
-  min-width: 300px;
-  max-width: 380px;
+  min-width: 320px;
+  max-width: 580px;
   margin: auto;
-  box-shadow: 0 9px 36px;
 }
 
-/* Dialog Header */
-.dialog-header {
-  font-size: 1.45rem;
+/* ── Dialog Title ── */
+.bf-title {
+  font-size: 1.2rem;
   font-weight: 700;
-  padding: 22px 18px 10px 18px;
-  text-align: left;
-  letter-spacing: 0.02em;
+  color: #1e1b4b;
+  padding: 18px 20px 10px;
+  border-bottom: 2px solid #e8ecf8;
+  display: flex;
+  align-items: center;
+  background: #f8faff;
 }
 
-/* Form Row Spacing */
-.form-row {
-  margin: 0 18px 18px 18px;
+/* ── Content scroll area ── */
+.bf-content {
+  padding: 14px 16px !important;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+/* ── Section cards ── */
+.form-section {
+  background: #f8faff;
+  border: 1px solid #e8ecf8;
+  border-radius: 12px;
+  padding: 14px 16px 6px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Field label above mat-field ── */
+.field-wrap {
   display: flex;
   flex-direction: column;
 }
 
-/* Form Field/Mat-field Style */
-mat-form-field,
-input,
-select,
-.mat-form-field {
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.field-label i {
+  color: #6366f1;
+}
+
+/* ── Shrink mat-form-field top margin when we have our own label ── */
+.field-wrap mat-form-field {
+  margin-top: -4px;
+}
+
+/* ── All mat-form-fields full width ── */
+mat-form-field {
   width: 100%;
 }
 
-/* Submit Button */
-.submit-btn {
-  flex: 1;
-  font-weight: 700;
-  cursor: pointer;
+/* ── Checkboxes / toggle rows ── */
+.toggle-row {
+  padding: 4px 0 8px;
 }
 
-.submit-btn:hover {
+.toggle-row mat-checkbox {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ── Day-wise section ── */
+.day-section {
+  background: #f0f4ff;
+}
+
+.day-item {
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+  padding: 10px 10px 2px;
+  margin-bottom: 8px;
+}
+
+.btn-add-day {
+  width: 100%;
+  padding: 9px;
+  margin-bottom: 8px;
+  background: #ecfdf5;
+  border: 2px dashed #22c55e;
+  border-radius: 8px;
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-add-day:hover {
+  background: #22c55e;
   color: #fff;
 }
 
-/* Responsive for Mobile */
+/* ── Custom Time Picker ── */
+.time-picker-wrapper {
+  background: #fff;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 12px 16px 14px;
+  margin-bottom: 4px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.time-picker-wrapper:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.time-picker-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.time-picker-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.time-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-sub-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.time-select {
+  width: 72px;
+  padding: 10px 6px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e1b4b;
+  background: #f8faff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.time-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  background: #fff;
+}
+
+.time-sep {
+  font-size: 26px;
+  font-weight: 900;
+  color: #6366f1;
+  padding-bottom: 4px;
+}
+
+.ampm-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 2px;
+}
+
+.ampm-btn {
+  padding: 7px 14px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.04em;
+}
+
+.ampm-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.ampm-btn:not(.active):hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+/* ── Action buttons ── */
+.bf-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #e8ecf8;
+  background: #f8faff;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-cancel:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.btn-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Hide field ── */
+.hide-field {
+  display: none !important;
+}
+
+/* ── Mobile ── */
 @media (max-width: 600px) {
   :host {
     min-width: unset;
-    max-width: 98vw;
-    border-radius: 12px;
-    padding: 0;
+    max-width: 100vw;
   }
-  .form-row,
-  .action {
-    margin-left: 6px;
-    margin-right: 6px;
+
+  .bf-content {
+    max-height: 65vh;
+    padding: 10px 10px !important;
   }
-  .dialog-header {
-    padding: 16px 6px 8px 13px;
-    font-size: 1.12rem;
+
+  .form-section {
+    padding: 12px 10px 4px;
+  }
+
+  .time-select {
+    width: 60px;
+    font-size: 17px;
+    padding: 9px 4px;
+  }
+
+  .ampm-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .bf-actions {
+    flex-direction: column-reverse;
+    padding: 10px 12px;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    justify-content: center;
   }
 }

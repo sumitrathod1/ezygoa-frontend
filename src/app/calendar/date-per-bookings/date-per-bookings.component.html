@@ -1,47 +1,134 @@
 <div class="popup-backdrop" (click)="onClose()"></div>
 
-<div class="popup-card">
-  <div class="popup-header">
-    <h3>{{ formattedDate }}</h3>
-    <button class="close-btn" (click)="onClose()">✕</button>
-  </div>
+<div class="popup-sheet">
+  <!-- Sheet handle -->
+  <div class="sheet-handle"></div>
 
-  <div *ngIf="bookings.length; else noData">
-    <div class="booking-card" *ngFor="let b of bookings">
-      <div class="booking-top">
-        <strong (click)="editBooking(b)">{{ b.customer.customerName }}</strong>
-        <span class="text-success fw-bold">{{ b.bookingType }}</span>
-        <span
-          title="Call"
-          class="icon-btn call"
-          (click)="callCustomer(b.customer.customerNumber)"
-        >
-          📞
+  <!-- Header -->
+  <div class="sheet-header">
+    <div class="sheet-header-left">
+      <div class="sheet-date">{{ formattedDate }}</div>
+      <div class="sheet-meta">
+        <span class="meta-chip bookings-chip">
+          <i class="bi bi-calendar-check"></i> {{ totalBookings }} booking{{ totalBookings !== 1 ? 's' : '' }}
+        </span>
+        <span class="meta-chip amount-chip">
+          <i class="bi bi-currency-rupee"></i> {{ totalAmount | number }}
         </span>
       </div>
-
-      <div class="booking-row">
-        <span><b>From:</b> {{ b.from }}</span>
-        <span><b>To:</b> {{ b.to }}</span>
-      </div>
-
-      <div class="booking-row">
-        <span><b>Amount:</b> {{ b.amount }}</span>
-        <span><b>Driver:</b> {{ b.user.employeeName }}</span>
-      </div>
-
-      <div class="booking-row">
-        <span><b>Pax:</b> {{ b.pax || 4 }}</span>
-        <span><b>Vehicle:</b> {{ b.vehicle?.vehicleName }}</span>
-      </div>
-      <div class="booking-row">
-        <span><b>Time:</b> {{ formatTime(b.traveltime) }}</span>
-      </div>
-      <div class="action-icons"></div>
     </div>
+    <button class="close-btn" (click)="onClose()">
+      <i class="bi bi-x-lg"></i>
+    </button>
   </div>
 
-  <ng-template #noData>
-    <p class="no-bookings">No bookings found.</p>
-  </ng-template>
+  <!-- Booking Cards -->
+  <div class="sheet-body">
+    <!-- Skeleton while lazy-loading bookings for selected date -->
+    <div *ngIf="loading">
+      <div class="skeleton-card" *ngFor="let _ of [1,2,3]">
+        <div class="sk-line sk-title"></div>
+        <div class="sk-line sk-short"></div>
+        <div class="sk-line"></div>
+        <div class="sk-row">
+          <div class="sk-line sk-half"></div>
+          <div class="sk-line sk-half"></div>
+        </div>
+        <div class="sk-line sk-btn"></div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && bookings.length; else noData">
+      <div
+        class="booking-card"
+        [style.borderLeftColor]="getVehicleColor(b)"
+        *ngFor="let b of bookings"
+      >
+        <!-- Card Top: Name + Type badge + Cancel -->
+        <div class="card-top">
+          <div class="customer-name" (click)="editBooking(b)">
+            <i class="bi bi-person-circle me-1"></i>{{ b.customer.customerName }}
+          </div>
+          <div class="card-actions">
+            <span
+              class="type-badge"
+              [style.background]="getBookingTypeColor(b.bookingType) + '22'"
+              [style.color]="getBookingTypeColor(b.bookingType)"
+            >{{ b.bookingType }}</span>
+            <button class="invoice-btn" (click)="openInvoice(b)" title="Generate invoice">
+              <i class="bi bi-receipt"></i>
+            </button>
+            <button class="cancel-btn" (click)="cancelBooking(b)" title="Cancel booking">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route: From → To -->
+        <div class="route-row" *ngIf="b.from || b.to">
+          <span class="route-point from">
+            <i class="bi bi-geo-alt"></i> {{ b.from || '—' }}
+          </span>
+          <i class="bi bi-arrow-right route-arrow"></i>
+          <span class="route-point to">
+            <i class="bi bi-geo-alt-fill"></i> {{ b.to || '—' }}
+          </span>
+        </div>
+
+        <!-- Vehicle + Driver -->
+        <div class="info-row">
+          <span class="info-item">
+            <i class="bi bi-car-front-fill info-icon vehicle"></i>
+            {{ b.vehicle?.vehicleName || 'External' }}
+          </span>
+          <span class="info-item driver-item" (click)="openAssignExternalDialog(b)">
+            <i class="bi bi-person-circle info-icon driver"></i>
+            {{ b.user?.employeeName || 'Other Driver' }}
+          </span>
+        </div>
+
+        <!-- Time + Pax -->
+        <div class="info-row">
+          <span class="info-item">
+            <i class="bi bi-clock info-icon time"></i>
+            {{ formatTime(b.traveltime) || '—' }}
+          </span>
+          <span class="info-item">
+            <i class="bi bi-people-fill info-icon pax"></i>
+            {{ b.pax || 1 }} pax
+          </span>
+        </div>
+
+        <!-- Financials -->
+        <div class="finance-row">
+          <div class="amount-block">
+            <div class="amount-label">Total</div>
+            <div class="amount-value">₹{{ b.amount | number }}</div>
+          </div>
+          <div class="amount-block">
+            <div class="amount-label">Advance</div>
+            <div class="amount-value advance">₹{{ b.advancePaid || 0 | number }}</div>
+          </div>
+          <div class="amount-block">
+            <div class="amount-label">Balance</div>
+            <div class="amount-value balance" [class.zero]="getBalance(b) <= 0">
+              ₹{{ getBalance(b) | number }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Call button -->
+        <button class="call-btn" (click)="callCustomer(b.customer.customerNumber)">
+          <i class="bi bi-telephone-fill me-1"></i> {{ b.customer.customerNumber }}
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noData>
+      <div class="no-bookings" *ngIf="!loading">
+        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+        No bookings for this date.
+      </div>
+    </ng-template>
+  </div>
 </div>

@@ -1,22 +1,62 @@
-<div class="container py-3">
-  <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle shadow rounded">
-      <thead class="table-primary">
+<div class="vt-page">
+
+  <!-- Toolbar -->
+  <div class="vt-toolbar">
+    <div class="vt-search-wrap">
+      <i class="bi bi-search vt-search-icon"></i>
+      <input
+        class="vt-search"
+        type="text"
+        placeholder="Search vehicle, title or type…"
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+  </div>
+
+  <!-- Meta row -->
+  <div class="vt-meta" *ngIf="documents.length > 0">
+    <span class="vt-count">{{ filteredDocuments.length }} documents</span>
+  </div>
+
+  <!-- Table -->
+  <div class="vt-scroll" *ngIf="filteredDocuments.length > 0">
+    <table class="vt-table">
+      <thead>
         <tr>
-          <th scope="col">vehcile</th>
-          <th scope="col">Title</th>
-          <th scope="col">Expiry</th>
-          <th scope="col">Description</th>
+          <th>Vehicle</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Expiry</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let document of documents">
-          <td>{{ document.vehicle.vehicleName }}</td>
-          <td>{{ document.title }}</td>
-          <td>{{ document.expiryDate | date }}</td>
-          <td>{{ document.description }}</td>
+        <tr *ngFor="let d of filteredDocuments">
+          <td class="vt-vehicle">{{ d.vehicle?.vehicleName || '—' }}</td>
+          <td>
+            <span class="vt-doc-title">
+              <i class="bi {{ getDocIcon(d.documentType) }} vt-doc-icon"></i>
+              {{ d.title || '—' }}
+            </span>
+          </td>
+          <td>
+            <span class="vt-type">{{ d.documentType || '—' }}</span>
+          </td>
+          <td class="vt-date">{{ d.expiryDate | date:'dd MMM yy' }}</td>
+          <td>
+            <span class="vt-exp-badge" [ngClass]="getExpiryStatus(d.expiryDate).cls">
+              {{ getExpiryStatus(d.expiryDate).label }}
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- Empty state -->
+  <div class="vt-empty" *ngIf="filteredDocuments.length === 0">
+    <i class="bi bi-file-earmark-x vt-empty-icon"></i>
+    <p>{{ documents.length === 0 ? 'No documents uploaded yet' : 'No results match your search' }}</p>
+  </div>
+
 </div>

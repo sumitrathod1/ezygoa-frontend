@@ -1,75 +1,83 @@
-<div mat-dialog-title>Vehicle Maintenance</div>
-<form [formGroup]="maintenanceForm" (ngSubmit)="onMaintenanceFormSubmit()">
-  <div mat-dialog-content>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Service Date</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker1"
-            formControlName="serviceDate"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker1"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker1></mat-datepicker>
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline">
-          <mat-label>Next Due Date</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker2"
-            formControlName="nextduedate"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker2"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker2></mat-datepicker>
-        </mat-form-field>
-      </div>
+<div class="vf-dialog">
+  <!-- Header -->
+  <div class="vf-header maintenance-header">
+    <div class="vf-header-icon"><i class="bi bi-wrench-adjustable-circle-fill"></i></div>
+    <div class="vf-header-text">
+      <div class="vf-header-title">Add Maintenance</div>
+      <div class="vf-header-sub">Log a service record</div>
     </div>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Description</mat-label>
-          <textarea matInput formControlName="description"></textarea>
-        </mat-form-field>
+    <button class="vf-close-btn" type="button" (click)="onCloseMaintenance()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="vf-body">
+    <form [formGroup]="maintenanceForm" (ngSubmit)="onMaintenanceFormSubmit()">
+
+      <!-- Service Date + Next Due Date -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-calendar-check vf-lbl-icon"></i> Service Date
+          </label>
+          <input class="vf-input" type="date" formControlName="serviceDate" />
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-calendar-event vf-lbl-icon"></i> Next Due Date
+          </label>
+          <input class="vf-input" type="date" formControlName="nextduedate" />
+        </div>
       </div>
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Cost</mat-label>
+
+      <!-- Type + Cost -->
+      <div class="vf-row-2">
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-gear-fill vf-lbl-icon"></i> Maintenance Type
+          </label>
+          <select class="vf-select" formControlName="maintenanceType">
+            <option value="" disabled>Select type</option>
+            <option *ngFor="let t of maintenanceTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="vf-field">
+          <label class="vf-label">
+            <i class="bi bi-currency-rupee vf-lbl-icon"></i> Cost (₹)
+          </label>
           <input
-            matInput
+            class="vf-input"
             type="number"
-            placeholder="Cost"
-            min="1"
+            placeholder="0"
+            min="0"
             formControlName="cost"
           />
-        </mat-form-field>
+        </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-sm-6" appearance="outline">
-        <mat-form-field>
-          <mat-label>Maintenance Type</mat-label>
-          <mat-select formControlName="maintenanceType">
-            <mat-option>None</mat-option>
-            @for (mtypes of maintenanceTypes; track mtypes) {
-            <mat-option [value]="mtypes">{{ mtypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <!-- Description -->
+      <div class="vf-field">
+        <label class="vf-label">
+          <i class="bi bi-card-text vf-lbl-icon"></i> Description
+        </label>
+        <textarea
+          class="vf-textarea"
+          rows="3"
+          placeholder="Work done, parts replaced…"
+          formControlName="description"
+        ></textarea>
       </div>
-    </div>
+
+      <!-- Footer -->
+      <div class="vf-footer">
+        <button class="vf-btn-cancel" type="button" (click)="onCloseMaintenance()">Cancel</button>
+        <button class="vf-btn-submit" type="submit" [disabled]="isSubmitting">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ isSubmitting ? 'Saving…' : 'Add Maintenance' }}
+        </button>
+      </div>
+
+    </form>
   </div>
-  <div mat-dialog-actions class="action">
-    <button mat-raised-button (click)="onCloseMaintenance()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit">Submit</button>
-  </div>
-</form>
+</div>

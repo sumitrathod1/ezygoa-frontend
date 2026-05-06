@@ -14,7 +14,15 @@ export class FooterComponent {
   constructor(private _dialog: MatDialog, private router: Router) {}
 
   addBooking() {
-    console.log('Clicked!');
-    this._dialog.open(BookingFormComponent);
+    // this._dialog.open(BookingFormComponent);
+    (document.activeElement as HTMLElement)?.blur();
+
+    this._dialog.open(BookingFormComponent, {
+      width: '95vw',
+      maxWidth: '420px',
+      disableClose: true,
+      autoFocus: false,
+      restoreFocus: false,
+    });
   }
 }

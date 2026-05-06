@@ -1,55 +1,126 @@
-<div class="container py-3">
-  <div class="mb-3">
-    <input
-      type="text"
-      class="form-control mb-2"
-      placeholder="Search bookings..."
-    />
+<div class="container-fluid py-3 px-2">
+
+  <!-- Period Filter Chips -->
+  <div class="period-chips mb-2">
+    <button class="chip" [class.active]="selectedPeriod === ''"        (click)="selectPeriod('')">All</button>
+    <button class="chip" [class.active]="selectedPeriod === 'week'"    (click)="selectPeriod('week')">This Week</button>
+    <button class="chip" [class.active]="selectedPeriod === 'month'"   (click)="selectPeriod('month')">This Month</button>
+    <button class="chip" [class.active]="selectedPeriod === 'quarter'" (click)="selectPeriod('quarter')">This Quarter</button>
+    <button class="chip" [class.active]="selectedPeriod === 'year'"    (click)="selectPeriod('year')">This Year</button>
+    <button class="chip" [class.active]="selectedPeriod === 'custom'"  (click)="selectPeriod('custom')">Custom</button>
   </div>
-  <nav *ngIf="pagination.totalPages > 1" aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
+
+  <!-- Filters -->
+  <div class="filter-panel mb-3">
+
+    <!-- Custom Date Range -->
+    <div *ngIf="showCustom" class="custom-range mb-2">
+      <div class="d-flex flex-wrap gap-2 align-items-end">
+        <div>
+          <label class="form-label small mb-1">From Date</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="filter.startDate" />
+        </div>
+        <div>
+          <label class="form-label small mb-1">To Date</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="filter.endDate" />
+        </div>
+        <button class="btn btn-primary btn-sm" (click)="applyCustomRange()">Apply</button>
+      </div>
+    </div>
+
+    <!-- Dropdowns Row -->
+    <div class="d-flex flex-wrap gap-2 align-items-end">
+      <div>
+        <label class="form-label small mb-1">Status</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filter.status" (change)="applyFilter()">
+          <option value="">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="InProgress">In Progress</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label small mb-1">Vehicle</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filter.vehicleId" (change)="applyFilter()">
+          <option value="">All Vehicles</option>
+          <option *ngFor="let v of vehicles" [value]="v.vehicleId">{{ v.vehicleName }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label small mb-1">Driver</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filter.userId" (change)="applyFilter()">
+          <option value="">All Drivers</option>
+          <option *ngFor="let e of employees" [value]="e.userId || e.id">{{ e.name || e.userName }}</option>
+        </select>
+      </div>
+      <div class="ms-auto">
+        <button class="btn btn-outline-secondary btn-sm" (click)="clearFilter()">
+          <i class="bi bi-x-circle me-1"></i>Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary KPI bar -->
+  <div class="summary-bar mb-3" *ngIf="bookings.length > 0">
+    <div class="summary-item">
+      <span class="summary-label">Showing</span>
+      <span class="summary-val">{{ pagination.totalCount || bookings.length }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Revenue</span>
+      <span class="summary-val text-success">{{ resultRevenue | indianCurrency }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Pending</span>
+      <span class="summary-val text-warning">{{ resultPending }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Completed</span>
+      <span class="summary-val text-success">{{ resultCompleted }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Cancelled</span>
+      <span class="summary-val text-danger">{{ resultCancelled }}</span>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="pagination.totalPages > 1">
+    <ul class="pagination justify-content-center flex-wrap mb-2">
       <li class="page-item" [class.disabled]="pagination.pageNumber === 1">
-        <a class="page-link" (click)="changePage(pagination.pageNumber - 1)"
-          >Previous</a
-        >
+        <a class="page-link" (click)="changePage(pagination.pageNumber - 1)">‹</a>
       </li>
-
-      <li
-        class="page-item"
-        *ngFor="
-          let page of [].constructor(pagination.totalPages);
-          let i = index
-        "
-        [class.active]="pagination.pageNumber === i + 1"
-      >
-        <a class="page-link" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+      <li class="page-item" *ngIf="pagination.pageNumber > 3">
+        <a class="page-link" (click)="changePage(1)">1</a>
       </li>
-
-      <li
-        class="page-item"
-        [class.disabled]="pagination.pageNumber === pagination.totalPages"
-      >
-        <a class="page-link" (click)="changePage(pagination.pageNumber + 1)"
-          >Next</a
-        >
+      <li class="page-item disabled" *ngIf="showLeftDots()">
+        <span class="page-link">...</span>
+      </li>
+      <li class="page-item" *ngFor="let page of pages" [class.active]="pagination.pageNumber === page">
+        <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+      </li>
+      <li class="page-item disabled" *ngIf="showRightDots()">
+        <span class="page-link">...</span>
+      </li>
+      <li class="page-item" *ngIf="pagination.pageNumber < pagination.totalPages - 2">
+        <a class="page-link" (click)="changePage(pagination.totalPages)">{{ pagination.totalPages }}</a>
+      </li>
+      <li class="page-item" [class.disabled]="pagination.pageNumber === pagination.totalPages">
+        <a class="page-link" (click)="changePage(pagination.pageNumber + 1)">›</a>
       </li>
     </ul>
   </nav>
 
+  <!-- Booking Cards -->
   <div *ngFor="let booking of bookings" class="booking-card">
-    <div class="booking-left">
-      <!-- <div class="icon-box">
-        <span class="material-icons">{{ booking.icon }}</span>
-      </div> -->
-    </div>
-
     <div class="booking-middle">
       <div class="title">
         {{ booking.customerName }}
-        <span class="pax"> Pax {{ booking.pax }} </span>
+        <span class="pax">Pax {{ booking.pax }}</span>
       </div>
       <div class="location">{{ booking.customerNumber }}</div>
-      <div class="title"></div>
       <div class="dates">
         <div class="date-section">
           <small>{{ booking.from }}</small>
@@ -60,24 +131,25 @@
           <div>{{ formatTime(booking.traveltime) }}</div>
         </div>
       </div>
-
       <div class="duration">
         <div>{{ booking.bookingType }}</div>
-        <div>Driver {{ booking.userName }}</div>
+        <div>Driver: {{ booking.userName }}</div>
       </div>
     </div>
 
     <div class="booking-right">
-      <span class="status" [ngClass]="booking.status.toLowerCase()">{{
-        booking.status
-      }}</span>
-      <div class="price">{{ booking.amount }}</div>
-      <div>{{ booking.vehicleName }}</div>
+      <span class="status" [ngClass]="booking.status?.toLowerCase()">{{ booking.status }}</span>
+      <div class="price">₹{{ booking.amount }}</div>
+      <div class="small text-muted">{{ booking.vehicleName }}</div>
       <div class="mt-2">
-        <button class="btn btn-primary" (click)="editBooking(booking)">
-          Edit
-        </button>
+        <button class="btn btn-sm btn-primary" (click)="editBooking(booking)">Edit</button>
       </div>
     </div>
   </div>
+
+  <div *ngIf="bookings.length === 0" class="text-center text-muted py-5">
+    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+    No bookings found for selected filters.
+  </div>
+
 </div>

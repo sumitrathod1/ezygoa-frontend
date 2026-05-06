@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AgentService {
-  //baseUrl: string = 'https://localhost:7183/api/TravelAgents/';
-  baseUrl: string =
-    'https://ezytravel-axengwe4fzgtehg0.centralus-01.azurewebsites.net/api/TravelAgents/';
+  baseUrl: string = `${environment.apiUrl}/TravelAgents/`;
 
   private agentCountSubject = new BehaviorSubject<number>(0);
   agentCount$ = this.agentCountSubject.asObservable();
@@ -34,8 +33,13 @@ export class AgentService {
     );
   }
 
+  public updateAgent(id: number, agent: any): Observable<any> {
+    return this._http.put(`${this.baseUrl}${id}`, agent).pipe(
+      tap(() => this.agentUpdatedSubject.next())
+    );
+  }
+
   public addPayment(paymentData: any): Observable<any> {
-    console.log('Payment data to be sent:', paymentData);
     return this._http.post(`${this.baseUrl}ApplyAgentPayment`, paymentData);
   }
 

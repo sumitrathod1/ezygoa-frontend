@@ -1,0 +1,205 @@
+.detail-wrapper {
+  background: #f8fafc;
+  padding: 12px;
+  max-width: 420px;
+  margin: auto;
+}
+
+/* Header */
+/* .detail-header {
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  color: white;
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+} */
+
+.header-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.icon-box {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.status-chip {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fde68a;
+  color: #92400e;
+}
+
+/* Sections */
+.card-section {
+  background: #fff;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Boxes */
+.section-box {
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.route-box,
+.vendor-box {
+  display: flex;
+  justify-content: space-between;
+  background: #f0fdf4;
+  padding: 10px;
+  border-radius: 8px;
+  align-items: center;
+}
+
+.route-box small,
+.vendor-box small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.arrow {
+  font-size: 18px;
+  color: #64748b;
+}
+
+/* Finance Grid */
+.finance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.finance-card {
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.finance-card label {
+  font-size: 11px;
+  color: #475569;
+}
+
+.purple {
+  background: #f5f3ff;
+  color: #5b21b6;
+}
+.orange {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.green {
+  background: #ecfdf5;
+  color: #047857;
+}
+.blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.teal {
+  background: #ecfeff;
+  color: #0f766e;
+}
+.red {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* Settlement Info */
+.settlement-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* Footer */
+.detail-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.not-settled {
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.primary-btn {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.booking-detail-dialog .mat-dialog-container {
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Make content scrollable */
+.booking-detail-dialog .mat-dialog-content {
+  padding: 0;
+  max-height: 90vh;
+  overflow-y: auto; /* ⭐ SCROLL ENABLE */
+}
+
+/* Mobile smooth scroll */
+.booking-detail-dialog .mat-dialog-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6d5dfc, #ec4899);
+  color: #fff;
+  position: relative;
+}
+
+/* STATUS BADGE */
+.status-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Pending */
+.status-chip.pending {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+/* Settled */
+.status-chip.settled {
+  background: #22c55e;
+  color: #fff;
+}

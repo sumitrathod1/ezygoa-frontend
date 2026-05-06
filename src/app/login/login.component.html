@@ -13,6 +13,7 @@
           type="text"
           formControlName="username"
           placeholder="User ID"
+          autocomplete="username"
           required
         />
       </div>
@@ -23,8 +24,10 @@
           [type]="showNewPassword ? 'text' : 'password'"
           formControlName="password"
           placeholder="Password"
+          autocomplete="current-password"
           required
-        /><i
+        />
+        <i
           class="bi"
           [ngClass]="showNewPassword ? 'bi-eye-slash' : 'bi-eye'"
           (click)="togglePassword('new')"
@@ -35,8 +38,10 @@
         <a (click)="viewForget()">Forgot Password?</a>
       </div>
 
-      <button type="submit" class="login-btn">
-        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      <button type="submit" class="login-btn" [disabled]="isLoading || loginForm.invalid">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <i *ngIf="!isLoading" class="bi bi-box-arrow-in-right"></i>
+        {{ isLoading ? 'Signing in...' : 'Sign In' }}
       </button>
     </form>
   </div>

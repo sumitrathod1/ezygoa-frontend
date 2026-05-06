@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Subject, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleService {
-  //baseUrl: string = 'https://localhost:7183/api/Vehicle/';
-  baseUrl: string =
-    'https://ezytravel-axengwe4fzgtehg0.centralus-01.azurewebsites.net/api/Vehicle/';
+  baseUrl: string = `${environment.apiUrl}/Vehicle/`;
 
   private vehicleUpdatedSubject = new Subject<void>();
   vehicleUpdated$ = this.vehicleUpdatedSubject.asObservable();
@@ -42,11 +41,25 @@ export class VehicleService {
     return this._http.post(`${this.baseUrl}AddDocumentDetails`, data);
   }
 
+  updateDocument(data: any) {
+    return this._http.put(`${this.baseUrl}UpdateDocument`, data);
+  }
+
+  deleteDocument(id: number) {
+    return this._http.delete(`${this.baseUrl}DeleteDocument/${id}`);
+  }
+
   addVehicle(data: any) {
     return this._http.post(`${this.baseUrl}AddVehcle`, data).pipe(
       tap((res: any) => {
         this.vehicleUpdatedSubject.next();
       })
+    );
+  }
+
+  updateVehicle(data: any) {
+    return this._http.put(`${this.baseUrl}UpdateVehicle`, data).pipe(
+      tap(() => this.vehicleUpdatedSubject.next())
     );
   }
 }

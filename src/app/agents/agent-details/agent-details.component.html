@@ -1,11 +1,122 @@
-<div class="dashboard-container">
-  <div class="driver-list">
-    <div class="driver-card" *ngFor="let booking of bookings">
-      <div>
-        <p class="driver-name">{{ booking.bookingType }}</p>
-        <p class="driver-location">Date: {{ booking.travelDate }}</p>
-        <p class="driver-location">Amount: {{ booking.amount }}</p>
+<div class="ad-page">
+
+  <!-- Agent Profile Header -->
+  <div class="ad-agent-card" *ngIf="agent">
+    <div class="ad-agent-top">
+      <div class="ad-avatar">{{ getInitials(agent.name) }}</div>
+      <div class="ad-agent-info">
+        <div class="ad-agent-name">{{ agent.name }}</div>
+        <div class="ad-agent-type">{{ agent.agentType ?? agent.AgentType ?? 'Agent' }}</div>
+        <div class="ad-agent-contact" *ngIf="agent.contactNumber">
+          <i class="bi bi-telephone-fill"></i> {{ agent.contactNumber }}
+        </div>
+        <div class="ad-agent-contact" *ngIf="agent.email">
+          <i class="bi bi-envelope-fill"></i> {{ agent.email }}
+        </div>
+        <div class="ad-agent-contact" *ngIf="agent.commissionPercent">
+          <i class="bi bi-percent"></i> {{ agent.commissionPercent }}% commission
+        </div>
+      </div>
+      <span class="ad-status-badge" [class.active]="agent.isActive !== false">
+        {{ agent.isActive !== false ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="ad-stats">
+    <div class="ad-stat-card revenue">
+      <div class="ad-stat-icon"><i class="bi bi-cash-stack"></i></div>
+      <div class="ad-stat-val">₹{{ totalRevenue | number:'1.0-0' }}</div>
+      <div class="ad-stat-label">Total Revenue</div>
+    </div>
+    <div class="ad-stat-card commission">
+      <div class="ad-stat-icon"><i class="bi bi-percent"></i></div>
+      <div class="ad-stat-val">₹{{ totalCommission | number:'1.0-0' }}</div>
+      <div class="ad-stat-label">Commission Due</div>
+    </div>
+    <div class="ad-stat-card bookings">
+      <div class="ad-stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="ad-stat-val">{{ bookings.length }}</div>
+      <div class="ad-stat-label">Total Bookings</div>
+    </div>
+    <div class="ad-stat-card balance" [class.overdue]="outstandingBalance > 0">
+      <div class="ad-stat-icon"><i class="bi bi-wallet2"></i></div>
+      <div class="ad-stat-val">₹{{ outstandingBalance | number:'1.0-0' }}</div>
+      <div class="ad-stat-label">Outstanding</div>
+    </div>
+  </div>
+
+  <!-- Section title -->
+  <div class="ad-section-title">
+    <i class="bi bi-list-ul me-1"></i> Booking History
+    <span class="ad-count">{{ bookings.length }}</span>
+  </div>
+
+  <!-- Booking cards -->
+  <div class="ad-booking-list">
+    <div class="ad-booking-card" *ngFor="let b of bookings">
+      <!-- Header row -->
+      <div class="ad-bk-header">
+        <div class="ad-bk-customer">
+          <i class="bi bi-person-fill"></i>
+          <span>{{ b.customer?.customerName || b.customerName || 'Customer' }}</span>
+          <span class="ad-bk-phone" *ngIf="b.customer?.customerNumber || b.customerNumber">
+            · {{ b.customer?.customerNumber || b.customerNumber }}
+          </span>
+        </div>
+        <span class="ad-bk-type">{{ b.bookingType }}</span>
+      </div>
+
+      <div class="ad-bk-divider"></div>
+
+      <!-- Detail grid -->
+      <div class="ad-bk-details">
+        <div class="ad-bk-detail">
+          <i class="bi bi-calendar-event-fill ad-bk-icon date"></i>
+          <span>{{ b.travelDate | date:'d MMM y' }}
+            <span *ngIf="b.traveltime"> · {{ formatTime(b.traveltime) }}</span>
+          </span>
+        </div>
+        <div class="ad-bk-detail" *ngIf="b.vehicle?.vehicleName || b.vehicleName">
+          <i class="bi bi-truck-front-fill ad-bk-icon vehicle"></i>
+          <span>{{ b.vehicle?.vehicleName || b.vehicleName }}</span>
+        </div>
+        <div class="ad-bk-detail" *ngIf="b.driver?.employeeName || b.driverName">
+          <i class="bi bi-person-badge-fill ad-bk-icon driver"></i>
+          <span>{{ b.driver?.employeeName || b.driverName }}</span>
+        </div>
+        <div class="ad-bk-detail" *ngIf="b.pickup || b.destination">
+          <i class="bi bi-geo-alt-fill ad-bk-icon loc"></i>
+          <span>{{ b.pickup || '' }}<span *ngIf="b.pickup && b.destination"> → </span>{{ b.destination || '' }}</span>
+        </div>
+      </div>
+
+      <!-- Financials row -->
+      <div class="ad-bk-financials">
+        <div class="ad-bk-fin-item">
+          <span class="ad-bk-fin-label">Amount</span>
+          <span class="ad-bk-fin-val amount">₹{{ b.amount | number:'1.0-0' }}</span>
+        </div>
+        <div class="ad-bk-fin-item" *ngIf="agent?.commissionPercent">
+          <span class="ad-bk-fin-label">Commission ({{ agent.commissionPercent }}%)</span>
+          <span class="ad-bk-fin-val commission">₹{{ commissionForBooking(b) | number:'1.0-0' }}</span>
+        </div>
+        <div class="ad-bk-fin-item" *ngIf="b.balance != null">
+          <span class="ad-bk-fin-label">Balance</span>
+          <span class="ad-bk-fin-val" [class.overdue]="b.balance > 0">₹{{ b.balance | number:'1.0-0' }}</span>
+        </div>
+        <div class="ad-bk-status" [class]="'ad-bk-status ' + (b.status ?? b.Status ?? '')?.toString().toLowerCase()">
+          {{ b.status ?? b.Status ?? 'Pending' }}
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Empty state -->
+  <div *ngIf="bookings.length === 0" class="ad-empty">
+    <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+    No bookings found for this agent.
+  </div>
+
 </div>

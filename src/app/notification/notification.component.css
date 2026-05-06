@@ -1,5 +1,5 @@
 .notifications-container {
-  width: 360px;
+  width: min(360px, calc(100vw - 16px));
   margin: 0 auto;
   background: #fff;
   border-radius: 14px;
@@ -182,4 +182,11 @@
 
 .close-btn:hover {
   background: rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 600px) {
+  .notifications-container {
+    width: 95vw;
+    max-height: 80vh;
+  }
 }

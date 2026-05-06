@@ -1,29 +1,39 @@
 <div class="calendar-outer">
+  <!-- Header -->
   <div class="calendar-header">
     <button class="nav-btn" (click)="prevMonth()">
-      <i class="bi bi-skip-backward-circle"></i>
+      <i class="bi bi-chevron-left"></i>
     </button>
     <div class="month-label">{{ months[currentMonth] }} {{ currentYear }}</div>
     <button class="nav-btn" (click)="nextMonth()">
-      <i class="bi bi-fast-forward-circle"></i>
+      <i class="bi bi-chevron-right"></i>
     </button>
   </div>
-  <div class="calendar-subtitle">
-    <p>
-      <span class="color-dot" style="background-color: #ffff00ff"></span>Dzire
-      <span class="color-dot" style="background-color: #003cffff"></span>Ertiga
-      <span class="color-dot" style="background-color: #22c55e"></span>TT20
-    </p>
+
+  <!-- Legend -->
+  <div class="legend-row">
+    <span class="legend-chip"><span class="color-dot" style="background:red"></span>Dzire</span>
+    <span class="legend-chip"><span class="color-dot" style="background:#003cff"></span>Ertiga</span>
+    <span class="legend-chip"><span class="color-dot" style="background:#22c55e"></span>TT20</span>
+    <span class="legend-chip"><span class="color-dot" style="background:black"></span>Urbania</span>
+    <span class="legend-chip"><span class="color-dot" style="background:brown"></span>Extra</span>
   </div>
+
+  <!-- Grid -->
   <div class="calendar-grid">
     <div class="day-name" *ngFor="let day of dayNames">{{ day }}</div>
     <div
       class="calendar-cell"
       *ngFor="let date of calendarDates"
       [class.today]="isToday(date)"
+      [class.selected]="isSelected(date)"
+      [class.has-bookings]="getBookingCount(date) > 0"
       (click)="openDayPopup(date)"
     >
-      <span>{{ date?.getDate() }}</span>
+      <span class="date-num">{{ date?.getDate() }}</span>
+      <span class="booking-count-badge" *ngIf="getBookingCount(date) > 0">
+        {{ getBookingCount(date) }}
+      </span>
       <div class="dots">
         <span
           *ngFor="let dot of getBookingColors(date)"
@@ -37,8 +47,9 @@
 
 <app-date-per-bookings
   *ngIf="showPopup"
-  [bookings]="selectedBookings"
+  [bookings]="getPopupBookings()"
   [selectedDate]="selectedDate"
+  [loading]="popupLoading"
   (close)="closePopup()"
 >
 </app-date-per-bookings>

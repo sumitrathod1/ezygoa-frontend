@@ -1,87 +1,116 @@
 <div class="container py-3">
-  <div class="row g-3">
-    <div class="col-12">
-      <div class="card p-3 mb-3 shadow-sm monthly-revenue">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="text-muted small mb-1">
-              <i class="bi bi-currency-rupee"></i> Monthly Earnings
-              <span class="badge bg-light-success ms-2">+12.5%</span>
-            </div>
-            <div class="fs-2 fw-bold">₹{{ bookingRevenueStats["month"] }}</div>
-            <div class="text-muted">{{ stats.monthLabel }}</div>
-          </div>
-        </div>
+
+  <!-- Period Filter Bar -->
+  <div class="filter-bar mb-3">
+    <div class="period-chips">
+      <button class="chip" [class.active]="selectedPeriod === 'week'    && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('week')">This Week</button>
+      <button class="chip" [class.active]="selectedPeriod === 'month'   && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('month')">This Month</button>
+      <button class="chip" [class.active]="selectedPeriod === 'quarter' && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('quarter')">This Quarter</button>
+      <button class="chip" [class.active]="selectedPeriod === 'year'    && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('year')">This Year</button>
+      <button class="chip" [class.active]="selectedPeriod === 'custom'  && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('custom')">Custom</button>
+    </div>
+    <button *ngIf="selectedPeriod !== 'month' || selectedMonth !== 'all'" class="btn btn-outline-secondary btn-sm ms-auto mt-1 mt-sm-0" (click)="clearFilter()">
+      <i class="bi bi-x-circle me-1"></i>Clear
+    </button>
+  </div>
+
+  <!-- Month Filter Dropdown -->
+  <div class="month-filter-bar mb-3" *ngIf="availableMonths.length > 0">
+    <label class="month-filter-label"><i class="bi bi-calendar3 me-1"></i>Filter by Month:</label>
+    <select class="month-filter-select" [(ngModel)]="selectedMonth" (ngModelChange)="selectMonth($event)">
+      <option value="all">All Months</option>
+      <option *ngFor="let m of availableMonths" [value]="m.value">{{ m.label }}</option>
+    </select>
+  </div>
+
+  <!-- Custom Date Range -->
+  <div *ngIf="showCustom" class="custom-range mb-3">
+    <div class="d-flex flex-wrap gap-2 align-items-end">
+      <div>
+        <label class="form-label small mb-1">From Date</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="customFrom" />
+      </div>
+      <div>
+        <label class="form-label small mb-1">To Date</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="customTo" />
+      </div>
+      <button class="btn btn-primary btn-sm" (click)="applyCustomRange()">Apply Filter</button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="clearFilter()">Clear</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card revenue">
+        <i class="bi bi-cash-stack kpi-icon"></i>
+        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
+        <div class="kpi-label">Total Revenue</div>
       </div>
     </div>
-    <div class="col-6">
-      <div class="card p-3 mb-3 shadow-sm text-center week-day">
-        <div class="text-muted small mb-1">
-          <i class="bi bi-currency-rupee"></i> Weekly
-        </div>
-        <div class="fs-4 fw-bold">₹{{ bookingRevenueStats["week"] }}</div>
-        <div class="text-muted">{{ stats.weekLabel }}</div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card expenses">
+        <i class="bi bi-receipt kpi-icon"></i>
+        <div class="kpi-value">{{ totalExpenses | indianCurrency }}</div>
+        <div class="kpi-label">Total Expenses</div>
       </div>
     </div>
-    <div class="col-6">
-      <div class="card p-3 mb-3 shadow-sm text-center week-day">
-        <div class="text-muted small mb-1">
-          <i class="bi bi-currency-rupee"></i> Daily
-        </div>
-        <div class="fs-4 fw-bold">₹{{ bookingRevenueStats["today"] }}</div>
-        <div class="text-muted">{{ stats.dayLabel }}</div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" [class.profit]="netProfit >= 0" [class.loss]="netProfit < 0">
+        <i class="bi bi-graph-up-arrow kpi-icon"></i>
+        <div class="kpi-value">{{ netProfit | indianCurrency }}</div>
+        <div class="kpi-label">Net Profit</div>
       </div>
     </div>
-    <div class="col-12">
-      <div class="card p-3 mb-3 shadow-sm AverageBooking">
-        <div class="text-muted mb-2">
-          <i class="bi bi-currency-rupee"></i> Average Booking Amount
+    <div class="col-6 col-md-3">
+      <div class="kpi-card growth" [class.positive]="growth >= 0" [class.negative]="growth < 0">
+        <i class="bi kpi-icon" [class.bi-trending-up]="growth >= 0" [class.bi-trending-down]="growth < 0"></i>
+        <div class="kpi-value">
+          {{ growth >= 0 ? '+' : '' }}{{ growth }}%
         </div>
-        <div class="row text-center">
-          <div class="col-6 col-md-3 mb-2">
-            <div class="fw-bold">₹{{ bookingsAvgStats["dailyAvg"] }}</div>
-            <div class="text-muted small">Daily Avg</div>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <div class="fw-bold">₹{{ bookingsAvgStats["weeklyAvg"] }}</div>
-            <div class="text-muted small">Weekly Avg</div>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <div class="fw-bold">₹{{ bookingsAvgStats["monthlyAvg"] }}</div>
-            <div class="text-muted small">Monthly Avg</div>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <div class="fw-bold">₹{{ bookingsAvgStats["yearlyAvg"] }}</div>
-            <div class="text-muted small">Yearly Avg</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-12">
-      <div class="card p-3 mb-3 shadow-sm linechart">
-        <div class="text-muted mb-2">
-          <i class="bi bi-graph-up"></i> Earnings Trend
-        </div>
-        <canvas
-          baseChart
-          [data]="lineChartData"
-          [type]="lineChartType"
-          [options]="lineChartOptions"
-        ></canvas>
-      </div>
-    </div>
-    <div class="col-12">
-      <div class="card p-3 mb-3 shadow-sm barchart">
-        <div class="text-muted mb-2">
-          <i class="bi bi-pie-chart"></i> Booking Distribution
-        </div>
-        <canvas
-          baseChart
-          [data]="pieChartData"
-          [type]="pieChartType"
-          [options]="pieChartOptions"
-        ></canvas>
+        <div class="kpi-label">vs Previous Period</div>
       </div>
     </div>
   </div>
+
+  <!-- Average Stats -->
+  <div class="card p-3 mb-3 shadow-sm" *ngIf="bookingsAvgStats && bookingsAvgStats['dailyAvg']">
+    <div class="text-muted mb-2 fw-semibold"><i class="bi bi-calculator me-1"></i>Average Booking Amount</div>
+    <div class="row text-center">
+      <div class="col-6 col-md-3 mb-2">
+        <div class="fw-bold">{{ bookingsAvgStats['dailyAvg'] || 0 | indianCurrency }}</div>
+        <div class="text-muted small">Daily Avg</div>
+      </div>
+      <div class="col-6 col-md-3 mb-2">
+        <div class="fw-bold">{{ bookingsAvgStats['weeklyAvg'] || 0 | indianCurrency }}</div>
+        <div class="text-muted small">Weekly Avg</div>
+      </div>
+      <div class="col-6 col-md-3 mb-2">
+        <div class="fw-bold">{{ bookingsAvgStats['monthlyAvg'] || 0 | indianCurrency }}</div>
+        <div class="text-muted small">Monthly Avg</div>
+      </div>
+      <div class="col-6 col-md-3 mb-2">
+        <div class="fw-bold">{{ bookingsAvgStats['yearlyAvg'] || 0 | indianCurrency }}</div>
+        <div class="text-muted small">Yearly Avg</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Earnings Trend Chart -->
+  <div class="card p-3 mb-3 shadow-sm">
+    <div class="fw-semibold mb-2 text-muted"><i class="bi bi-graph-up me-1"></i> Earnings Trend</div>
+    <canvas baseChart [data]="lineChartData" [type]="lineChartType" [options]="lineChartOptions"></canvas>
+  </div>
+
+  <!-- Booking Distribution -->
+  <div class="card p-3 mb-3 shadow-sm">
+    <div class="fw-semibold mb-2 text-muted"><i class="bi bi-pie-chart me-1"></i> Booking Distribution by Vehicle</div>
+    <canvas baseChart [data]="pieChartData" [type]="pieChartType" [options]="pieChartOptions"></canvas>
+  </div>
+
+  <div *ngIf="totalRevenue === 0 && !showCustom" class="text-center text-muted py-4">
+    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+    No earnings data for the selected period.
+  </div>
+
 </div>

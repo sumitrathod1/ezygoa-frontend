@@ -11,7 +11,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './email-booking.component.css',
 })
 export class EmailBookingComponent {
-  inquiries: any = []; // backend se load karo
+  inquiries: any = [];
 
   constructor(
     private _emailService: EmailServiceService,
@@ -22,15 +22,13 @@ export class EmailBookingComponent {
     this.loadInquiries();
     this._emailService.emailUpdated$.subscribe(() => {
       this.loadInquiries();
+      this._emailService.refreshCount();
     });
   }
   loadInquiries() {
     this._emailService.getAllAgents().subscribe({
       next: (data: any) => {
         this.inquiries = data;
-      },
-      error: (error: any) => {
-        console.error('Error fetching inquiries:', error);
       },
     });
   }
@@ -49,9 +47,6 @@ export class EmailBookingComponent {
         this._toaster.success('Inquiry rejected:');
         inquiry.isRejected = true;
       },
-      error: (err) => {
-        console.error('Error rejecting inquiry:', err);
-      },
     });
   }
 
@@ -65,9 +60,6 @@ export class EmailBookingComponent {
       next: (res) => {
         this._toaster.success('Inquiry confirmed:');
         inquiry.isConfirmed = true;
-      },
-      error: (err) => {
-        console.error('Error confirming inquiry:', err);
       },
     });
   }

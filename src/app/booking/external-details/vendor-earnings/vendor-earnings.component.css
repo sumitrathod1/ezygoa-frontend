@@ -1,0 +1,90 @@
+/* ====== LOADER ====== */
+.loader {
+  text-align: center;
+  padding: 60px 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+/* ====== SUMMARY CARDS ====== */
+.summary-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card .label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.summary-card .value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* color variations */
+.summary-card.green {
+  border-left: 4px solid #22c55e;
+}
+
+.summary-card.blue {
+  border-left: 4px solid #3b82f6;
+}
+
+/* ====== NET EARNING ====== */
+.net-card {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(34, 197, 94, 0.4);
+}
+
+.net-card span {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* ====== PIE CHART CARD ====== */
+.card {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card h5 {
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .summary-card .value {
+    font-size: 18px;
+  }
+
+  .net-card {
+    font-size: 15px;
+  }
+
+  .net-card span {
+    font-size: 20px;
+  }
+}

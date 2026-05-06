@@ -1,36 +1,48 @@
 <div class="container my-4">
-  <div class="row g-4">
-    <!-- Total Vehicles -->
-    <div
-      class="col-6 col-md-3"
-      routerLink="/vehicle-card"
-      (click)="documentForm()"
-    >
-      <div class="card p-2" style="min-height: 80px">
-        <div class="card-body text-center">
-          <div class="mb-1">
-            <i class="bi bi-car-front fs-4 text-success"></i>
-          </div>
-          <h3 class="card-title fw-bold">Total</h3>
-          <h4 class="card-text fw-bold">3</h4>
-        </div>
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-2">
+    <div class="col-6" routerLink="/vehicle-card" (click)="documentForm()" style="cursor:pointer">
+      <div class="v-kpi-card v-blue">
+        <i class="bi bi-car-front-fill v-kpi-icon"></i>
+        <div class="v-kpi-value">{{ totalVehicles }}</div>
+        <div class="v-kpi-label">Total Vehicles</div>
       </div>
     </div>
+    <div class="col-6">
+      <div class="v-kpi-card v-green">
+        <i class="bi bi-check-circle-fill v-kpi-icon"></i>
+        <div class="v-kpi-value">{{ activeVehicles }}</div>
+        <div class="v-kpi-label">Active</div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="v-kpi-card v-orange">
+        <i class="bi bi-wrench-adjustable-circle-fill v-kpi-icon"></i>
+        <div class="v-kpi-value">{{ inMaintenanceCount }}</div>
+        <div class="v-kpi-label">Maintenance</div>
+      </div>
+    </div>
+    <div class="col-6" routerLink="/vehicle-statistics" [state]="{ expenses: allExpenses }" style="cursor:pointer">
+      <div class="v-kpi-card v-red">
+        <i class="bi bi-receipt-cutoff v-kpi-icon"></i>
+        <div class="v-kpi-value">₹{{ totalExpenseCost | number:'1.0-0' }}</div>
+        <div class="v-kpi-label">Total Expenses</div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Active Vehicles -->
-    <div
-      class="col-6 col-md-3"
-      routerLink="/vehicle-statistics"
-      [state]="{ expenses: allExpenses }"
-    >
-      <div class="card p-2" style="min-height: 80px">
-        <div class="card-body text-center">
-          <div class="mb-1">
-            <i class="bi bi-graph-up-arrow fs-4 text-success"></i>
-          </div>
-          <h3 class="card-title fw-bold">Statistics</h3>
-          <h4 class="card-text fw-bold">VV</h4>
+  <!-- Vehicle Expense Overview -->
+  <div class="perf-section" *ngIf="expensesByVehicle.length">
+    <div class="expenses-header mb-2">
+      <span class="title">Vehicle Expense Overview</span>
+    </div>
+    <div class="perf-list">
+      <div class="perf-row" *ngFor="let v of expensesByVehicle">
+        <div class="perf-name">{{ v.name }}</div>
+        <div class="perf-bar-wrap">
+          <div class="perf-bar" [style.width.%]="(v.amount / maxVehicleExpense) * 100"></div>
         </div>
+        <div class="perf-amt">₹{{ v.amount | number:'1.0-0' }}</div>
       </div>
     </div>
   </div>
@@ -46,7 +58,7 @@
       </div>
       <div class="exp-info">
         <div class="exp-title">
-          {{ exp.vehicle.vehicleName }} No: {{ exp.vehicle.vehicleNumber }}
+          {{ exp.vehicle.vehicleName }}: {{ exp.vehicle.vehicleNumber }}
         </div>
         <div class="exp-subtitle">{{ exp.categoryType }}</div>
       </div>
@@ -68,7 +80,7 @@
       <div class="maint-info">
         <div class="maint-title">{{ item.maintenanceType }}</div>
         <div class="maint-subtitle">
-          {{ item.vehicle.vehicleName }} No: {{ item.vehicle.vehicleNumber }}
+          {{ item.vehicle.vehicleName }}: {{ item.vehicle.vehicleNumber }}
           <span class="maint-date">{{
             item.nextduedate | date : "dd MMM, yyyy"
           }}</span>

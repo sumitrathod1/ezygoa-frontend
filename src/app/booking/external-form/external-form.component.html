@@ -1,0 +1,72 @@
+<div mat-dialog-title>Assign External Vendor</div>
+
+<form [formGroup]="externalForm" (ngSubmit)="onExternalFormSubmit()">
+  <div mat-dialog-content>
+    <!-- Vendor Name -->
+    <div class="row">
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Vendor Name</mat-label>
+          <input matInput type="text" formControlName="vendorName" />
+        </mat-form-field>
+      </div>
+
+      <!-- Vendor Number -->
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Vendor Number</mat-label>
+          <input
+            matInput
+            type="text"
+            maxlength="15"
+            formControlName="vendorNumber"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Commission & Advance -->
+    <div class="row">
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Commission Amount</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            formControlName="commissionAmount"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Advance Pay</mat-label>
+          <input matInput type="number" min="0" formControlName="advancePay" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Cash Collected By -->
+    <div class="row">
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Cash Collected By</mat-label>
+          <mat-select formControlName="cashCollectedBy">
+            <mat-option value="Admin">Admin</mat-option>
+            <mat-option value="ExternalEmployee">
+              External Employee
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="action">
+    <button mat-raised-button type="button" (click)="onCloseExternal()">
+      Cancel
+    </button>
+    <button mat-raised-button color="primary" type="submit">Assign</button>
+  </div>
+</form>

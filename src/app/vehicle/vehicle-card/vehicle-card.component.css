@@ -1,13 +1,222 @@
-.card {
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 12px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+.vc-page {
+  padding: 12px 8px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+/* Search */
+.vc-search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.vc-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem;
+}
+.vc-search {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06);
+  transition: border-color 0.18s;
+}
+.vc-search:focus {
+  border-color: #6366f1;
+}
+
+/* Grid: 2 columns */
+.vc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Card */
+.vc-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid #e0e7ff;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.vc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.18);
+}
+
+/* Gradient header */
+.vc-header {
+  padding: 14px 12px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vc-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.vc-car-icon {
+  font-size: 1.6rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Body */
+.vc-body {
+  padding: 10px 12px 12px;
+}
+.vc-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vc-number {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6366f1;
+  margin-top: 1px;
+  letter-spacing: 0.04em;
+}
+
+/* Meta row */
+.vc-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.vc-meta-item {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.vc-meta-item i {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Actions */
+.vc-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.vc-btn {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 0;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.vc-btn:hover {
+  transform: scale(1.08);
+  opacity: 0.9;
+}
+.vc-maint {
+  background: #d1fae5;
+  color: #059669;
+}
+.vc-expense {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.vc-doc {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* Empty state */
+.vc-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 380px) {
+  .vc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* EMI tracker on card */
+.vc-emi-tracker {
+  margin: 8px 0; padding: 8px 10px;
+  background: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd;
+}
+.vc-emi-header { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #0369a1; margin-bottom: 5px; }
+.vc-emi-header i { color: #0284c7; }
+.vc-emi-lender { flex: 1; font-weight: 700; }
+.vc-emi-amount { font-weight: 700; }
+.vc-emi-progress-bar { height: 5px; background: #e0f2fe; border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+.vc-emi-progress-fill { height: 100%; background: linear-gradient(90deg, #0284c7, #0d6e6e); border-radius: 3px; transition: width 0.3s; }
+.vc-emi-meta { display: flex; justify-content: space-between; font-size: 10px; color: #6b7280; }
+.vc-emi-due { color: #d97706; font-weight: 600; }
+.vc-emi { background: #e0f2fe; color: #0284c7; }
+
+/* EMI Modal */
+.emi-modal-overlay {
+  position: fixed; inset: 0; background: rgba(10,22,40,0.55);
+  z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.emi-modal {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 400px;
+  box-shadow: 0 16px 48px rgba(10,22,40,0.25); overflow: hidden;
+}
+.emi-modal-header {
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px;
+  background: linear-gradient(135deg, #0a1628, #0284c7);
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+.emi-modal-header i { color: #e8b84b; }
+.emi-modal-close { border: none; background: none; color: rgba(255,255,255,0.7); font-size: 16px; cursor: pointer; margin-left: auto; }
+.emi-modal-body { padding: 16px; max-height: 60vh; overflow-y: auto; }
+.emi-toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.emi-toggle-label { font-size: 13px; font-weight: 700; color: #0a1628; }
+.emi-switch { position: relative; width: 44px; height: 24px; }
+.emi-switch input { display: none; }
+.emi-slider { position: absolute; inset: 0; background: #d1d5db; border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+.emi-switch input:checked + .emi-slider { background: #0284c7; }
+.emi-slider::before { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; }
+.emi-switch input:checked + .emi-slider::before { transform: translateX(20px); }
+.emi-form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.emi-form-row label { font-size: 12px; font-weight: 600; color: #374151; }
+.emi-form-row input { padding: 8px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 13px; outline: none; }
+.emi-form-row input:focus { border-color: #0284c7; }
+.emi-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.emi-modal-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px 16px; background: #f9fafb; border-top: 1px solid #f3f4f6;
+}
+.emi-cancel-btn { padding: 8px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px; background: none; color: #6b7280; font-size: 13px; cursor: pointer; }
+.emi-submit-btn {
+  padding: 8px 16px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
 }

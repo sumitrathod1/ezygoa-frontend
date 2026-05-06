@@ -1,24 +1,63 @@
-<div class="container py-3">
-  <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle shadow rounded">
-      <thead class="table-primary">
+<div class="vt-page">
+
+  <!-- Toolbar -->
+  <div class="vt-toolbar">
+    <div class="vt-search-wrap">
+      <i class="bi bi-search vt-search-icon"></i>
+      <input
+        class="vt-search"
+        type="text"
+        placeholder="Search vehicle or type…"
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+    <select class="vt-filter" [(ngModel)]="selectedType">
+      <option value="">All Types</option>
+      <option *ngFor="let t of maintenanceTypes" [value]="t">{{ t }}</option>
+    </select>
+  </div>
+
+  <!-- Meta row -->
+  <div class="vt-meta" *ngIf="maintenances.length > 0">
+    <span class="vt-count">{{ filteredMaintenances.length }} records</span>
+  </div>
+
+  <!-- Table -->
+  <div class="vt-scroll" *ngIf="filteredMaintenances.length > 0">
+    <table class="vt-table">
+      <thead>
         <tr>
-          <th scope="col">Vehicle</th>
-          <th scope="col">ServiceDate</th>
-          <th scope="col">NextDue</th>
-          <th scope="col">Type</th>
-          <th scope="col">Cost</th>
+          <th>Vehicle</th>
+          <th>Service Date</th>
+          <th>Next Due</th>
+          <th>Type</th>
+          <th class="text-end">Cost</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let maintenance of maintenances">
-          <td>{{ maintenance.vehicle.vehicleName }}</td>
-          <td>{{ maintenance.servieDate | date}}</td>
-          <td>{{ maintenance.nextduedate | date}}</td>
-          <td>{{ maintenance.maintenanceType }}</td>
-          <td>{{ maintenance.cost }}</td>
+        <tr *ngFor="let m of filteredMaintenances">
+          <td class="vt-vehicle">{{ m.vehicle?.vehicleName || '—' }}</td>
+          <td class="vt-date">{{ m.servieDate | date:'dd MMM yy' }}</td>
+          <td class="vt-date">{{ m.nextduedate | date:'dd MMM yy' }}</td>
+          <td>
+            <span class="vt-type">{{ m.maintenanceType }}</span>
+          </td>
+          <td class="text-end vt-amount">₹{{ m.cost | number }}</td>
+          <td>
+            <span class="vt-status-badge" [ngClass]="getStatusInfo(m.nextduedate).cls">
+              {{ getStatusInfo(m.nextduedate).label }}
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- Empty state -->
+  <div class="vt-empty" *ngIf="filteredMaintenances.length === 0">
+    <i class="bi bi-wrench-adjustable vt-empty-icon"></i>
+    <p>{{ maintenances.length === 0 ? 'No maintenance records yet' : 'No results match your search' }}</p>
+  </div>
+
 </div>

@@ -1,114 +1,190 @@
-<div mat-dialog-title>Add Employee</div>
-<form [formGroup]="employeeForm" (ngSubmit)="onAddEmployeeFormSubmit()">
-  <div mat-dialog-content>
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Driver Name</mat-label>
-          <input
-            matInput
-            type="text"
-            placeholder="Name"
-            formControlName="EmployeeName"
-          />
-        </mat-form-field>
-      </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline">
-          <mat-label>User Name</mat-label>
-          <input matInput type="text" formControlName="UserName" />
-        </mat-form-field>
+<div class="ef-dialog">
+  <!-- Header -->
+  <div class="ef-header">
+    <div class="ef-title">
+      <i class="bi bi-person-plus-fill ef-title-icon" *ngIf="!isEditMode"></i>
+      <i class="bi bi-pencil-square ef-title-icon" *ngIf="isEditMode"></i>
+      {{ isEditMode ? 'Edit Driver' : 'Add Driver' }}
+    </div>
+    <button class="ef-close" type="button" (click)="closeForm()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="employeeForm" (ngSubmit)="onAddEmployeeFormSubmit()" class="ef-body">
+
+    <!-- Name -->
+    <div class="ef-field">
+      <label class="ef-label">
+        <i class="bi bi-person-fill"></i> Driver Name <span class="req">*</span>
+      </label>
+      <input
+        class="ef-input"
+        type="text"
+        placeholder="e.g. Sunil Naik"
+        formControlName="EmployeeName"
+        [class.ef-error]="employeeForm.get('EmployeeName')?.invalid && employeeForm.get('EmployeeName')?.touched"
+      />
+      <div class="ef-msg" *ngIf="employeeForm.get('EmployeeName')?.invalid && employeeForm.get('EmployeeName')?.touched">
+        Name is required
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Date Of Birth</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="DOB" />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
+    <!-- Username + DOB row -->
+    <div class="ef-row">
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-at"></i> Username <span class="req">*</span></label>
+        <input
+          class="ef-input"
+          type="text"
+          placeholder="Login username"
+          formControlName="UserName"
+          [class.ef-error]="employeeForm.get('UserName')?.invalid && employeeForm.get('UserName')?.touched"
+        />
+        <div class="ef-msg" *ngIf="employeeForm.get('UserName')?.invalid && employeeForm.get('UserName')?.touched">
+          Username is required
+        </div>
+      </div>
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-calendar-heart"></i> Date of Birth</label>
+        <mat-form-field appearance="outline" class="ef-datepicker">
+          <input matInput [matDatepicker]="picker" formControlName="DOB" placeholder="DD/MM/YYYY" />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
       </div>
+    </div>
 
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Address</mat-label>
-          <input matInput type="text" formControlName="Address" />
-        </mat-form-field>
+    <!-- Phone + Salary row -->
+    <div class="ef-row">
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-telephone-fill"></i> Phone Number <span class="req">*</span></label>
+        <input
+          class="ef-input"
+          type="tel"
+          placeholder="e.g. 9876543210"
+          formControlName="Number"
+          [class.ef-error]="employeeForm.get('Number')?.invalid && employeeForm.get('Number')?.touched"
+        />
+        <div class="ef-msg" *ngIf="employeeForm.get('Number')?.invalid && employeeForm.get('Number')?.touched">
+          Valid phone required
+        </div>
+      </div>
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-cash-coin"></i> Salary (₹/month)</label>
+        <input
+          class="ef-input"
+          type="number"
+          placeholder="e.g. 20000"
+          formControlName="Salary"
+          min="0"
+        />
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field>
-          <mat-label>Role</mat-label>
-          <mat-select formControlName="Role">
-            <mat-option>None</mat-option>
-            @for (vtypes of Role; track vtypes) {
-            <mat-option [value]="vtypes">{{ vtypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+    <!-- Address -->
+    <div class="ef-field">
+      <label class="ef-label"><i class="bi bi-geo-alt-fill"></i> Address</label>
+      <input
+        class="ef-input"
+        type="text"
+        placeholder="Village / Area"
+        formControlName="Address"
+      />
+    </div>
+
+    <!-- Licence + Role row -->
+    <div class="ef-row">
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-card-list"></i> Licence Type</label>
+        <select class="ef-select" formControlName="Licence">
+          <option value="">— Select —</option>
+          <option *ngFor="let l of Licence" [value]="l">{{ l }}</option>
+        </select>
       </div>
-      <div class="col-sm-6" appearance="outline">
-        <mat-form-field>
-          <mat-label>Licence</mat-label>
-          <mat-select formControlName="Licence">
-            <mat-option>None</mat-option>
-            @for (vtypes of Licence; track vtypes) {
-            <mat-option [value]="vtypes">{{ vtypes }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-shield-check"></i> Role / Status</label>
+        <select class="ef-select" formControlName="Role">
+          <option value="">— Select —</option>
+          <option *ngFor="let r of Role" [value]="r">{{ r }}</option>
+        </select>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
-          <input
-            matInput
-            type="text"
-            placeholder="jhon@gmail.com"
-            formControlName="Email"
-          />
-        </mat-form-field>
+    <!-- Email + Password row -->
+    <div class="ef-row">
+      <div class="ef-field">
+        <label class="ef-label"><i class="bi bi-envelope-fill"></i> Email</label>
+        <input
+          class="ef-input"
+          type="email"
+          placeholder="driver@email.com"
+          formControlName="Email"
+        />
       </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline">
-          <mat-label>Password</mat-label>
-          <input matInput type="text" formControlName="Password" />
-        </mat-form-field>
+      <div class="ef-field">
+        <label class="ef-label">
+          <i class="bi bi-lock-fill"></i> Password
+          <span class="req" *ngIf="!isEditMode">*</span>
+          <span class="ef-optional" *ngIf="isEditMode">(leave blank to keep)</span>
+        </label>
+        <input
+          class="ef-input"
+          type="password"
+          [placeholder]="isEditMode ? 'Leave blank to keep current' : 'Min 6 characters'"
+          formControlName="Password"
+          [class.ef-error]="employeeForm.get('Password')?.invalid && employeeForm.get('Password')?.touched"
+        />
+        <div class="ef-msg" *ngIf="employeeForm.get('Password')?.invalid && employeeForm.get('Password')?.touched">
+          Password is required
+        </div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-sm-6">
-        <mat-form-field appearance="outline">
-          <mat-label>Contact Number</mat-label>
-          <input
-            matInput
-            type="text"
-            placeholder="Number"
-            formControlName="Number"
-          />
-        </mat-form-field>
+    <!-- Auto Salary Section -->
+    <div class="ef-auto-salary">
+      <div class="ef-auto-salary-header">
+        <i class="bi bi-cash-coin ef-auto-icon"></i>
+        Auto Salary Expense
       </div>
-      <div class="col-sm-6">
-        <mat-form-field class="col-ms-6" appearance="outline">
-          <mat-label>Salary</mat-label>
-          <input matInput type="number" formControlName="Salary" />
-        </mat-form-field>
+
+      <div class="ef-row">
+        <div class="ef-field">
+          <label class="ef-label"><i class="bi bi-calendar-day"></i> Salary Day of Month</label>
+          <select class="ef-select" formControlName="SalaryDay">
+            <option *ngFor="let d of salaryDays" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+        <div class="ef-field ef-toggle-field">
+          <label class="ef-label"><i class="bi bi-toggles"></i> Auto-Add to Salary</label>
+          <label class="ef-toggle">
+            <input type="checkbox" formControlName="IsSalaryActive" />
+            <span class="ef-toggle-slider"></span>
+            <span class="ef-toggle-label">
+              {{ employeeForm.get('IsSalaryActive')?.value ? 'Active' : 'Inactive' }}
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="ef-auto-info" *ngIf="employeeForm.get('IsSalaryActive')?.value">
+        <i class="bi bi-info-circle-fill"></i>
+        Salary will be auto-added on the <strong>{{ employeeForm.get('SalaryDay')?.value }}{{ ordinal(employeeForm.get('SalaryDay')?.value) }}</strong>
+        of every month until disabled.
       </div>
     </div>
-  </div>
-  <div mat-dialog-actions class="action">
-    <button mat-raised-button (click)="closeForm()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit">Submit</button>
-  </div>
-</form>
+
+    <!-- Actions -->
+    <div class="ef-actions">
+      <button class="ef-btn-cancel" type="button" (click)="closeForm()">
+        <i class="bi bi-x-circle me-1"></i> Cancel
+      </button>
+      <button class="ef-btn-submit" type="submit">
+        <i class="bi bi-person-check-fill me-1" *ngIf="!isEditMode"></i>
+        <i class="bi bi-check-circle-fill me-1" *ngIf="isEditMode"></i>
+        {{ isEditMode ? 'Update Driver' : 'Add Driver' }}
+      </button>
+    </div>
+  </form>
+</div>

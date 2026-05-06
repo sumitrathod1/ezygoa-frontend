@@ -1,95 +1,411 @@
-<div
-  class="dashboard-header d-flex justify-content-between align-items-center mb-3"
->
-  <!-- <div class="dashboard-title">
-    <i class="bi bi-people-fill"></i> Agent Dashboard
-  </div> -->
-  <button class="btn btn-primary mt-2" (click)="addAgent()">+ Add</button>
-</div>
-<div class="agent-dashboard">
-  <div class="summary-grid">
-    <div class="summary-card total">
-      <div class="summary-text">
-        <div class="label">Total Agents</div>
-        <div class="count">{{ agentCount }}</div>
-      </div>
-      <div class="icon-bg bg-blue"><i class="bi bi-people"></i></div>
+<div class="ag-page">
+  <!-- Top bar -->
+  <div class="ag-topbar">
+    <div class="ag-topbar-title">
+      <i class="bi bi-people-fill"></i>
+      <span>Agents</span>
     </div>
-    <div class="summary-card bookings">
-      <div class="summary-text">
-        <div class="label">Total Bookings</div>
-        <div class="count">{{ totalBookings }}</div>
-      </div>
-      <div class="icon-bg bg-purple"><i class="bi bi-calendar-event"></i></div>
-    </div>
-    <div class="summary-card active">
-      <div class="summary-text">
-        <div class="label">Agents Revenue</div>
-        <div class="count">₹{{ totalRevenueAmount }}</div>
-      </div>
-      <div class="icon-bg bg-green"><i class="bi bi-cash"></i></div>
-    </div>
+    <button class="ag-add-btn" (click)="openAddForm()">
+      <i class="bi bi-plus-circle"></i> Add Agent
+    </button>
+  </div>
 
-    <div class="summary-card pending">
-      <div class="summary-text">
-        <div class="label">Pending Payment</div>
-        <div class="count">₹{{ totalPendingAmount }}</div>
+  <!-- KPI row -->
+  <div class="ag-kpi-row">
+    <div class="ag-kpi total">
+      <div class="ag-kpi-icon"><i class="bi bi-people"></i></div>
+      <div class="ag-kpi-info">
+        <div class="ag-kpi-val">{{ agents.length }}</div>
+        <div class="ag-kpi-lbl">Total Agents</div>
       </div>
-      <div class="icon-bg bg-red"><i class="bi bi-cash"></i></div>
+    </div>
+    <div class="ag-kpi active">
+      <div class="ag-kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="ag-kpi-info">
+        <div class="ag-kpi-val">{{ activeCount }}</div>
+        <div class="ag-kpi-lbl">Active</div>
+      </div>
+    </div>
+    <div class="ag-kpi revenue">
+      <div class="ag-kpi-icon"><i class="bi bi-cash-coin"></i></div>
+      <div class="ag-kpi-info">
+        <div class="ag-kpi-val">₹{{ totalEarned | number : "1.0-0" }}</div>
+        <div class="ag-kpi-lbl">Total Earned</div>
+      </div>
+    </div>
+    <div class="ag-kpi pending">
+      <div class="ag-kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="ag-kpi-info">
+        <div class="ag-kpi-val">₹{{ totalPending | number : "1.0-0" }}</div>
+        <div class="ag-kpi-lbl">Outstanding</div>
+      </div>
     </div>
   </div>
 
-  <div class="agent-card" *ngFor="let agent of agents">
-    <div class="agent-header">
-      <div class="agent-info">
-        <div class="agent-name">{{ agent.name }}</div>
-        <div class="agent-id">{{ agent.type }}</div>
-      </div>
-      <div class="agent-status active">Active</div>
-    </div>
+  <!-- Top agent banner -->
+  <div class="ag-top-banner" *ngIf="topAgent">
+    <i class="bi bi-trophy-fill"></i>
+    <span
+      >Top Agent: <strong>{{ topAgent.name }}</strong></span
+    >
+    <span class="ag-top-stat"
+      >{{ topAgent.bookingCount }} bookings · ₹{{
+        topAgent.earned | number : "1.0-0"
+      }}
+      earned</span
+    >
+  </div>
 
-    <div class="agent-stats">
-      <div>{{ agent.bookingCount }} Bookings</div>
-      <div>
-        <span class="earned">₹{{ agent.earned }}</span> Paid
-      </div>
-      <div>
-        <span class="pending">₹{{ agent.pending }}</span> Pending
-      </div>
-    </div>
-
-    <div class="agent-actions">
+  <!-- Search + filter bar -->
+  <div class="ag-filter-bar">
+    <div class="ag-search-wrap">
+      <i class="bi bi-search ag-search-icon"></i>
+      <input
+        class="ag-search-input"
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search name, phone, email…"
+      />
       <button
-        class="agent-action-btn"
-        (click)="openPaymentModal(agent.agentId)"
+        class="ag-clear-btn"
+        *ngIf="searchQuery"
+        (click)="searchQuery = ''"
       >
-        <i class="bi bi-currency-rupee"></i>Add
+        ✕
       </button>
-      <button class="agent-action-btn" (click)="downloadReport(agent.agentId)">
-        Report
-      </button>
-      <button class="agent-action-btn" (click)="viewAllBookings(agent.agentId)">
-        Bookings
-      </button>
+    </div>
+    <select class="ag-sel" [(ngModel)]="filterType">
+      <option value="all">All Types</option>
+      <option *ngFor="let t of agentTypes" [value]="t">
+        {{ typeLabel(t) }}
+      </option>
+    </select>
+    <select class="ag-sel" [(ngModel)]="filterStatus">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <select class="ag-sel" [(ngModel)]="sortBy">
+      <option value="bookings">Most Bookings</option>
+      <option value="revenue">Highest Revenue</option>
+      <option value="pending">Highest Pending</option>
+      <option value="name">Alphabetical</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="ag-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading agents…
+  </div>
+
+  <!-- Empty -->
+  <div class="ag-empty" *ngIf="!loading && filtered.length === 0">
+    <i class="bi bi-people"></i>
+    <p>No agents found</p>
+    <button class="ag-add-btn" (click)="openAddForm()">
+      <i class="bi bi-plus-circle"></i> Add First Agent
+    </button>
+  </div>
+
+  <!-- Agent cards -->
+  <div class="ag-list" *ngIf="!loading && filtered.length > 0">
+    <div
+      class="ag-card"
+      *ngFor="let a of filtered"
+      [class.ag-card-inactive]="!a.isActive"
+    >
+      <!-- Card header -->
+      <div class="ag-card-header">
+        <div class="ag-avatar">{{ agentInitials(a.name) }}</div>
+        <div class="ag-card-info">
+          <div class="ag-card-name">{{ a.name }}</div>
+          <div class="ag-card-meta">
+            <span class="ag-type-chip">{{ typeLabel(a.type) }}</span>
+            <span *ngIf="a.contactPerson" class="ag-contact-person">{{
+              a.contactPerson
+            }}</span>
+          </div>
+        </div>
+        <span
+          class="ag-status-badge"
+          [class.badge-active]="a.isActive"
+          [class.badge-inactive]="!a.isActive"
+        >
+          {{ a.isActive ? "● Active" : "○ Inactive" }}
+        </span>
+      </div>
+
+      <!-- Contact row -->
+      <div class="ag-contact-row">
+        <span class="ag-contact-item" *ngIf="a.contactNumber">
+          <i class="bi bi-telephone-fill"></i> {{ a.contactNumber }}
+        </span>
+        <span class="ag-contact-item" *ngIf="a.email">
+          <i class="bi bi-envelope-fill"></i> {{ a.email }}
+        </span>
+        <span class="ag-contact-item" *ngIf="a.address">
+          <i class="bi bi-geo-alt-fill"></i> {{ a.address }}
+        </span>
+      </div>
+
+      <hr class="ag-divider" />
+
+      <!-- Stats row -->
+      <div class="ag-stats-row">
+        <div class="ag-stat">
+          <div class="ag-stat-val">{{ a.bookingCount ?? 0 }}</div>
+          <div class="ag-stat-lbl">Bookings</div>
+        </div>
+        <div class="ag-stat">
+          <div class="ag-stat-val earned">
+            ₹{{ a.earned ?? 0 | number : "1.0-0" }}
+          </div>
+          <div class="ag-stat-lbl">Earned</div>
+        </div>
+        <div class="ag-stat">
+          <div class="ag-stat-val pending" *ngIf="(a.pending ?? 0) > 0">
+            ₹{{ a.pending | number : "1.0-0" }}
+          </div>
+          <div class="ag-stat-val" *ngIf="(a.pending ?? 0) === 0">—</div>
+          <div class="ag-stat-lbl">Outstanding</div>
+        </div>
+        <div class="ag-stat" *ngIf="(a.commissionPercent ?? 0) > 0">
+          <div class="ag-stat-val">{{ a.commissionPercent }}%</div>
+          <div class="ag-stat-lbl">Commission</div>
+        </div>
+      </div>
+
+      <hr class="ag-divider" />
+
+      <!-- Quick contact actions -->
+      <div class="ag-quick-row">
+        <button
+          class="ag-quick-btn call"
+          *ngIf="a.contactNumber"
+          (click)="callAgent(a.contactNumber)"
+          title="Call"
+        >
+          <i class="bi bi-telephone-fill"></i>
+        </button>
+        <button
+          class="ag-quick-btn whatsapp"
+          *ngIf="a.whatsApp || a.contactNumber"
+          (click)="whatsAppAgent(a.whatsApp || a.contactNumber, a.name)"
+          title="WhatsApp"
+        >
+          <i class="bi bi-whatsapp"></i>
+        </button>
+        <button
+          class="ag-quick-btn email"
+          *ngIf="a.email"
+          (click)="emailAgent(a.email)"
+          title="Email"
+        >
+          <i class="bi bi-envelope-fill"></i>
+        </button>
+        <div class="ag-quick-spacer"></div>
+        <button class="ag-action-btn" (click)="viewAllBookings(a.agentId)">
+          <i class="bi bi-calendar-check"></i> Bookings
+        </button>
+        <button class="ag-action-btn" (click)="downloadReport(a.agentId)">
+          <i class="bi bi-file-earmark-pdf"></i> Statement
+        </button>
+        <button
+          class="ag-action-btn pay-btn"
+          (click)="openPaymentModal(a.agentId)"
+          *ngIf="(a.pending ?? 0) > 0"
+        >
+          <i class="bi bi-currency-rupee"></i> Pay
+        </button>
+        <button class="ag-icon-btn" (click)="openEditForm(a)" title="Edit">
+          <i class="bi bi-pencil-fill"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="paymentModal" tabindex="-1" #paymentModal>
-  <div class="modal-dialog">
+<!-- ── Payment modal (Bootstrap) ─────────────────────────────── -->
+<div class="modal fade" tabindex="-1" #paymentModal>
+  <div class="modal-dialog modal-sm">
     <div class="modal-content p-3">
-      <h5>Add Payment</h5>
-      <form (ngSubmit)="submitPayment()">
-        <input type="hidden" [(ngModel)]="paymentData.agentId" name="agentId" />
+      <h6 class="mb-3"><i class="bi bi-currency-rupee"></i> Record Payment</h6>
+      <input type="hidden" [(ngModel)]="paymentData.agentId" />
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Amount (₹)</label>
         <input
           type="number"
           [(ngModel)]="paymentData.totalPaidAmount"
-          name="amount"
-          required
           class="form-control"
+          min="0"
         />
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+      </div>
+      <div class="d-flex gap-2">
+        <button
+          type="button"
+          class="btn btn-sm btn-light flex-fill"
+          data-bs-dismiss="modal"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-success flex-fill"
+          (click)="submitPayment()"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add / Edit Agent Modal ────────────────────────────────── -->
+<div class="ag-modal-overlay" *ngIf="showForm" (click)="closeForm()">
+  <div class="ag-modal" (click)="$event.stopPropagation()">
+    <div class="ag-modal-header">
+      <i class="bi bi-person-fill-add"></i>
+      <span>{{ isEdit ? "Edit Agent" : "Add Agent" }}</span>
+      <button class="ag-modal-close" (click)="closeForm()">✕</button>
+    </div>
+
+    <div class="ag-modal-body">
+      <div class="ag-form-2col">
+        <div class="ag-form-row">
+          <label>Business Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="formData.name"
+            placeholder="Hotel X Resort"
+          />
+        </div>
+        <div class="ag-form-row">
+          <label>Agent Type</label>
+          <select [(ngModel)]="formData.agentType">
+            <option *ngFor="let t of agentTypes" [value]="t">
+              {{ typeLabel(t) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ag-form-2col">
+        <div class="ag-form-row">
+          <label>Contact Person</label>
+          <input
+            type="text"
+            [(ngModel)]="formData.contactPerson"
+            placeholder="Mr. Sharma"
+          />
+        </div>
+        <div class="ag-form-row">
+          <label>Phone Number</label>
+          <input
+            type="tel"
+            [(ngModel)]="formData.contactNumber"
+            placeholder="+91 7406008393"
+          />
+        </div>
+      </div>
+
+      <div class="ag-form-2col">
+        <div class="ag-form-row">
+          <label>WhatsApp</label>
+          <input
+            type="tel"
+            [(ngModel)]="formData.whatsApp"
+            placeholder="+91 7406008393"
+          />
+        </div>
+        <div class="ag-form-row">
+          <label>Email</label>
+          <input
+            type="email"
+            [(ngModel)]="formData.email"
+            placeholder="agent@email.com"
+          />
+        </div>
+      </div>
+
+      <div class="ag-form-row">
+        <label>Location / Address</label>
+        <input
+          type="text"
+          [(ngModel)]="formData.address"
+          placeholder="Calangute, North Goa"
+        />
+      </div>
+
+      <div class="ag-form-2col">
+        <div class="ag-form-row">
+          <label>Commission %</label>
+          <input
+            type="number"
+            [(ngModel)]="formData.commissionPercent"
+            min="0"
+            max="100"
+          />
+        </div>
+        <div class="ag-form-row">
+          <label>Payment Terms</label>
+          <select [(ngModel)]="formData.paymentTerms">
+            <option *ngFor="let t of paymentTermsList" [value]="t">
+              {{ t }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ag-form-2col">
+        <div class="ag-form-row">
+          <label>Bank Account</label>
+          <input
+            type="text"
+            [(ngModel)]="formData.bankAccount"
+            placeholder="Account number"
+          />
+        </div>
+        <div class="ag-form-row">
+          <label>IFSC Code</label>
+          <input
+            type="text"
+            [(ngModel)]="formData.ifsc"
+            placeholder="SBIN0001234"
+          />
+        </div>
+      </div>
+
+      <div class="ag-form-row">
+        <label>Notes</label>
+        <input
+          type="text"
+          [(ngModel)]="formData.notes"
+          placeholder="Any special agreements…"
+        />
+      </div>
+
+      <label class="ag-toggle-row" *ngIf="isEdit">
+        <span>Active Agent</span>
+        <div
+          class="ag-toggle"
+          [class.on]="formData.isActive"
+          (click)="formData.isActive = !formData.isActive"
+        >
+          <div class="ag-toggle-knob"></div>
+        </div>
+      </label>
+    </div>
+
+    <div class="ag-modal-footer">
+      <button class="ag-cancel-btn" (click)="closeForm()">Cancel</button>
+      <button
+        class="ag-submit-btn"
+        (click)="submitForm()"
+        [disabled]="!formData.name.trim() || formSaving"
+      >
+        <i class="bi bi-floppy-fill"></i>
+        {{ formSaving ? "Saving…" : "Save Agent" }}
+      </button>
     </div>
   </div>
 </div>

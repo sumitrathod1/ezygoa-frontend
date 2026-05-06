@@ -1,0 +1,38 @@
+<div class="hub-page">
+
+  <!-- Header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon"><i class="bi bi-briefcase-fill"></i></div>
+    <div>
+      <h1 class="hub-title">Business Hub</h1>
+      <p class="hub-sub">Tools for managing agents, rates &amp; business growth</p>
+    </div>
+  </div>
+
+  <!-- Validity alert banner -->
+  <div class="hub-alert" *ngIf="expiredCount > 0 || expiringSoonCount > 0">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>
+      <strong *ngIf="expiredCount > 0">{{ expiredCount }} rate chart(s) expired.</strong>
+      <strong *ngIf="expiringSoonCount > 0"> {{ expiringSoonCount }} expiring within 30 days.</strong>
+      <a (click)="navigate('/business-hub/rate-charts')">Review now →</a>
+    </span>
+  </div>
+
+  <!-- Tiles grid -->
+  <div class="hub-grid">
+    <div
+      class="hub-tile"
+      [ngClass]="t.color"
+      *ngFor="let t of tiles"
+      (click)="navigate(t.route)"
+    >
+      <div class="hub-tile-badge" *ngIf="t.badge">{{ t.badge }}</div>
+      <div class="hub-tile-icon"><i class="bi {{ t.icon }}"></i></div>
+      <div class="hub-tile-label">{{ t.label }}</div>
+      <div class="hub-tile-desc">{{ t.desc }}</div>
+      <div class="hub-tile-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </div>
+  </div>
+
+</div>

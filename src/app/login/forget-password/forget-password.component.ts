@@ -7,7 +7,6 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { er } from '@fullcalendar/core/internal-common';
 import { EmployeeService } from '../../services/employee.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -19,31 +18,31 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './forget-password.component.css',
 })
 export class ForgetPasswordComponent {
-  forgotForm!: FormGroup;
+  step = 1; // 1 = email, 2 = reset
 
-  showOldPassword = false;
+  emailForm!: FormGroup;
+  resetForm!: FormGroup;
+
   showNewPassword = false;
   showConfirmPassword = false;
 
-  togglePassword(field: string) {
-    if (field === 'old') this.showOldPassword = !this.showOldPassword;
-    if (field === 'new') this.showNewPassword = !this.showNewPassword;
-    if (field === 'confirm')
-      this.showConfirmPassword = !this.showConfirmPassword;
-  }
+  email!: string;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private _employeServes: EmployeeService,
-    private _toaster: ToastrService
+    private employeeService: EmployeeService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    this.forgotForm = this.fb.group(
+    this.emailForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+    });
+
+    this.resetForm = this.fb.group(
       {
-        UserName: ['', Validators.required],
-        oldPassword: ['', Validators.required],
+        otp: ['', Validators.required],
         newPassword: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
       },
@@ -52,26 +51,47 @@ export class ForgetPasswordComponent {
   }
 
   passwordMatchValidator(form: FormGroup) {
-    const newPassword = form.get('newPassword')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
-    if (!newPassword || !confirmPassword) return null;
-    return newPassword === confirmPassword ? null : { mismatch: true };
+    const pass = form.get('newPassword')?.value;
+    const confirm = form.get('confirmPassword')?.value;
+    return pass === confirm ? null : { mismatch: true };
   }
 
-  onSubmit() {
-    if (this.forgotForm.invalid) {
-      console.log('Form is invalid');
-      return;
-    }
+  // STEP 1
+  sendOtp() {
+    if (this.emailForm.invalid) return;
 
-    const { oldPassword, newPassword } = this.forgotForm.value;
-    this._employeServes.changePassword(this.forgotForm.value).subscribe({
-      next: (res) => {
-        this._toaster.success(res.message);
+    this.email = this.emailForm.value.email;
+
+    this.employeeService.forgotPassword({ email: this.email }).subscribe({
+      next: (_res: any) => {
+        this.toastr.success('OTP sent to your email');
+        this.step = 2;
+      },
+      error: () => {
+        this.toastr.error('Failed to send OTP');
+      },
+    });
+  }
+
+  // STEP 2
+  resetPassword() {
+    if (this.resetForm.invalid) return;
+
+    const payload = {
+      email: this.email,
+      otp: this.resetForm.value.otp,
+      newPassword: this.resetForm.value.newPassword,
+    };
+
+    this.employeeService.resetPassword(payload).subscribe({
+      next: (res: any) => {
+        this.toastr.success(res.message || 'Password reset successful');
         this.router.navigate(['/login']);
       },
-      error: (err: any) => {
-        this._toaster.error(err?.error.message);
+      error: (err) => {
+        const msg = err?.error?.message || err?.error || 'Something went wrong';
+
+        this.toastr.error(msg);
       },
     });
   }

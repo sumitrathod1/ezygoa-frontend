@@ -1,42 +1,154 @@
-/* Table shadow and rounded corners */
-.table {
-  border-radius: 0.75rem;
-  overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+.vt-page { padding: 8px 4px; }
+
+/* ── Toolbar ── */
+.vt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.vt-search-wrap {
+  flex: 1;
+  min-width: 160px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.vt-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+.vt-search {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.vt-search:focus { border-color: #6366f1; background: #fff; }
+
+.vt-filter {
+  padding: 8px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #f9fafb;
+  outline: none;
+  cursor: pointer;
+}
+
+.vt-export-btn {
+  padding: 8px 12px;
+  background: #ede9fe;
+  color: #6366f1;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.vt-export-btn:hover { background: #ddd6fe; }
+
+/* ── Meta ── */
+.vt-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vt-count {
+  font-size: 12px;
+  font-weight: 700;
+  background: #ede9fe;
+  color: #6366f1;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.vt-total {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* ── Table scroll wrapper ── */
+.vt-scroll {
+  overflow-x: auto;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+/* ── Table ── */
+.vt-table {
+  width: 100%;
+  border-collapse: collapse;
   background: #fff;
+  font-size: 13px;
 }
-
-/* Table header style */
-.table thead {
-  background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+.vt-table thead tr {
+  background: linear-gradient(90deg, #6366f1, #818cf8);
   color: #fff;
-  border: none;
 }
-
-.table thead th {
-  border: none;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  font-size: 1.05rem;
+.vt-table thead th {
+  padding: 11px 14px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-
-/* Table row hover effect */
-.table-hover tbody tr:hover {
-  background-color: #f1f7ff;
-  transition: background 0.2s;
+.vt-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.12s;
 }
+.vt-table tbody tr:hover { background: #f8f9ff; }
+.vt-table tbody tr:last-child { border-bottom: none; }
+.vt-table td { padding: 10px 14px; color: #374151; }
 
-/* Bold title column */
-.table td.fw-bold {
-  color: #007bff;
-  font-weight: 600;
+.vt-vehicle { font-weight: 700; color: #1e1b4b; }
+.vt-date    { color: #6b7280; white-space: nowrap; }
+.vt-amount  { font-weight: 800; color: #1e1b4b; white-space: nowrap; }
+.text-end   { text-align: right; }
+
+/* ── Total row ── */
+.vt-total-row {
+  background: #f8faff;
+  font-weight: 800;
+  color: #1e1b4b;
+  border-top: 2px solid #e0e7ff;
 }
+.vt-total-row td { padding: 10px 14px; }
 
-/* Responsive padding */
-@media (max-width: 768px) {
-  .table td,
-  .table th {
-    padding: 0.5rem;
-    font-size: 0.95rem;
-  }
+/* ── Type badges ── */
+.vt-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-fuel     { background: #ffedd5; color: #ea580c; }
+.badge-repair   { background: #fee2e2; color: #dc2626; }
+.badge-cng      { background: #dbeafe; color: #2563eb; }
+.badge-doc      { background: #f3e8ff; color: #7c3aed; }
+.badge-default  { background: #f3f4f6; color: #6b7280; }
+
+/* ── Empty state ── */
+.vt-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #9ca3af;
+}
+.vt-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+.vt-empty p    { font-size: 14px; margin: 0; }
+
+@media (max-width: 480px) {
+  .vt-table thead th,
+  .vt-table td { padding: 8px 10px; }
 }

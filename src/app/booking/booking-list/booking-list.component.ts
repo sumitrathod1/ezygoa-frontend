@@ -26,9 +26,6 @@ export class BookingListComponent {
       next: (data) => {
         this.allBookngs = data.bookings;
       },
-      error: (err) => {
-        console.error('Error loading bookings:', err);
-      },
     });
   }
 }

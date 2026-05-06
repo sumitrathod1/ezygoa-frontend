@@ -1,4 +1,4 @@
-<div mat-dialog-title>Add Vehicle</div>
+<div mat-dialog-title>Add Agent</div>
 <form [formGroup]="agentForm" (ngSubmit)="onAgentFormSubmit()">
   <div mat-dialog-content>
     <div class="row">
@@ -46,7 +46,9 @@
     </div>
   </div>
   <div mat-dialog-actions class="action">
-    <button mat-raised-button (click)="clossAgent()">Cancel</button>
+    <button mat-raised-button type="button" (click)="clossAgent()">
+      Cancel
+    </button>
     <button mat-raised-button color="primary" type="submit">Submit</button>
   </div>
 </form>

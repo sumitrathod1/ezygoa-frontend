@@ -1,54 +1,151 @@
-<div class="container">
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let vehicle of vehicleList">
-      <div class="card" style="width: 100%">
-        <div class="card-body">
-          <div class="row mb-2">
-            <div class="col-6 text-start fw-bold">
-              {{ vehicle.vehicleName }}
-            </div>
-            <div class="col-6 text-end">{{ vehicle.vehicleType }}</div>
+<div class="vc-page">
+  <!-- Search bar -->
+  <div class="vc-search-wrap">
+    <i class="bi bi-search vc-search-icon"></i>
+    <input
+      class="vc-search"
+      type="text"
+      placeholder="Search vehicle, number, type…"
+      [(ngModel)]="searchQuery"
+    />
+  </div>
+
+  <!-- Cards grid -->
+  <div class="vc-grid">
+    <div class="vc-card" *ngFor="let vehicle of filteredVehicles">
+      <!-- Gradient header -->
+      <div class="vc-header" [style.background]="getVehicleGradient(vehicle.vehicleType)">
+        <span class="vc-type-badge">{{ vehicle.vehicleType }}</span>
+        <i class="bi bi-car-front-fill vc-car-icon"></i>
+      </div>
+
+      <!-- Body -->
+      <div class="vc-body">
+        <div class="vc-name">{{ vehicle.vehicleName }}</div>
+        <div class="vc-number">{{ vehicle.vehicleNumber }}</div>
+
+        <div class="vc-meta">
+          <span class="vc-meta-item">
+            <i class="bi bi-people-fill"></i>
+            {{ vehicle.seatingcapacity }} seats
+          </span>
+          <span class="vc-meta-item">
+            <i class="bi bi-calendar3"></i>
+            {{ getVehicleAge(vehicle.registrationDate) }}
+          </span>
+        </div>
+
+        <!-- EMI tracker (shown only when hasEMI) -->
+        <div class="vc-emi-tracker" *ngIf="vehicle.hasEMI">
+          <div class="vc-emi-header">
+            <i class="bi bi-credit-card-2-front-fill"></i>
+            <span class="vc-emi-lender">{{ vehicle.emiLender || vehicle.eMILender || 'EMI' }}</span>
+            <span class="vc-emi-amount">₹{{ (vehicle.emiAmount || vehicle.eMIAmount || 0) | number:'1.0-0' }}/mo</span>
           </div>
-          <div class="row mb-2">
-            <div class="col-6 text-start fw-bold">Year</div>
-            <div class="col-6 text-end">{{ vehicle.registrationDate }}</div>
+          <div class="vc-emi-progress-bar">
+            <div class="vc-emi-progress-fill" [style.width.%]="emiProgressPct(vehicle)"></div>
           </div>
-          <div class="row mb-2">
-            <div class="col-6 text-start fw-bold">Seats</div>
-            <div class="col-6 text-end">{{ vehicle.seatingcapacity }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-6 text-start fw-bold">Number</div>
-            <div class="col-6 text-end">{{ vehicle.vehicleNumber }}</div>
-          </div>
-          <div class="row mt-3">
-            <div class="col-4">
-              <button
-                class="btn btn-success w-100"
-                (click)="maintenance(vehicle.vehicleId)"
-              >
-                <i class="bi bi-wrench-adjustable"></i>
-              </button>
-            </div>
-            <div class="col-4">
-              <button
-                class="btn btn-danger w-100"
-                (click)="expence(vehicle.vehicleId)"
-              >
-                <i class="bi bi-cash-stack"></i>
-              </button>
-            </div>
-            <div class="col-4">
-              <button
-                class="btn btn-primary w-100"
-                (click)="documentShedule(vehicle.vehicleId)"
-              >
-                <i class="bi bi-receipt-cutoff"></i>
-              </button>
-            </div>
+          <div class="vc-emi-meta">
+            <span>{{ vehicle.paidEMIs ?? 0 }}/{{ vehicle.totalEMIs ?? vehicle.eMIs ?? 0 }} paid</span>
+            <span class="vc-emi-due">Next in {{ emiDaysUntil(vehicle) }}d</span>
           </div>
         </div>
+
+        <!-- Action buttons -->
+        <div class="vc-actions">
+          <button
+            class="vc-btn vc-maint"
+            (click)="maintenance(vehicle.vehicleId)"
+            title="Add Maintenance"
+          >
+            <i class="bi bi-wrench-adjustable"></i>
+          </button>
+          <button
+            class="vc-btn vc-expense"
+            (click)="expence(vehicle.vehicleId)"
+            title="Add Expense"
+          >
+            <i class="bi bi-cash-stack"></i>
+          </button>
+          <button
+            class="vc-btn vc-doc"
+            (click)="documentShedule(vehicle.vehicleId)"
+            title="Add Document"
+          >
+            <i class="bi bi-file-earmark-text"></i>
+          </button>
+          <button class="vc-btn vc-emi" (click)="openEmi(vehicle)" title="EMI Settings">
+            <i class="bi bi-credit-card-fill"></i>
+          </button>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <div *ngIf="filteredVehicles.length === 0" class="vc-empty">
+    <i class="bi bi-car-front fs-2 d-block mb-2"></i>
+    No vehicles found.
+  </div>
+</div>
+
+<!-- EMI Setup Modal -->
+<div class="emi-modal-overlay" *ngIf="showEmiForm" (click)="showEmiForm = false">
+  <div class="emi-modal" (click)="$event.stopPropagation()">
+    <div class="emi-modal-header">
+      <i class="bi bi-credit-card-2-front-fill"></i>
+      EMI Setup — {{ emiVehicle?.vehicleName || emiVehicle?.vehicleNumber }}
+      <button class="emi-modal-close" (click)="showEmiForm = false">✕</button>
+    </div>
+    <div class="emi-modal-body">
+      <div class="emi-toggle-row">
+        <label class="emi-toggle-label">EMI Active</label>
+        <label class="emi-switch">
+          <input type="checkbox" [(ngModel)]="emiData.hasEMI" />
+          <span class="emi-slider"></span>
+        </label>
+      </div>
+      <ng-container *ngIf="emiData.hasEMI">
+        <div class="emi-form-row">
+          <label>Lender / Bank</label>
+          <input type="text" [(ngModel)]="emiData.emiLender" placeholder="e.g. HDFC Bank" />
+        </div>
+        <div class="emi-form-2col">
+          <div class="emi-form-row">
+            <label>Monthly EMI (₹)</label>
+            <input type="number" [(ngModel)]="emiData.emiAmount" min="0" />
+          </div>
+          <div class="emi-form-row">
+            <label>EMI Day of Month</label>
+            <input type="number" [(ngModel)]="emiData.emiDay" min="1" max="28" />
+          </div>
+        </div>
+        <div class="emi-form-2col">
+          <div class="emi-form-row">
+            <label>Start Date</label>
+            <input type="date" [(ngModel)]="emiData.emiStartDate" />
+          </div>
+          <div class="emi-form-row">
+            <label>End Date</label>
+            <input type="date" [(ngModel)]="emiData.emiEndDate" />
+          </div>
+        </div>
+        <div class="emi-form-2col">
+          <div class="emi-form-row">
+            <label>Total EMIs</label>
+            <input type="number" [(ngModel)]="emiData.totalEMIs" min="0" />
+          </div>
+          <div class="emi-form-row">
+            <label>Paid EMIs</label>
+            <input type="number" [(ngModel)]="emiData.paidEMIs" min="0" />
+          </div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="emi-modal-footer">
+      <button class="emi-cancel-btn" (click)="showEmiForm = false">Cancel</button>
+      <button class="emi-submit-btn" (click)="saveEmi()">
+        <i class="bi bi-floppy-fill"></i> Save EMI
+      </button>
     </div>
   </div>
 </div>

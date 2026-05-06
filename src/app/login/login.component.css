@@ -1,21 +1,33 @@
 .login-page {
   height: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background: linear-gradient(to bottom right, #6366f1, #ec4899);
+  padding: 16px;
 }
 
 .login-container {
   background: rgba(255, 255, 255, 0.1);
-  padding: 4rem;
+  padding: 2.5rem;
   border-radius: 2rem;
-  /* width: 100%; */
+  width: 100%;
   max-width: 400px;
   backdrop-filter: blur(10px);
   color: white;
   text-align: center;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 1.75rem 1.25rem;
+    border-radius: 1.25rem;
+  }
+  .login-container h2 {
+    font-size: 1.5rem;
+  }
 }
 
 .logo-button:hover {
@@ -146,7 +158,8 @@
 .password-group .bi-eye,
 .password-group .bi-eye-slash {
   position: absolute;
-  left: 200px;
+  right: 12px;
+  left: auto;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
@@ -156,4 +169,13 @@
 
 .password-group {
   position: relative;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.login-page {
+  min-height: 100vh;
 }

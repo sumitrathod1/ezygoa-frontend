@@ -1,0 +1,139 @@
+<div class="detail-wrapper">
+  <!-- Header -->
+  <div class="detail-header">
+    <div class="header-left">
+      <div>
+        <h3>Booking #{{ booking.bookingId }}</h3>
+        <p>{{ booking.bookingDate }}</p>
+      </div>
+    </div>
+
+    <!-- <span class="status-chip pending">Pending</span> -->
+
+    <span
+      class="status-chip"
+      [ngClass]="booking.isSettled ? 'settled' : 'pending'"
+    >
+      {{ booking.isSettled ? "Settled" : "Pending" }}
+    </span>
+  </div>
+
+  <!-- Customer -->
+  <div class="card-section">
+    <div class="section-title">
+      <i class="bi bi-person"></i> Customer Details
+    </div>
+    <div class="section-box">
+      {{ booking.customerName }}
+    </div>
+  </div>
+
+  <!-- Route -->
+  <div class="card-section">
+    <div class="section-title">
+      <i class="bi bi-geo-alt"></i> Route Information
+    </div>
+
+    <div class="route-box">
+      <div>
+        <small>From: </small>
+        <strong> {{ booking.from }}</strong>
+      </div>
+
+      <span class="arrow">→</span>
+
+      <div>
+        <small>To: </small>
+        <strong> {{ booking.to }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor -->
+  <div class="card-section">
+    <div class="section-title"><i class="bi bi-people"></i> Driver Details</div>
+
+    <div class="vendor-box">
+      <div>
+        <small>Driver: </small>
+        <strong>{{ booking.vendorName }}</strong>
+      </div>
+
+      <div>
+        <small>Contact: </small>
+        <strong (click)="callCustomer(booking.vendorNumber)"
+          >📞 {{ booking.vendorNumber }}</strong
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  <div class="card-section">
+    <div class="section-title">
+      <i class="bi bi-cash-stack"></i> Financial Summary
+    </div>
+
+    <div class="finance-grid">
+      <div class="finance-card purple">
+        <label>Amount: </label>
+        <strong>₹{{ booking.bookingAmount }}</strong>
+      </div>
+
+      <div class="finance-card orange">
+        <label>Commission: </label>
+        <strong>₹{{ booking.commission }}</strong>
+      </div>
+
+      <div class="finance-card green">
+        <label>Owner Receivable: </label>
+        <strong>₹{{ booking.ownerReceivable }}</strong>
+      </div>
+
+      <div class="finance-card blue">
+        <label>Vendor Payable: </label>
+        <strong>₹{{ booking.vendorPayable }}</strong>
+      </div>
+
+      <div class="finance-card teal">
+        <label>Paid to Vendor: </label>
+        <strong>₹{{ booking.totalPaidToVendor }}</strong>
+      </div>
+
+      <div class="finance-card red">
+        <label>Pending Payment: </label>
+        <strong>₹{{ booking.pendingVendorPayment }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settlement Info -->
+  <div class="card-section">
+    <div class="settlement-info">
+      <span>💰 Cash Collected By</span>
+      <strong>
+        {{ booking.cashCollectedBy === "Admin" ? "Admin" : "Driver" }}
+      </strong>
+    </div>
+
+    <div class="settlement-info">
+      <span>🔁 Settlement Direction: </span>
+      <strong>{{ booking.settlementDirection }}</strong>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="detail-footer">
+    <button class="btn btn-danger" type="button" (click)="closeDialog()">
+      Close
+    </button>
+
+    <button
+      class="primary-btn"
+      *ngIf="!booking.isSettled"
+      (click)="markAsSettled()"
+    >
+      Mark as Settled
+    </button>
+  </div>
+</div>

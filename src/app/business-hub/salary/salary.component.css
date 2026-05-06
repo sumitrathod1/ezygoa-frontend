@@ -1,0 +1,242 @@
+.sal-page { padding: 12px 10px 60px; }
+
+/* Topbar */
+.sal-topbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+.sal-back-btn {
+  width: 36px; height: 36px; border: none; border-radius: 50%;
+  background: #f3f4f6; color: #374151; font-size: 1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sal-back-btn:hover { background: #e5e7eb; }
+.sal-topbar-title {
+  display: flex; align-items: center; gap: 8px; flex: 1;
+  font-size: 1.1rem; font-weight: 800; color: #0a1628;
+}
+.sal-topbar-title i { color: #0d6e6e; font-size: 1.2rem; }
+.sal-topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sal-sel {
+  padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  font-size: 13px; background: #f9fafb; outline: none; cursor: pointer;
+}
+.sal-act-btn {
+  padding: 8px 14px; border: none; border-radius: 8px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+}
+.sal-act-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.gen-btn { background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; }
+.add-btn { background: linear-gradient(135deg, #0d6e6e, #065f5f); color: #fff; }
+
+/* Summary cards */
+.sal-summary-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.sal-sum-card {
+  flex: 1; min-width: 140px; border-radius: 14px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sal-sum-card.total   { background: linear-gradient(135deg, #0a1628, #1e3a5f); color: #fff; }
+.sal-sum-card.paid    { background: linear-gradient(135deg, #059669, #047857); color: #fff; }
+.sal-sum-card.pending { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
+.sal-sum-icon { font-size: 1.6rem; opacity: 0.85; }
+.sal-sum-val  { font-size: 1.1rem; font-weight: 800; }
+.sal-sum-lbl  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+/* Loading / empty */
+.sal-loading, .sal-empty {
+  text-align: center; padding: 40px 20px; color: #9ca3af; font-size: 14px;
+}
+.sal-empty i { font-size: 2rem; display: block; margin-bottom: 8px; }
+.sal-empty p { margin-bottom: 14px; }
+
+/* Record list */
+.sal-list { display: flex; flex-direction: column; gap: 10px; }
+.sal-card {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 1.5px solid #e5e7eb; border-radius: 14px;
+  padding: 14px 16px; border-left: 4px solid #f97316;
+  transition: box-shadow 0.15s;
+}
+.sal-card:hover { box-shadow: 0 4px 16px rgba(10,22,40,0.1); }
+.sal-card.sal-card-paid { border-left-color: #22c55e; background: #f0fdf4; }
+.sal-card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.sal-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #0a1628, #0d6e6e);
+  color: #e8b84b; font-size: 1.1rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sal-emp-name { font-size: 14px; font-weight: 700; color: #0a1628; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sal-emp-meta { font-size: 11px; color: #6b7280; }
+
+.sal-card-mid { text-align: right; min-width: 120px; }
+.sal-breakdown { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.sal-bk-item { font-size: 11px; color: #6b7280; }
+.sal-bk-item.deduct { color: #dc2626; }
+.sal-net { font-size: 1.1rem; font-weight: 800; color: #0a1628; }
+
+.sal-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; min-width: 90px; }
+.sal-status-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.badge-paid    { background: #dcfce7; color: #16a34a; }
+.badge-pending { background: #fef3c7; color: #92400e; }
+.sal-paid-date { font-size: 10px; color: #9ca3af; }
+.sal-pay-btn {
+  padding: 5px 12px; border: 1.5px solid #0d6e6e; border-radius: 8px;
+  background: none; color: #0d6e6e; font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 4px;
+}
+.sal-pay-btn:hover { background: #0d6e6e; color: #fff; }
+
+/* Modals */
+.sal-modal-overlay {
+  position: fixed; inset: 0; background: rgba(10,22,40,0.55);
+  z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.sal-modal {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 400px;
+  box-shadow: 0 16px 48px rgba(10,22,40,0.25); overflow: hidden;
+}
+.sal-modal-header {
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px;
+  background: linear-gradient(135deg, #0a1628, #0d6e6e);
+  color: #fff; font-size: 14px; font-weight: 700;
+}
+.sal-modal-header i { color: #e8b84b; }
+.sal-modal-close { border: none; background: none; color: rgba(255,255,255,0.7); font-size: 16px; cursor: pointer; margin-left: auto; }
+.sal-modal-body { padding: 16px; }
+.sal-pay-confirm { font-size: 14px; color: #374151; margin-bottom: 12px; line-height: 1.5; }
+.sal-form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.sal-form-row label { font-size: 12px; font-weight: 600; color: #374151; }
+.sal-form-row input, .sal-form-row select {
+  padding: 8px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  font-size: 13px; outline: none; width: 100%;
+}
+.sal-form-row input:focus, .sal-form-row select:focus { border-color: #0d6e6e; }
+.sal-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sal-net-preview {
+  padding: 10px 14px; background: #f0fdf4; border-radius: 10px;
+  font-size: 14px; font-weight: 700; color: #059669; margin-top: 4px;
+}
+.sal-modal-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px 16px; background: #f9fafb; border-top: 1px solid #f3f4f6;
+}
+.sal-cancel-btn {
+  padding: 8px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  background: none; color: #6b7280; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.sal-submit-btn {
+  padding: 8px 16px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #0d6e6e, #065f5f);
+  color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.sal-submit-btn.paid-btn { background: linear-gradient(135deg, #059669, #047857); }
+.sal-submit-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Employee searchable dropdown ── */
+.sal-emp-wrap { position: relative; }
+
+.sal-emp-input-row {
+  display: flex; align-items: center;
+  border: 1.5px solid #e5e7eb; border-radius: 8px;
+  background: #fff; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.sal-emp-input-row:focus-within { border-color: #0d6e6e; }
+
+.sal-emp-search-icon {
+  padding: 0 10px; color: #9ca3af; font-size: 13px; flex-shrink: 0;
+}
+.sal-emp-input {
+  flex: 1; padding: 9px 4px; border: none; outline: none;
+  font-size: 13px; background: transparent; color: #0a1628;
+}
+.sal-emp-input::placeholder { color: #9ca3af; }
+.sal-emp-clear {
+  padding: 0 10px; border: none; background: none;
+  color: #9ca3af; font-size: 13px; cursor: pointer; flex-shrink: 0;
+}
+.sal-emp-clear:hover { color: #dc2626; }
+
+/* Dropdown list */
+.sal-emp-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(10,22,40,0.12);
+  max-height: 220px; overflow-y: auto;
+}
+.sal-emp-empty {
+  padding: 14px; text-align: center; color: #9ca3af; font-size: 13px;
+}
+.sal-emp-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; cursor: pointer; transition: background 0.1s;
+  border-bottom: 1px solid #f3f4f6;
+}
+.sal-emp-option:last-child { border-bottom: none; }
+.sal-emp-option:hover { background: #f0fdf4; }
+
+.sal-emp-opt-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #0a1628, #0d6e6e);
+  color: #e8b84b; font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.sal-emp-opt-info { flex: 1; min-width: 0; }
+.sal-emp-opt-name {
+  font-size: 13px; font-weight: 700; color: #0a1628;
+  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sal-emp-opt-role {
+  font-size: 11px; color: #6b7280;
+}
+.sal-emp-opt-sal {
+  font-size: 12px; font-weight: 700; color: #059669; flex-shrink: 0;
+}
+
+/* Selected employee details card */
+.sal-emp-detail-card {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  margin-top: 8px; margin-bottom: 4px;
+  padding: 10px 12px; background: #f0fdf4;
+  border: 1px solid #bbf7d0; border-radius: 10px;
+  font-size: 12px; color: #374151;
+}
+.sal-role-chip {
+  padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  background: #dbeafe; color: #1d4ed8; margin-left: auto;
+}
+
+/* Auto / Manual badges on salary cards */
+.sal-auto-badge {
+  display: inline-block;
+  font-size: 9px; font-weight: 700;
+  padding: 1px 6px; border-radius: 20px;
+  background: #d1fae5; color: #059669;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin-left: 5px; vertical-align: middle;
+}
+.sal-manual-badge {
+  display: inline-block;
+  font-size: 9px; font-weight: 700;
+  padding: 1px 6px; border-radius: 20px;
+  background: #f3f4f6; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin-left: 5px; vertical-align: middle;
+}
+.sal-next-auto {
+  font-size: 10px; color: #16a34a; font-weight: 500; margin-top: 2px;
+}
+
+@media (min-width: 1024px) {
+  .sal-page { padding: 24px 24px 40px; }
+}
+
+@media (min-width: 1440px) {
+  .sal-page { padding: 32px 32px 40px; }
+}

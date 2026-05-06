@@ -1,83 +1,99 @@
 import { Component, Inject } from '@angular/core';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
-  FormControl,
   FormGroup,
+  Validators,
   FormsModule,
   ReactiveFormsModule,
-  Validators,
 } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { VehicleService } from '../../services/vehicle.service';
-import { provideToastr, ToastrService } from 'ngx-toastr';
+import { ToastrService } from 'ngx-toastr';
+import { Observable } from 'rxjs';
+import { EmployeeService } from '../../services/employee.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-expense-form',
   standalone: true,
-  imports: [
-    NgxMaterialTimepickerModule,
-    FormsModule,
-    MatNativeDateModule,
-    MatFormFieldModule,
-    MatDatepickerModule,
-    MatDialogModule,
-    MatInputModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatGridListModule,
-  ],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, MatDialogModule],
   templateUrl: './expense-form.component.html',
   styleUrl: './expense-form.component.css',
 })
 export class ExpenseFormComponent {
   expenseForm!: FormGroup;
-  CategoryType: string[] = ['Repair', 'Accident', 'Towing', 'DocumentRenew'];
+  CategoryType: string[] = ['CNG', 'Repair', 'Fuel', 'DocumentRenew'];
+  vehcilesType: any = [];
+  userRole$!: Observable<string | null>;
+  role: string | null = null;
+  isSubmitting = false;
 
   constructor(
     private _fb: FormBuilder,
     private _dialog: MatDialog,
     private _vehicleService: VehicleService,
     private _toastr: ToastrService,
+    private _employeService: EmployeeService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.expenseForm = _fb.group({
       vehicleID: data?.vehicleID || '',
-      categoryType: '',
-      amount: '',
-      expenseDate: '',
+      categoryType: ['Fuel', Validators.required],
+      amount: ['', [Validators.required, Validators.min(1)]],
+      expenseDate: [new Date().toISOString().split('T')[0], Validators.required],
+      vehicle: '',
     });
   }
 
+  ngOnInit() {
+    this.userRole$ = this._employeService.userRole$;
+    this.userRole$.subscribe((role) => {
+      this.role = role;
+      if (this.role === 'Admin' && this.data?.vehicleID) {
+        this.expenseForm.patchValue({ vehicleID: this.data.vehicleID });
+      }
+    });
+    this.loadVehciles();
+  }
+
   onExpenseFormSubmit() {
-    if (this.expenseForm.valid) {
-      this._vehicleService.addExpence(this.expenseForm.value).subscribe({
-        next: (res: any) => {
-          this._toastr.success('Expense added successfully ✅', 'Success');
+    if (this.expenseForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      const payload: any = {
+        categoryType: this.expenseForm.value.categoryType,
+        amount: this.expenseForm.value.amount,
+        expenseDate: this.expenseForm.value.expenseDate,
+      };
+
+      if (this.role === 'Employee') {
+        payload.vehicleID = this.expenseForm.value.vehicle;
+      } else if (this.role === 'Admin') {
+        payload.vehicleID = this.expenseForm.value.vehicleID;
+      }
+
+      this._vehicleService.addExpence(payload).subscribe({
+        next: () => {
+          this._toastr.success('Expense added successfully', 'Success');
+          this._dialog.closeAll();
         },
         error: (err) => {
-          this._toastr.error('Error adding expense', 'Failed ❌');
+          this.isSubmitting = false;
+          this._toastr.error('Error adding expense', err?.error?.message || '');
         },
       });
-      this._dialog.closeAll();
     }
   }
 
   onCloseExpense() {
     this._dialog.closeAll();
+  }
+
+  loadVehciles() {
+    this._vehicleService.getAllVehicles().subscribe({
+      next: (data: any) => {
+        this.vehcilesType = data;
+      },
+    });
   }
 }

@@ -1,8 +1,10 @@
 .custom-toolbar {
-  background: linear-gradient(45deg, #524f4d, #4500ffa1);
-  color: #fff;
-  font-weight: 700;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(90deg, #4b2aad, #7b3fe4);
+  color: #2a2a2a;
+  font-weight: 600;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  height: var(--mat-toolbar-standard-height) !important;
 }
 
 .logo-button {
@@ -31,155 +33,11 @@
   background: #fff;
 }
 
+.example-spacer {
+  flex: 1 1 auto;
+}
+
 .app-title {
-  font-size: 1.3rem;
-  letter-spacing: 1.2px;
-}
-
-.example-spacer {
-  flex: 1 1 auto;
-}
-
-/* Notification Dropdown Styles */
-
-/* .notification-slide {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  width: 380px;
-  max-height: 90vh;
-  z-index: 1200;
-  animation: slideDown 0.4s ease forwards;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateX(-50%) translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-}
-
-.notification-slide::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.2);
-  z-index: -1;
-}
-
-@media (max-width: 600px) {
-  .notification-slide {
-    width: 100%;
-    left: 0;
-    transform: translateY(-100%);
-    border-radius: 0 0 16px 16px;
-  }
-} */
-
-/* 🔽 Notification Slide Panel */
-.notification-slide {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  width: 380px;
-  max-height: 85vh;
-  background: transparent;
-  z-index: 1200;
-  animation: slideDown 0.35s ease-out forwards;
-  display: flex;
-  justify-content: center;
-  padding: 12px;
-}
-
-/* 🔽 Smooth Slide Animation */
-@keyframes slideDown {
-  from {
-    transform: translateX(-50%) translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-}
-
-/* 🔽 Background Overlay for closing on outside tap */
-.notification-slide::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: -1;
-  backdrop-filter: blur(2px);
-}
-
-/* 🔽 Notification Card Inside */
-app-notification {
-  width: 100%;
-  max-width: 380px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
-  background: #fff;
-}
-
-/* 🔽 Make the toolbar look balanced */
-.custom-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-}
-
-.logo-image {
-  width: 40px;
-  height: 40px;
-}
-
-.example-spacer {
-  flex: 1 1 auto;
-}
-
-/* 📱 Mobile Responsive View */
-@media (max-width: 600px) {
-  .notification-slide {
-    top: 0;
-    left: 0;
-    transform: translateY(-100%);
-    width: 100%;
-    height: 100vh;
-    max-height: none;
-    padding: 0;
-    animation: slideDownMobile 0.4s ease forwards;
-    border-radius: 0;
-  }
-
-  @keyframes slideDownMobile {
-    from {
-      transform: translateY(-100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  app-notification {
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  /* Hide page scroll while open */
-  body {
-    overflow: hidden;
-  }
+  color: yellow;
+  font-weight: 600;
 }

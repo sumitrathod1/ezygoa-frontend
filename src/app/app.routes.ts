@@ -188,4 +188,85 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'driver-bookings',
+    loadComponent: () =>
+      import('./driver/driver-bookings/driver-bookings.component').then(
+        (m) => m.DriverBookingsComponent
+      ),
+    //canActivate: [authGuard],
+    //data: { role: ['Driver', 'Employee'] },
+  },
+  {
+    path: 'vendor-settlements',
+    loadComponent: () =>
+      import(
+        './booking/external-details/vendor-settlements/vendor-settlements.component'
+      ).then((m) => m.VendorSettlementsComponent),
+    // canActivate: [authGuard],
+  },
+  {
+    path: 'vendor-earnings',
+    loadComponent: () =>
+      import(
+        './booking/external-details/vendor-earnings/vendor-earnings.component'
+      ).then((m) => m.VendorEarningsComponent),
+    // canActivate: [authGuard],
+  },
+  {
+    path: 'document-vault',
+    loadComponent: () =>
+      import('./document-vault/document-vault.component').then(
+        (m) => m.DocumentVaultComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub',
+    loadComponent: () =>
+      import('./business-hub/business-hub.component').then((m) => m.BusinessHubComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/rate-charts',
+    loadComponent: () =>
+      import('./business-hub/rate-charts/rate-chart-list.component').then(
+        (m) => m.RateChartListComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/rate-charts/new',
+    loadComponent: () =>
+      import('./business-hub/rate-charts/rate-chart-editor/rate-chart-editor.component').then(
+        (m) => m.RateChartEditorComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/rate-charts/:id',
+    loadComponent: () =>
+      import('./business-hub/rate-charts/rate-chart-editor/rate-chart-editor.component').then(
+        (m) => m.RateChartEditorComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/salary',
+    loadComponent: () =>
+      import('./business-hub/salary/salary.component').then((m) => m.SalaryComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'bulk-upload',
+    loadComponent: () =>
+      import('./bulk-upload/bulk-upload.component').then((m) => m.BulkUploadComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./not-found/not-found.component').then((m) => m.NotFoundComponent),
+  },
 ];

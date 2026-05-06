@@ -66,7 +66,6 @@ export class ReportFormComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.agentId = data.agentId;
-    console.log('Agent ID received:', this.agentId);
   }
 
   ngOnInit(): void {

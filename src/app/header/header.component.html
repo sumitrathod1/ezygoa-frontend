@@ -1,21 +1,4 @@
-<!-- <mat-toolbar>
-  <button
-    mat-icon-button
-    class="example-icon"
-    [matMenuTriggerFor]="menu"
-    aria-label="Example icon-button with menu icon"
-  >
-    <mat-icon>menu</mat-icon>
-  </button>
-  <span>Ezy</span>
-  <span class="example-spacer"></span>
-</mat-toolbar>
-
-<mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/agents">Agents</button>
-</mat-menu> -->
-
-<mat-toolbar color="primary" class="custom-toolbar">
+<mat-toolbar class="custom-toolbar">
   <button
     mat-icon-button
     [matMenuTriggerFor]="menu"
@@ -28,37 +11,21 @@
   <span class="app-title">Ezy</span>
 
   <span class="example-spacer"></span>
-
-  <button
-    mat-icon-button
-    aria-label="Notifications"
-    (click)="toggleNotifications()"
-  >
-    <mat-icon
-      [matBadge]="unreadCount"
-      matBadgeColor="warn"
-      matBadgeOverlap="false"
-      [matBadgeHidden]="unreadCount === 0"
-      >notifications</mat-icon
-    >
-  </button>
 </mat-toolbar>
-
-<div
-  class="notification-slide"
-  *ngIf="showNotifications"
-  (click)="closeOnOutside($event)"
->
-  <app-notification
-    *ngIf="showNotifications"
-    class="notification-slide"
-    (close)="toggleNotifications()"
-  ></app-notification>
-</div>
 
 <mat-menu #menu="matMenu">
   <button mat-menu-item routerLink="/employee">Drivers</button>
   <button mat-menu-item (click)="addVehicle()">Add Vehicle</button>
   <button mat-menu-item routerLink="/email-booking">Enquery</button>
+  <button mat-menu-item routerLink="/vendor-settlements">Extra</button>
+  <button mat-menu-item routerLink="/business-hub">
+    <i class="bi bi-briefcase-fill" style="margin-right:6px;color:#0d6e6e"></i> Business Hub
+  </button>
+  <button mat-menu-item routerLink="/document-vault">
+    <i class="bi bi-folder2-open" style="margin-right:6px;color:#0d6e6e"></i> Document Vault
+  </button>
+  <button mat-menu-item routerLink="/bulk-upload">
+    <i class="bi bi-cloud-upload-fill" style="margin-right:6px;color:#0d6e6e"></i> Bulk Upload
+  </button>
   <button mat-menu-item (click)="onLogout()">Logout</button>
 </mat-menu>

@@ -4,7 +4,7 @@
   <p class="loader-text">Loading, please wait...</p>
 </div>
 <div *ngIf="!isLoading">
-  <nav class="navbar navbar-dark bg-warning shadow-sm">
+  <nav class="navbar driver-header shadow-sm">
     <div class="container-fluid d-flex justify-content-between">
       <img src="assets/Ezy.png" alt="Logo" class="logo-image" />
       <button class="btn btn-light btn-sm" (click)="onLogout()">Logout</button>
@@ -51,22 +51,13 @@
                 </span>
               </div>
             </div>
-
-            <div>
-              <div>
-                <span class="dot dot-green"></span>
-                <span class="fw-bold">Pickup</span>
-                <span class="text-muted ms-1">{{ booking.from }}</span>
-              </div>
-              <div>
-                <span class="dot dot-red"></span>
-                <span class="fw-bold">Drop-off</span>
-                <span class="text-muted ms-1">{{ booking.to }}</span>
-              </div>
-              <div>
-                <span class="dot dot-green"></span>
-                <span class="fw-bold">Type</span>
-                <span class="text-muted ms-1">{{ booking.bookingType }}</span>
+            <div class="info-grid">
+              <div class="info-item" *ngFor="let f of displayFields">
+                <span class="dot" [ngClass]="'dot-' + f.dot"></span>
+                <span class="label">{{ f.label }}</span>
+                <span class="value">
+                  {{ resolveValue(booking, f.valueKey) }}
+                </span>
               </div>
             </div>
 
@@ -124,21 +115,13 @@
               </div>
             </div>
 
-            <div>
-              <div>
-                <span class="dot dot-green"></span>
-                <span class="fw-bold">Pickup</span>
-                <span class="text-muted ms-1">{{ booking.from }}</span>
-              </div>
-              <div>
-                <span class="dot dot-red"></span>
-                <span class="fw-bold">Drop-off</span>
-                <span class="text-muted ms-1">{{ booking.to }}</span>
-              </div>
-              <div>
-                <span class="dot dot-green"></span>
-                <span class="fw-bold">Type</span>
-                <span class="text-muted ms-1">{{ booking.bookingType }}</span>
+            <div class="info-grid">
+              <div class="info-item" *ngFor="let f of displayFields">
+                <span class="dot" [ngClass]="'dot-' + f.dot"></span>
+                <span class="label">{{ f.label }}</span>
+                <span class="value">
+                  {{ resolveValue(booking, f.valueKey) }}
+                </span>
               </div>
             </div>
 
@@ -149,14 +132,14 @@
               >
                 <i class="bi bi-telephone"></i> Call
               </button>
-              <button class="btn btn-primary flex-fill">
+              <!-- <button class="btn btn-primary flex-fill">
                 <a
                   target="_blank"
                   class="btn btn-primary flex-fill text-white text-decoration-none"
                 >
                   <i class="bi bi-geo-alt"></i> Navigate
                 </a>
-              </button>
+              </button> -->
             </div>
           </div>
         </div>
@@ -168,19 +151,24 @@
     </div>
   </div>
 
-  <footer class="bg-light border-top py-2 fixed-bottom">
+  <footer class="bg-light border-top fixed-bottom">
     <div class="container d-flex justify-content-around text-center small">
       <a routerLink="/home" class="text-decoration-none text-dark">
         <i class="bi bi-house fs-5 d-block"></i>
         Home
       </a>
-      <a routerLink="/bookings" class="text-decoration-none text-dark">
+      <a routerLink="/driver-bookings" class="text-decoration-none text-dark">
         <i class="bi bi-calendar2-check fs-5 d-block"></i>
         Bookings
       </a>
-      <a routerLink="/profile" class="text-decoration-none text-dark">
-        <i class="bi bi-person fs-5 d-block"></i>
-        Profile
+      <a
+        routerLink="/profile"
+        class="text-decoration-none text-dark"
+        (click)="expence()"
+      >
+        <!-- <i class="bi bi-person fs-5 d-block"></i> -->
+        <i class="bi bi-cash-stack fs-5 d-block"></i>
+        Expenses
       </a>
     </div>
   </footer>

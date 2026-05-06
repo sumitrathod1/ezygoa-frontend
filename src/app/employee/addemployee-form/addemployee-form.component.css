@@ -1,61 +1,296 @@
 :host {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 0;
+  display: block;
   width: 100%;
-  min-width: 300px;
-  max-width: 380px;
-  margin: auto;
-  box-shadow: 0 9px 36px;
+  min-width: 320px;
+  max-width: 500px;
 }
 
-.dialog-header {
-  font-size: 1.45rem;
+/* Dialog wrapper */
+.ef-dialog {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.ef-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1.5px solid #f3f4f6;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.ef-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ef-title-icon {
+  font-size: 1.2rem;
+}
+
+.ef-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.ef-close:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* Form body */
+.ef-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+/* Two-column row */
+.ef-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Field */
+.ef-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Label */
+.ef-label {
+  font-size: 12px;
   font-weight: 700;
-  padding: 22px 18px 10px 18px;
-  text-align: left;
-  letter-spacing: 0.02em;
-}
-
-.form-row {
-  margin: 0 18px 18px 18px;
+  color: #374151;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.ef-label i {
+  color: #6366f1;
+  font-size: 13px;
+}
+.req {
+  color: #ef4444;
+  font-size: 13px;
 }
 
-mat-form-field,
-input,
-select,
-.mat-form-field {
+/* Input */
+.ef-input,
+.ef-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #fafbff;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  box-sizing: border-box;
+}
+.ef-input:focus,
+.ef-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: #fff;
+}
+.ef-input.ef-error {
+  border-color: #ef4444;
+}
+.ef-input.ef-error:focus {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+
+/* Material datepicker override */
+.ef-datepicker {
   width: 100%;
 }
+.ef-datepicker ::ng-deep .mat-mdc-form-field-flex {
+  padding: 0 12px !important;
+}
+.ef-datepicker ::ng-deep .mdc-notched-outline__leading,
+.ef-datepicker ::ng-deep .mdc-notched-outline__notch,
+.ef-datepicker ::ng-deep .mdc-notched-outline__trailing {
+  border-color: #e0e7ff !important;
+  border-radius: 10px !important;
+}
+.ef-datepicker ::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 10px !important;
+  background: #fafbff !important;
+}
+.ef-datepicker ::ng-deep input {
+  font-size: 0.9rem !important;
+}
 
-.submit-btn {
+/* Validation message */
+.ef-msg {
+  font-size: 11px;
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.ef-optional {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+/* Actions */
+.ef-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ef-btn-cancel {
   flex: 1;
+  padding: 11px;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  background: #fff;
+  color: #6366f1;
+  font-size: 0.93rem;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.ef-btn-cancel:hover {
+  border-color: #6366f1;
+  background: #f0f1fe;
 }
 
-.submit-btn:hover {
+.ef-btn-submit {
+  flex: 2;
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #22c55e, #15803d);
   color: #fff;
+  font-size: 0.93rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.ef-btn-submit:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.ef-btn-submit:active {
+  transform: scale(0.98);
 }
 
-/* Responsive for Mobile */
-@media (max-width: 600px) {
+/* Mobile */
+@media (max-width: 480px) {
   :host {
     min-width: unset;
-    max-width: 98vw;
-    border-radius: 12px;
-    padding: 0;
+    max-width: 100vw;
   }
-  .form-row,
-  .action {
-    margin-left: 6px;
-    margin-right: 6px;
+  .ef-row {
+    grid-template-columns: 1fr;
   }
-  .dialog-header {
-    padding: 16px 6px 8px 13px;
-    font-size: 1.12rem;
+  .ef-body {
+    padding: 14px 14px 18px;
   }
 }
+
+/* ── Auto Salary Section ── */
+.ef-auto-salary {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ef-auto-salary-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ef-auto-icon { font-size: 14px; color: #16a34a; }
+
+/* Toggle */
+.ef-toggle-field { justify-content: flex-start; }
+.ef-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.ef-toggle input { display: none; }
+.ef-toggle-slider {
+  width: 42px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.ef-toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.ef-toggle input:checked + .ef-toggle-slider { background: #16a34a; }
+.ef-toggle input:checked + .ef-toggle-slider::after { left: 21px; }
+.ef-toggle-label { font-size: 13px; font-weight: 600; color: #374151; }
+
+/* Info box */
+.ef-auto-info {
+  background: #dcfce7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #15803d;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+.ef-auto-info i { flex-shrink: 0; margin-top: 2px; }

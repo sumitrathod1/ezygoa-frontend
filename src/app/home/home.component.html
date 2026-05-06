@@ -1,141 +1,186 @@
-<div *ngIf="isLoading" class="loader-overlay">
-  <mat-progress-spinner diameter="60" color="primary" mode="indeterminate">
-  </mat-progress-spinner>
-  <p class="loader-text">Loading, please wait...</p>
-</div>
+<div class="dashboard-container">
 
-<div *ngIf="!isLoading">
-  <div class="dashboard-container">
-    <div>
-      <app-calendar [newBookings]="bookings"></app-calendar>
-    </div>
-    <div class="row g-4">
-      <div class="col-6 col-md-6">
-        <div class="dashboard-card border-emerald">
-          <div>
-            <div class="dashboard-label fw-bold">Bookings</div>
-            <div class="text-center">{{ totalBookings }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-6">
-        <div class="dashboard-card border-amber">
-          <div>
-            <div class="dashboard-label fw-bold text-center">
-              Todays Bookings
-            </div>
-            <div class="text-center">{{ todayBookings }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-6">
-        <div class="dashboard-card border-pink">
-          <div>
-            <div class="dashboard-label fw-bold">Todays Earning</div>
-            <div class="text-center">₹{{ revenue?.today }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-6">
-        <div class="dashboard-card border-yellow">
-          <div>
-            <div class="dashboard-label fw-bold">Revenue</div>
-            <div class="text-center">{{ revenue.total }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-3 p-2">
-      <h3>Today's Bookings</h3>
-    </div>
-
-    <div class="booking-card" *ngFor="let booking of todayBookingss">
-      <div class="d-flex">
-        <div
-          class="status-bar"
-          [ngStyle]="{ 'background-color': booking.color }"
-        ></div>
-
-        <div class="booking-info ms-2 flex-grow-1">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h3 class="mb-1">
-                {{ booking.customer.customerName }}
-                <span class="text-warning">{{ booking.bookingType }}</span>
-              </h3>
-
-              <h4 class="text-muted small mb-0">
-                {{ booking.customer.customerNumber }}
-              </h4>
-              <h4 class="text-muted small mb-0">
-                {{ booking.travelDate }}: {{ formatTime(booking.traveltime) }}
-              </h4>
-            </div>
-            <div class="text-end">
-              <!-- <span class="badge" [ngClass]="booking.statusClass">{{
-              booking.status
-            }}</span> -->
-              <h2 class="mt-2">₹{{ booking.amount }}</h2>
-              <h4 class="text-muted small mb-0">
-                {{ booking.vehicle.vehicleName }}
-              </h4>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-4 p-2">
-      <h3>Upcoming Bookings</h3>
-    </div>
-
-    <div
-      class="booking-card"
-      *ngFor="let booking of upcomingBookings | slice : 0 : 4"
-    >
-      <div class="d-flex">
-        <div
-          class="status-bar"
-          [ngStyle]="{ 'background-color': booking.color }"
-        ></div>
-        <div class="booking-info ms-2 flex-grow-1">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h3 class="mb-1">
-                {{ booking.customer.customerName }}
-                <span class="text-warning">{{ booking.bookingType }}</span>
-              </h3>
-              <h4 class="text-muted small mb-0">
-                {{ booking.customer.customerNumber }}
-              </h4>
-              <h4 class="text-muted small mb-0">
-                {{ booking.travelDate }} : {{ formatTime(booking.traveltime) }}
-              </h4>
-            </div>
-            <div class="text-end">
-              <h2 class="mt-2">₹{{ booking.amount }}</h2>
-              <h4 class="text-muted small mb-0">
-                {{ booking.vehicle.vehicleName }}
-              </h4>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- <div class="row g-4">
-      <div class="col-12 col-md-6">
-        <div class="card p-3 chart-card shadow-effect">
-          <h5>Earnings Trend</h5>
-          <canvas
-            baseChart
-            [data]="lineChartData"
-            [type]="lineChartType"
-            [options]="lineChartOptions"
-          ></canvas>
-        </div>
-      </div>
-    </div> -->
+  <!-- LEFT: Calendar -->
+  <div class="home-left">
+    <app-calendar
+      [calendarSummary]="calendarSummary"
+      [popupBookings]="popupBookings"
+      [popupLoading]="popupLoading"
+      (dateSelected)="onDateSelected($event)"
+      (monthChanged)="onMonthChanged($event)"
+    ></app-calendar>
   </div>
+
+  <!-- RIGHT: KPIs + Widgets -->
+  <div class="home-right">
+
+    <!-- KPI cards: skeleton while loading -->
+    <div class="kpi-grid" *ngIf="isLoadingKpi">
+      <div class="skeleton-kpi" *ngFor="let _ of [1,2,3,4]"></div>
+    </div>
+
+    <div class="kpi-grid" *ngIf="!isLoadingKpi">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon-wrap"><i class="bi bi-calendar-check-fill"></i></div>
+        <div class="kpi-value">{{ totalBookings }}</div>
+        <div class="kpi-label">Total Bookings</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon-wrap"><i class="bi bi-calendar-date-fill"></i></div>
+        <div class="kpi-value">{{ todayBookings }}</div>
+        <div class="kpi-label">Today's Bookings</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon-wrap"><i class="bi bi-cash-coin"></i></div>
+        <div class="kpi-value">₹{{ todayEarning }}</div>
+        <div class="kpi-label">Today's Earning</div>
+      </div>
+      <div class="kpi-card kpi-orange" (click)="goToEarnings()" style="cursor:pointer">
+        <div class="kpi-icon-wrap"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
+        <div class="kpi-label">Revenue</div>
+      </div>
+    </div>
+
+    <!-- Document expired alert -->
+    <div class="doc-vault-widget" *ngIf="docExpiredCount > 0 || docExpiringCount > 0"
+         (click)="goTo('/document-vault')">
+      <div class="dw-icon"><i class="bi bi-folder2-open"></i></div>
+      <div class="dw-text">
+        <div class="dw-title">
+          <span *ngIf="docExpiredCount > 0">🔴 {{ docExpiredCount }} document{{ docExpiredCount !== 1 ? 's' : '' }} expired</span>
+          <span *ngIf="docExpiredCount > 0 && docExpiringCount > 0"> · </span>
+          <span *ngIf="docExpiringCount > 0">🟡 {{ docExpiringCount }} expiring soon</span>
+        </div>
+        <div class="dw-sub">Tap to open Document Vault →</div>
+      </div>
+      <div class="dw-badge" *ngIf="docExpiredCount > 0">{{ docExpiredCount }}</div>
+    </div>
+
+    <!-- Financial Summary Widget -->
+    <div class="fin-widget" *ngIf="monthlySalaryTotal > 0 || monthlyEmiTotal > 0">
+      <div class="fin-widget-header">
+        <i class="bi bi-pie-chart-fill"></i>
+        <span>Monthly Financials</span>
+        <span class="fin-month-label">{{ today | date:'MMM yyyy' }}</span>
+      </div>
+      <div class="fin-widget-body">
+        <div class="fin-item fin-salary" (click)="goTo('/business-hub/salary')">
+          <div class="fin-item-icon"><i class="bi bi-people-fill"></i></div>
+          <div class="fin-item-info">
+            <div class="fin-item-label">Staff Payroll</div>
+            <div class="fin-item-val">₹{{ monthlySalaryTotal | number:'1.0-0' }}</div>
+          </div>
+          <i class="bi bi-chevron-right fin-arrow"></i>
+        </div>
+        <div class="fin-item fin-emi" *ngIf="monthlyEmiTotal > 0">
+          <div class="fin-item-icon"><i class="bi bi-credit-card-fill"></i></div>
+          <div class="fin-item-info">
+            <div class="fin-item-label">Vehicle EMIs ({{ emiVehicleCount }})</div>
+            <div class="fin-item-val">₹{{ monthlyEmiTotal | number:'1.0-0' }}</div>
+          </div>
+        </div>
+        <div class="fin-total">
+          <span>Total Monthly Outflow</span>
+          <span class="fin-total-val">₹{{ (monthlySalaryTotal + monthlyEmiTotal) | number:'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Resources Widget -->
+    <div class="avail-widget" *ngIf="availableDrivers.length > 0 || availableVehicles.length > 0">
+      <div class="avail-widget-header">
+        <i class="bi bi-check2-circle"></i>
+        <span>Available Today</span>
+        <span class="avail-date-label">{{ today | date:'d MMM' }}</span>
+      </div>
+      <div class="avail-widget-body">
+        <div class="avail-col">
+          <div class="avail-col-title"><i class="bi bi-person-fill"></i> Drivers</div>
+          <div class="avail-count">{{ availableDrivers.length }}</div>
+          <div class="avail-name" *ngFor="let d of availableDrivers | slice:0:3">
+            {{ d.employeeName || d.name }}
+          </div>
+          <div class="avail-more" *ngIf="availableDrivers.length > 3">+{{ availableDrivers.length - 3 }} more</div>
+        </div>
+        <div class="avail-col">
+          <div class="avail-col-title"><i class="bi bi-truck-front-fill"></i> Vehicles</div>
+          <div class="avail-count">{{ availableVehicles.length }}</div>
+          <div class="avail-name" *ngFor="let v of availableVehicles | slice:0:3">
+            {{ v.vehicleName || v.VehicleName }}
+          </div>
+          <div class="avail-more" *ngIf="availableVehicles.length > 3">+{{ availableVehicles.length - 3 }} more</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Maintenance Alerts Widget -->
+    <div class="maint-widget" *ngIf="maintenanceAlerts.length > 0">
+      <div class="maint-widget-header">
+        <i class="bi bi-wrench-adjustable-circle-fill"></i>
+        <span>Maintenance Alerts</span>
+        <span class="maint-count-badge">{{ maintenanceAlerts.length }}</span>
+      </div>
+      <div *ngFor="let m of maintenanceAlerts"
+           class="maint-alert-row"
+           [class.maint-overdue]="maintUrgencyClass(m) === 'maint-overdue'"
+           [class.maint-critical]="maintUrgencyClass(m) === 'maint-critical'"
+           [class.maint-warning]="maintUrgencyClass(m) === 'maint-warning'"
+           [class.maint-ok]="maintUrgencyClass(m) === 'maint-ok'">
+        <div class="maint-alert-info">
+          <span class="maint-veh-name">{{ m.vehicle?.vehicleName || m.vehicle?.VehicleName || 'Vehicle ' + (m.vehicleID ?? m.VehicleID) }}</span>
+          <span class="maint-veh-num">{{ m.vehicle?.vehicleNumber || m.vehicle?.VehicleNumber }}</span>
+          <span class="maint-type">{{ m.maintenanceType }}</span>
+        </div>
+        <div class="maint-alert-due">
+          <span class="maint-due-label" [class.maint-overdue]="maintUrgencyClass(m) === 'maint-overdue'"
+                [class.maint-critical]="maintUrgencyClass(m) === 'maint-critical'"
+                [class.maint-warning]="maintUrgencyClass(m) === 'maint-warning'"
+                [class.maint-ok]="maintUrgencyClass(m) === 'maint-ok'">{{ maintUrgencyLabel(m) }}</span>
+          <span class="maint-due-date">{{ (m.nextduedate || m.Nextduedate) | date:'d MMM yy' }}</span>
+        </div>
+        <button class="maint-done-btn" (click)="openMarkDone(m); $event.stopPropagation()">Mark Done</button>
+      </div>
+    </div>
+
+  </div><!-- /.home-right -->
+
+  <!-- Mark Done Modal (outside grid columns) -->
+  <div class="maint-modal-overlay" *ngIf="showMarkDoneForm" (click)="cancelMarkDone()">
+    <div class="maint-modal" (click)="$event.stopPropagation()">
+      <div class="maint-modal-header">
+        <i class="bi bi-check2-circle"></i>
+        <span>Mark Maintenance Done</span>
+        <button class="maint-modal-close" (click)="cancelMarkDone()">✕</button>
+      </div>
+      <div class="maint-modal-body">
+        <div class="maint-modal-veh">
+          {{ selectedMaint?.vehicle?.vehicleName || 'Vehicle' }} · {{ selectedMaint?.maintenanceType }}
+        </div>
+        <div class="maint-form-row">
+          <label>Service Date</label>
+          <input type="date" [(ngModel)]="markDoneData.servieDate" />
+        </div>
+        <div class="maint-form-row">
+          <label>Next Due Date *</label>
+          <input type="date" [(ngModel)]="markDoneData.nextduedate" required />
+        </div>
+        <div class="maint-form-row">
+          <label>Cost (₹)</label>
+          <input type="number" [(ngModel)]="markDoneData.cost" min="0" />
+        </div>
+        <div class="maint-form-row">
+          <label>Notes</label>
+          <input type="text" [(ngModel)]="markDoneData.description" placeholder="Optional notes" />
+        </div>
+      </div>
+      <div class="maint-modal-footer">
+        <button class="maint-cancel-btn" (click)="cancelMarkDone()">Cancel</button>
+        <button class="maint-submit-btn" (click)="submitMarkDone()" [disabled]="!markDoneData.nextduedate">
+          <i class="bi bi-check2"></i> Save & Mark Done
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

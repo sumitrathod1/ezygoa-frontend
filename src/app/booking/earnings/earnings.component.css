@@ -1,54 +1,121 @@
-.card {
-  border-radius: 14px;
-}
-.bg-light-success {
-  background: #e6f9ed;
-  color: #22c55e;
-}
-.fs-2 {
-  font-size: 2rem;
-}
-.fs-4 {
-  font-size: 1.5rem;
-}
-.shadow-sm {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
+.card { border-radius: 14px; }
 
-.chart-card {
-  background: #e5dada;
-  border-radius: 12px;
-  transition: transform 0.3s ease, box-shadow 0.5s ease;
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.period-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #6366f1;
+  background: #fff;
+  color: #6366f1;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.chip.active, .chip:hover {
+  background: #6366f1;
+  color: #fff;
+}
+/* ── Month filter ── */
+.month-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.month-filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+.month-filter-select {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #6366f1;
+  background: #fff;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.chart-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+.custom-range {
+  background: #f8faff;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+  padding: 12px 16px;
 }
 
-.shadow-effect {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* ── KPI Cards ── */
+.kpi-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 12px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.10);
+  border-left: 4px solid #6366f1;
+  transition: transform 0.2s;
+  height: 100%;
+}
+.kpi-card:hover { transform: translateY(-2px); }
+
+.kpi-card.revenue   { border-left-color: #22c55e; }
+.kpi-card.expenses  { border-left-color: #ef4444; }
+.kpi-card.profit    { border-left-color: #22c55e; }
+.kpi-card.loss      { border-left-color: #ef4444; }
+.kpi-card.growth.positive { border-left-color: #10b981; }
+.kpi-card.growth.negative { border-left-color: #f43f5e; }
+
+.kpi-icon {
+  font-size: 1.4rem;
+  display: block;
+  margin-bottom: 6px;
+  color: #6366f1;
+}
+.kpi-card.revenue  .kpi-icon { color: #22c55e; }
+.kpi-card.expenses .kpi-icon { color: #ef4444; }
+.kpi-card.profit   .kpi-icon { color: #22c55e; }
+.kpi-card.loss     .kpi-icon { color: #ef4444; }
+.kpi-card.growth.positive .kpi-icon { color: #10b981; }
+.kpi-card.growth.negative .kpi-icon { color: #f43f5e; }
+
+.kpi-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.kpi-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
-canvas {
-  max-height: 300px;
+canvas { max-height: 300px; }
+
+@media (min-width: 1024px) {
+  :host .container { max-width: 1200px !important; }
 }
 
-.linechart,
-.barchart {
-  background-color: aliceblue;
-}
-
-.monthly-revenue {
-  background-color: palegreen;
-}
-
-.week-day {
-  background-color: pink;
-}
-
-.AverageBooking {
-  background-color: lightgreen;
-  color: #0b1843;
+@media (min-width: 1440px) {
+  :host .container { max-width: 1400px !important; }
 }

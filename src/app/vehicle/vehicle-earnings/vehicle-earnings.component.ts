@@ -17,6 +17,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-vehicle-ernings',
@@ -32,7 +33,7 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
     MatSelectModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatGridListModule,
+    MatGridListModule,IndianCurrencyPipe
   ],
   templateUrl: './vehicle-earnings.component.html',
   styleUrl: './vehicle-earnings.component.css',
