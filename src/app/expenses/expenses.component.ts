@@ -78,7 +78,7 @@ export class ExpensesComponent implements OnInit {
     if (startDate)            params.startDate  = startDate;
     if (endDate)              params.endDate    = endDate;
 
-    this._vehicleService.getFilteredExpenses(params).subscribe({
+    this._vehicleService.getCombinedExpenses(params).subscribe({
       next: (data: any) => {
         this.expenses  = Array.isArray(data) ? data : [];
         this.isLoading = false;
@@ -134,6 +134,7 @@ export class ExpensesComponent implements OnInit {
   }
 
   deleteExpense(expense: any) {
+    if (expense.isSalaryRecord) return; // salary records managed via salary module
     if (!confirm(`Delete ₹${expense.amount} ${expense.categoryType} expense?`)) return;
     this._vehicleService.deleteExpense(expense.vehicleExpenceId).subscribe({
       next: () => {
@@ -146,10 +147,10 @@ export class ExpensesComponent implements OnInit {
   }
 
   exportCSV() {
-    const rows = [['Vehicle', 'Date', 'Type', 'Amount', 'Notes']];
+    const rows = [['Vehicle/Driver', 'Date', 'Type', 'Amount', 'Notes']];
     this.expenses.forEach(e => {
       rows.push([
-        e.vehicle?.vehicleName || '',
+        e.isSalaryRecord ? (e.driverName || '') : (e.vehicle?.vehicleName || ''),
         e.expenseDate ? new Date(e.expenseDate).toLocaleDateString() : '',
         e.categoryType || '',
         e.amount?.toString() || '',

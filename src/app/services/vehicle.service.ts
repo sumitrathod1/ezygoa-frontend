@@ -26,6 +26,10 @@ export class VehicleService {
     return this._http.get(`${this.baseUrl}GetFilteredExpenses`, { params: params as any });
   }
 
+  getCombinedExpenses(params?: { vehicleId?: number; type?: string; startDate?: string; endDate?: string }) {
+    return this._http.get<any[]>(`${this.baseUrl}GetCombinedExpenses`, { params: params as any });
+  }
+
   getExpenseSummary(params?: { vehicleId?: number; startDate?: string; endDate?: string }) {
     return this._http.get<any>(`${this.baseUrl}GetExpenseSummary`, { params: params as any });
   }

@@ -80,7 +80,7 @@ export class EarningsComponent implements OnInit {
         this.allBookings = data.bookings || [];
         this.bookingsAvgStats = data.averageStats || {};
         this.buildAvailableMonths();
-        this.vehicleService.getAllExpences().subscribe({
+        this.vehicleService.getCombinedExpenses().subscribe({
           next: (exp: any) => {
             this.allExpenses = Array.isArray(exp) ? exp : exp?.expenses || [];
             this.applyPeriodFilter();

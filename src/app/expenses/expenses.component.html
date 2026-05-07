@@ -106,14 +106,19 @@
           <div class="exp-card-left">
             <div class="exp-card-date">{{ e.expenseDate | date:'dd MMM yyyy' }}</div>
             <div class="exp-card-vehicle">
-              <i class="bi bi-car-front"></i> {{ e.vehicle?.vehicleName || '—' }}
+              <ng-container *ngIf="e.isSalaryRecord">
+                <i class="bi bi-person-badge"></i> {{ e.driverName || '—' }}
+              </ng-container>
+              <ng-container *ngIf="!e.isSalaryRecord">
+                <i class="bi bi-car-front"></i> {{ e.vehicle?.vehicleName || '—' }}
+              </ng-container>
             </div>
             <div class="exp-card-notes" *ngIf="e.notes">{{ e.notes }}</div>
           </div>
           <div class="exp-card-right">
             <span class="exp-badge" [ngClass]="getBadgeClass(e.categoryType)">{{ e.categoryType }}</span>
             <div class="exp-card-amount">₹{{ e.amount | number }}</div>
-            <div class="exp-card-actions">
+            <div class="exp-card-actions" *ngIf="!e.isSalaryRecord">
               <button class="exp-act edit" (click)="editExpense(e)" title="Edit">
                 <i class="bi bi-pencil-fill"></i>
               </button>

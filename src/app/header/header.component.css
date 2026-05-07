@@ -41,3 +41,34 @@
   color: yellow;
   font-weight: 600;
 }
+
+.add-booking-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.add-booking-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.add-booking-btn i {
+  font-size: 15px;
+}
+
+@media (max-width: 1023px) {
+  .add-booking-btn {
+    display: none;
+  }
+}
