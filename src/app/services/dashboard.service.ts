@@ -14,4 +14,10 @@ export class DashboardService {
       params: { month: month.toString(), year: year.toString() }
     });
   }
+
+  getExpenseSummary(month: number, year: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/expense-summary`, {
+      params: { month: month.toString(), year: year.toString() }
+    });
+  }
 }

@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BookingService } from '../services/booking.service';
 import { VehicleService } from '../services/vehicle.service';
-import { SalaryService } from '../services/salary.service';
 import { DashboardService } from '../services/dashboard.service';
 import { CalendarComponent } from '../calendar/calendar.component';
 import { ToastrService } from 'ngx-toastr';
@@ -46,9 +45,13 @@ export class HomeComponent {
   showMarkDoneForm  = false;
   selectedMaint: any = null;
   markDoneData = { servieDate: '', nextduedate: '', cost: 0, description: '', maintenanceType: 'Service' };
-  monthlySalaryTotal = 0;
-  monthlyEmiTotal    = 0;
-  emiVehicleCount    = 0;
+  monthlySalaryTotal  = 0;
+  monthlyVehicleExp   = 0;
+  totalMonthExpenses  = 0;
+  monthlyNetProfit    = 0;
+  monthlyRevenue      = 0;
+  monthlyEmiTotal     = 0;
+  emiVehicleCount     = 0;
   today = new Date();
 
   private cache = new Map<string, CacheEntry>();
@@ -61,7 +64,6 @@ export class HomeComponent {
   constructor(
     private _bookingService:   BookingService,
     private _vehicleService:   VehicleService,
-    private _salaryService:    SalaryService,
     private _dashboardService: DashboardService,
     private _toastr:           ToastrService,
     private router:            Router
@@ -248,15 +250,21 @@ export class HomeComponent {
   }
 
   loadFinancialSummary() {
-    const now = new Date(); const month = now.getMonth() + 1; const year = now.getFullYear();
-    this._salaryService.getAll().subscribe({
-      next: (records) => {
-        this.monthlySalaryTotal = records
-          .filter(r => r.month === month && r.year === year)
-          .reduce((s: number, r: any) => s + (r.netSalaey ?? 0), 0);
+    const now   = new Date();
+    const month = now.getMonth() + 1;
+    const year  = now.getFullYear();
+
+    this._dashboardService.getExpenseSummary(month, year).subscribe({
+      next: (data: any) => {
+        this.monthlySalaryTotal = data.salaryExpenses  ?? 0;
+        this.monthlyVehicleExp  = data.vehicleExpenses ?? 0;
+        this.totalMonthExpenses = data.totalExpenses   ?? 0;
+        this.monthlyNetProfit   = data.netProfit       ?? 0;
+        this.monthlyRevenue     = data.revenue         ?? 0;
         this.cdr.markForCheck();
       },
     });
+
     this._vehicleService.getAllVehicles().subscribe({
       next: (res: any) => {
         const vehicles: any[] = Array.isArray(res) ? res : (res?.data ?? []);

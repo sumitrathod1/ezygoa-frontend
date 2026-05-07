@@ -58,7 +58,7 @@
     </div>
 
     <!-- Financial Summary Widget -->
-    <div class="fin-widget" *ngIf="monthlySalaryTotal > 0 || monthlyEmiTotal > 0">
+    <div class="fin-widget" *ngIf="totalMonthExpenses > 0 || monthlyEmiTotal > 0">
       <div class="fin-widget-header">
         <i class="bi bi-pie-chart-fill"></i>
         <span>Monthly Financials</span>
@@ -73,6 +73,14 @@
           </div>
           <i class="bi bi-chevron-right fin-arrow"></i>
         </div>
+        <div class="fin-item" (click)="goTo('/expenses')">
+          <div class="fin-item-icon"><i class="bi bi-car-front-fill"></i></div>
+          <div class="fin-item-info">
+            <div class="fin-item-label">Vehicle Expenses</div>
+            <div class="fin-item-val">₹{{ monthlyVehicleExp | number:'1.0-0' }}</div>
+          </div>
+          <i class="bi bi-chevron-right fin-arrow"></i>
+        </div>
         <div class="fin-item fin-emi" *ngIf="monthlyEmiTotal > 0">
           <div class="fin-item-icon"><i class="bi bi-credit-card-fill"></i></div>
           <div class="fin-item-info">
@@ -81,8 +89,14 @@
           </div>
         </div>
         <div class="fin-total">
-          <span>Total Monthly Outflow</span>
-          <span class="fin-total-val">₹{{ (monthlySalaryTotal + monthlyEmiTotal) | number:'1.0-0' }}</span>
+          <span>Total Expenses</span>
+          <span class="fin-total-val">₹{{ totalMonthExpenses | number:'1.0-0' }}</span>
+        </div>
+        <div class="fin-total fin-profit" *ngIf="monthlyRevenue > 0" style="margin-top:4px;color:#10b981">
+          <span>Net Profit ({{ today | date:'MMM' }})</span>
+          <span class="fin-total-val" [style.color]="monthlyNetProfit >= 0 ? '#10b981' : '#ef4444'">
+            ₹{{ monthlyNetProfit | number:'1.0-0' }}
+          </span>
         </div>
       </div>
     </div>
