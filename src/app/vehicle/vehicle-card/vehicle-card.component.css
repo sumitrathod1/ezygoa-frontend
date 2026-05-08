@@ -149,6 +149,14 @@
   background: #dbeafe;
   color: #2563eb;
 }
+.vc-emi {
+  background: #fef3c7;
+  color: #d97706;
+}
+.vc-stmt {
+  background: #ede9fe;
+  color: #7c3aed;
+}
 
 /* Empty state */
 .vc-empty {
@@ -220,3 +228,41 @@
   color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
   display: flex; align-items: center; gap: 6px;
 }
+
+/* ── EMI Statement Modal ── */
+.stmt-modal { max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; }
+.stmt-body { padding: 16px; overflow-y: auto; flex: 1; }
+
+.stmt-spinner {
+  width: 32px; height: 32px; border: 3px solid #e5e7eb;
+  border-top-color: #7c3aed; border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 40px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.stmt-summary { background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.stmt-summary-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.stmt-summary-item { flex: 1; min-width: 90px; }
+.stmt-lbl { font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.stmt-val { font-size: 14px; font-weight: 800; color: #1e293b; }
+.stmt-val.green { color: #10b981; }
+
+.stmt-progress-wrap { margin-top: 12px; }
+.stmt-progress-bar { background: #e5e7eb; border-radius: 6px; height: 10px; overflow: hidden; margin-bottom: 6px; }
+.stmt-progress-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #a855f7); border-radius: 6px; transition: width 0.5s; min-width: 4px; }
+.stmt-progress-meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #374151; }
+.stmt-remaining { color: #7c3aed; }
+
+.stmt-section-title { font-size: 12px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.stmt-empty { text-align: center; color: #9ca3af; font-size: 13px; padding: 24px; }
+
+.stmt-table-wrap { overflow-x: auto; }
+.stmt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.stmt-table th { background: #f3f4f6; color: #6b7280; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 10px; text-align: left; }
+.stmt-table td { padding: 9px 10px; border-bottom: 1px solid #f3f4f6; color: #1e293b; }
+.stmt-table tr:last-child td { border-bottom: none; }
+.stmt-table tr:hover td { background: #faf5ff; }
+.stmt-num  { color: #9ca3af; font-weight: 700; width: 32px; }
+.stmt-date { font-weight: 700; white-space: nowrap; }
+.stmt-amt  { font-weight: 800; color: #7c3aed; white-space: nowrap; }
+.stmt-note { color: #6b7280; font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

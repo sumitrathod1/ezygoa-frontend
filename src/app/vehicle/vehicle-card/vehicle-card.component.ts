@@ -22,6 +22,10 @@ export class VehicleCardComponent {
   emiVehicle: any = null;
   emiData = { hasEMI: true, emiAmount: 0, emiDay: 1, emiStartDate: '', emiEndDate: '', emiLender: '', totalEMIs: 0, paidEMIs: 0 };
 
+  showEmiStatement = false;
+  emiStatement: any = null;
+  emiStatementLoading = false;
+
   constructor(
     private _vechicleService: VehicleService,
     private _dialog: MatDialog,
@@ -144,5 +148,20 @@ export class VehicleCardComponent {
     const due = new Date(now.getFullYear(), now.getMonth(), day);
     if (due < now) due.setMonth(due.getMonth() + 1);
     return Math.ceil((due.getTime() - now.getTime()) / 86400000);
+  }
+
+  openEmiStatement(vehicle: any) {
+    this.emiStatement = null;
+    this.emiStatementLoading = true;
+    this.showEmiStatement = true;
+    this._vehicleService.getEmiStatement(vehicle.vehicleId).subscribe({
+      next: (data: any) => { this.emiStatement = data; this.emiStatementLoading = false; },
+      error: ()          => { this.emiStatementLoading = false; },
+    });
+  }
+
+  emiStatementProgressPct(): number {
+    if (!this.emiStatement?.totalEMIs) return 0;
+    return Math.round((this.emiStatement.paidEMIs / this.emiStatement.totalEMIs) * 100);
   }
 }

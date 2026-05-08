@@ -30,6 +30,10 @@ export class VehicleService {
     return this._http.get<any[]>(`${this.baseUrl}GetCombinedExpenses`, { params: params as any });
   }
 
+  getEmiStatement(vehicleId: number) {
+    return this._http.get<any>(`${this.baseUrl}${vehicleId}/emi-statement`);
+  }
+
   getExpenseSummary(params?: { vehicleId?: number; startDate?: string; endDate?: string }) {
     return this._http.get<any>(`${this.baseUrl}GetExpenseSummary`, { params: params as any });
   }

@@ -1,15 +1,24 @@
 <div class="exp-page">
 
-  <!-- Header -->
+  <!-- ── Header ── -->
   <div class="exp-header">
     <div class="exp-title-wrap">
       <i class="bi bi-cash-stack exp-title-icon"></i>
       <div>
         <h2 class="exp-title">Expense Management</h2>
-        <p class="exp-sub">Track and manage all vehicle expenses</p>
+        <p class="exp-sub">Track and manage all vehicle &amp; staff expenses</p>
       </div>
     </div>
     <div class="exp-header-actions">
+      <!-- Month / Year picker -->
+      <div class="exp-month-picker">
+        <select class="exp-picker-sel" [(ngModel)]="selectedMonth" (change)="onMonthYearChange()">
+          <option *ngFor="let mo of months" [value]="mo.value">{{ mo.label }}</option>
+        </select>
+        <select class="exp-picker-sel" [(ngModel)]="selectedYear" (change)="onMonthYearChange()">
+          <option *ngFor="let yr of availableYears" [value]="yr">{{ yr }}</option>
+        </select>
+      </div>
       <button class="exp-csv-btn" (click)="exportCSV()">
         <i class="bi bi-download"></i> Export
       </button>
@@ -19,90 +28,75 @@
     </div>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="exp-kpi-grid" *ngIf="summary">
-    <div class="exp-kpi total">
-      <i class="bi bi-cash-coin exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.total | number }}</div>
-      <div class="exp-kpi-lbl">Total Expenses</div>
-    </div>
-    <div class="exp-kpi fuel">
-      <i class="bi bi-fuel-pump-fill exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.fuel | number }}</div>
-      <div class="exp-kpi-lbl">Fuel</div>
-    </div>
-    <div class="exp-kpi repair">
-      <i class="bi bi-tools exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.repair | number }}</div>
-      <div class="exp-kpi-lbl">Repair</div>
-    </div>
-    <div class="exp-kpi salary">
-      <i class="bi bi-person-badge-fill exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.salary | number }}</div>
-      <div class="exp-kpi-lbl">Salary</div>
-    </div>
-    <div class="exp-kpi emi">
-      <i class="bi bi-bank exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.emi | number }}</div>
-      <div class="exp-kpi-lbl">EMI</div>
-    </div>
-    <div class="exp-kpi insurance">
-      <i class="bi bi-shield-check exp-kpi-icon"></i>
-      <div class="exp-kpi-val">₹{{ summary.insurance | number }}</div>
-      <div class="exp-kpi-lbl">Insurance</div>
-    </div>
+  <!-- ── Loading spinner ── -->
+  <div class="exp-loading" *ngIf="isLoadingSummary">
+    <div class="exp-spinner"></div>
   </div>
 
-  <!-- Filters -->
-  <div class="exp-filters">
-    <div class="exp-period-row">
-      <button class="exp-period-btn" [class.active]="period==='all'"     (click)="period='all';     load()">All</button>
-      <button class="exp-period-btn" [class.active]="period==='week'"    (click)="period='week';    load()">Week</button>
-      <button class="exp-period-btn" [class.active]="period==='month'"   (click)="period='month';   load()">This Month</button>
-      <button class="exp-period-btn" [class.active]="period==='quarter'" (click)="period='quarter'; load()">Quarter</button>
-      <button class="exp-period-btn" [class.active]="period==='year'"    (click)="period='year';    load()">Year</button>
-      <button class="exp-period-btn" [class.active]="period==='custom'"  (click)="period='custom'">Custom</button>
-    </div>
-    <div class="exp-custom-range" *ngIf="period === 'custom'">
-      <input type="date" class="exp-date-input" [(ngModel)]="customStart" (change)="load()" />
-      <span class="exp-range-sep">to</span>
-      <input type="date" class="exp-date-input" [(ngModel)]="customEnd"  (change)="load()" />
-    </div>
-    <div class="exp-filter-row">
-      <select class="exp-sel" [(ngModel)]="selectedVehicle" (change)="load()">
-        <option value="">All Vehicles</option>
-        <option *ngFor="let v of vehicles" [value]="v.vehicleId">{{ v.vehicleName }}</option>
-      </select>
-      <select class="exp-sel" [(ngModel)]="selectedType" (change)="load()">
-        <option value="">All Types</option>
-        <option *ngFor="let t of categoryTypes" [value]="t">{{ t }}</option>
-      </select>
-    </div>
-  </div>
+  <ng-container *ngIf="!isLoadingSummary && summary">
 
-  <!-- Loader -->
-  <div class="exp-loading" *ngIf="isLoading">
-    <div class="spinner-border text-primary" role="status"></div>
-  </div>
+    <!-- ── Revenue / Profit Banner ── -->
+    <div class="exp-banner">
+      <div class="exp-banner-item">
+        <div class="exp-banner-label">Revenue</div>
+        <div class="exp-banner-val green">₹{{ summary.revenue | number:'1.0-0' }}</div>
+      </div>
+      <div class="exp-banner-sep"></div>
+      <div class="exp-banner-item">
+        <div class="exp-banner-label">Total Expenses</div>
+        <div class="exp-banner-val red">₹{{ summary.totalExpenses | number:'1.0-0' }}</div>
+      </div>
+      <div class="exp-banner-sep"></div>
+      <div class="exp-banner-item">
+        <div class="exp-banner-label">Net Profit</div>
+        <div class="exp-banner-val" [class.green]="summary.netProfit >= 0" [class.red]="summary.netProfit < 0">
+          ₹{{ summary.netProfit | number:'1.0-0' }}
+        </div>
+      </div>
+    </div>
 
-  <div *ngIf="!isLoading">
+    <!-- ── 8 KPI Cards ── -->
+    <div class="exp-kpi-grid">
+      <div class="exp-kpi" [ngClass]="card.cls" *ngFor="let card of kpiCards">
+        <i class="bi exp-kpi-icon" [ngClass]="card.icon"></i>
+        <div class="exp-kpi-val">₹{{ getCategoryAmount(card.key) | number:'1.0-0' }}</div>
+        <div class="exp-kpi-lbl">{{ card.label }}</div>
+      </div>
+    </div>
 
-    <!-- Two-column layout on desktop -->
+    <!-- ── Main 3-column layout on desktop ── -->
     <div class="exp-main-grid">
 
-      <!-- Expense list -->
+      <!-- LEFT: Expense list -->
       <div class="exp-list-col">
-        <div class="exp-section-title">
-          <i class="bi bi-list-ul"></i> Expenses
-          <span class="exp-count-badge">{{ expenses.length }}</span>
+        <div class="exp-section-header">
+          <div class="exp-section-title">
+            <i class="bi bi-list-ul"></i> Expenses
+            <span class="exp-count-badge">{{ filteredExpenses.length }}</span>
+          </div>
+          <!-- inline list filters -->
+          <div class="exp-list-filters">
+            <select class="exp-mini-sel" [(ngModel)]="filterVehicle">
+              <option value="">All Vehicles</option>
+              <option *ngFor="let v of vehicles" [value]="v.vehicleId">{{ v.vehicleName }}</option>
+            </select>
+            <select class="exp-mini-sel" [(ngModel)]="filterType">
+              <option value="">All Types</option>
+              <option *ngFor="let t of categoryTypes" [value]="t">{{ t }}</option>
+            </select>
+          </div>
         </div>
 
-        <div class="exp-empty" *ngIf="expenses.length === 0">
+        <div class="exp-loading-sm" *ngIf="isLoadingList">
+          <div class="exp-spinner sm"></div>
+        </div>
+
+        <div class="exp-empty" *ngIf="!isLoadingList && filteredExpenses.length === 0">
           <i class="bi bi-inbox exp-empty-icon"></i>
           <p>No expenses for this period</p>
         </div>
 
-        <div class="exp-card" *ngFor="let e of expenses">
+        <div class="exp-card" *ngFor="let e of filteredExpenses">
           <div class="exp-card-left">
             <div class="exp-card-date">{{ e.expenseDate | date:'dd MMM yyyy' }}</div>
             <div class="exp-card-vehicle">
@@ -117,7 +111,7 @@
           </div>
           <div class="exp-card-right">
             <span class="exp-badge" [ngClass]="getBadgeClass(e.categoryType)">{{ e.categoryType }}</span>
-            <div class="exp-card-amount">₹{{ e.amount | number }}</div>
+            <div class="exp-card-amount">₹{{ e.amount | number:'1.0-0' }}</div>
             <div class="exp-card-actions" *ngIf="!e.isSalaryRecord">
               <button class="exp-act edit" (click)="editExpense(e)" title="Edit">
                 <i class="bi bi-pencil-fill"></i>
@@ -130,39 +124,74 @@
         </div>
       </div>
 
-      <!-- Breakdowns -->
-      <div class="exp-breakdown-col" *ngIf="summary">
+      <!-- RIGHT: Breakdowns -->
+      <div class="exp-right-col">
 
-        <!-- Vehicle breakdown -->
-        <div class="exp-breakdown-card">
-          <div class="exp-section-title"><i class="bi bi-bar-chart-fill"></i> By Vehicle</div>
-          <div class="exp-bar-row" *ngFor="let v of summary.byVehicle">
-            <div class="exp-bar-label">{{ v.name }}</div>
-            <div class="exp-bar-wrap">
-              <div class="exp-bar-fill" [style.width.%]="v.pct"></div>
-            </div>
-            <div class="exp-bar-val">₹{{ v.total | number }}</div>
+        <!-- Salary section with paid/unpaid -->
+        <div class="exp-breakdown-card" *ngIf="summary.salaryDetails?.length > 0">
+          <div class="exp-section-title">
+            <i class="bi bi-people-fill"></i> Staff Salary
+            <span class="exp-total-right">₹{{ summary.salaryExpenses | number:'1.0-0' }}</span>
           </div>
-          <div class="exp-empty-sm" *ngIf="summary.byVehicle.length === 0">No data</div>
+          <div class="exp-salary-row" *ngFor="let s of summary.salaryDetails">
+            <div class="exp-salary-name">{{ s.driverName }}</div>
+            <div class="exp-salary-right">
+              <span class="exp-paid-badge" [class.paid]="s.isPaid" [class.unpaid]="!s.isPaid">
+                {{ s.isPaid ? 'Paid' : 'Unpaid' }}
+              </span>
+              <span class="exp-salary-amt">₹{{ s.amount | number:'1.0-0' }}</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Type breakdown -->
-        <div class="exp-breakdown-card">
-          <div class="exp-section-title"><i class="bi bi-pie-chart-fill"></i> By Type</div>
-          <div class="exp-type-row" *ngFor="let t of summary.byType">
-            <span class="exp-badge" [ngClass]="getBadgeClass(t.type)">{{ t.type }}</span>
-            <div class="exp-type-bar-wrap">
-              <div class="exp-type-bar" [style.width.%]="t.pct"></div>
-            </div>
-            <div class="exp-type-pct">{{ t.pct }}%</div>
-            <div class="exp-type-amt">₹{{ t.amount | number }}</div>
+        <!-- Vehicle breakdown -->
+        <div class="exp-breakdown-card" *ngIf="summary.vehicleBreakdown?.length > 0">
+          <div class="exp-section-title">
+            <i class="bi bi-bar-chart-fill"></i> By Vehicle
+            <span class="exp-total-right">₹{{ summary.vehicleExpenses | number:'1.0-0' }}</span>
           </div>
-          <div class="exp-empty-sm" *ngIf="summary.byType.length === 0">No data</div>
+          <div class="exp-veh-row" *ngFor="let v of summary.vehicleBreakdown">
+            <div class="exp-veh-info">
+              <span class="exp-veh-name">{{ v.vehicleName }}</span>
+              <span class="exp-veh-num">{{ v.vehicleNumber }}</span>
+            </div>
+            <div class="exp-bar-wrap">
+              <div class="exp-bar-fill" [style.width.%]="vehicleBarPct(v.total)"></div>
+            </div>
+            <div class="exp-bar-val">₹{{ v.total | number:'1.0-0' }}</div>
+          </div>
+        </div>
+
+        <!-- Monthly trend: last 6 months -->
+        <div class="exp-breakdown-card" *ngIf="summary.monthlyTrend?.length > 0">
+          <div class="exp-section-title">
+            <i class="bi bi-graph-up"></i> 6-Month Trend
+          </div>
+          <div class="exp-trend-row" *ngFor="let t of summary.monthlyTrend">
+            <div class="exp-trend-label">{{ t.label }}</div>
+            <div class="exp-trend-bars">
+              <div class="exp-trend-bar-wrap" title="Revenue: ₹{{ t.revenue | number }}">
+                <div class="exp-trend-bar rev" [style.width.%]="trendBarPct(t.revenue)"></div>
+              </div>
+              <div class="exp-trend-bar-wrap" title="Expenses: ₹{{ t.expenses | number }}">
+                <div class="exp-trend-bar exp" [style.width.%]="trendBarPct(t.expenses)"></div>
+              </div>
+            </div>
+            <div class="exp-trend-vals">
+              <span class="rev-val">₹{{ t.revenue | number:'1.0-0' }}</span>
+              <span class="exp-val">₹{{ t.expenses | number:'1.0-0' }}</span>
+            </div>
+          </div>
+          <div class="exp-trend-legend">
+            <span class="legend-dot rev"></span> Revenue
+            <span class="legend-dot exp"></span> Expenses
+          </div>
         </div>
 
       </div>
 
     </div>
-  </div>
+
+  </ng-container>
 
 </div>

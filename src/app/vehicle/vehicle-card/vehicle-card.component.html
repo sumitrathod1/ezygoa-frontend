@@ -77,6 +77,9 @@
           <button class="vc-btn vc-emi" (click)="openEmi(vehicle)" title="EMI Settings">
             <i class="bi bi-credit-card-fill"></i>
           </button>
+          <button class="vc-btn vc-stmt" *ngIf="vehicle.hasEMI" (click)="openEmiStatement(vehicle)" title="EMI Statement">
+            <i class="bi bi-receipt"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -85,6 +88,95 @@
   <div *ngIf="filteredVehicles.length === 0" class="vc-empty">
     <i class="bi bi-car-front fs-2 d-block mb-2"></i>
     No vehicles found.
+  </div>
+</div>
+
+<!-- EMI Statement Modal -->
+<div class="emi-modal-overlay" *ngIf="showEmiStatement" (click)="showEmiStatement = false">
+  <div class="emi-modal stmt-modal" (click)="$event.stopPropagation()">
+    <div class="emi-modal-header">
+      <i class="bi bi-receipt"></i>
+      EMI Statement — {{ emiStatement?.vehicleName || '…' }}
+      <button class="emi-modal-close" (click)="showEmiStatement = false">✕</button>
+    </div>
+
+    <div class="stmt-body" *ngIf="emiStatementLoading">
+      <div class="stmt-spinner"></div>
+    </div>
+
+    <div class="stmt-body" *ngIf="!emiStatementLoading && emiStatement">
+
+      <!-- Loan Summary -->
+      <div class="stmt-summary">
+        <div class="stmt-summary-row">
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">Lender</div>
+            <div class="stmt-val">{{ emiStatement.emiLender || '—' }}</div>
+          </div>
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">Monthly EMI</div>
+            <div class="stmt-val">₹{{ emiStatement.emiAmount | number:'1.0-0' }}</div>
+          </div>
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">EMI Day</div>
+            <div class="stmt-val">{{ emiStatement.emiDay }}th</div>
+          </div>
+        </div>
+        <div class="stmt-summary-row" style="margin-top:8px">
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">Start Date</div>
+            <div class="stmt-val">{{ emiStatement.emiStartDate | date:'MMM yyyy' }}</div>
+          </div>
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">End Date</div>
+            <div class="stmt-val">{{ emiStatement.emiEndDate | date:'MMM yyyy' }}</div>
+          </div>
+          <div class="stmt-summary-item">
+            <div class="stmt-lbl">Total Paid</div>
+            <div class="stmt-val green">₹{{ emiStatement.totalPaid | number:'1.0-0' }}</div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="stmt-progress-wrap">
+          <div class="stmt-progress-bar">
+            <div class="stmt-progress-fill" [style.width.%]="emiStatementProgressPct()"></div>
+          </div>
+          <div class="stmt-progress-meta">
+            <span>{{ emiStatement.paidEMIs }}/{{ emiStatement.totalEMIs }} instalments paid</span>
+            <span class="stmt-remaining">{{ (emiStatement.totalEMIs - emiStatement.paidEMIs) }} remaining</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment history -->
+      <div class="stmt-section-title"><i class="bi bi-clock-history"></i> Payment History</div>
+
+      <div class="stmt-empty" *ngIf="emiStatement.payments?.length === 0">
+        <i class="bi bi-inbox"></i> No payments recorded yet
+      </div>
+
+      <div class="stmt-table-wrap" *ngIf="emiStatement.payments?.length > 0">
+        <table class="stmt-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of emiStatement.payments; let i = index">
+              <td class="stmt-num">{{ i + 1 }}</td>
+              <td class="stmt-date">{{ p.expenseDate | date:'dd MMM yyyy' }}</td>
+              <td class="stmt-amt">₹{{ p.amount | number:'1.0-0' }}</td>
+              <td class="stmt-note">{{ p.notes || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 

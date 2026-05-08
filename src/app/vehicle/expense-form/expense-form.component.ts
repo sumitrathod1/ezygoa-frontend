@@ -23,7 +23,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ExpenseFormComponent {
   expenseForm!: FormGroup;
-  CategoryType: string[] = ['Fuel', 'Repair', 'Towing', 'DocumentRenew', 'Salary', 'EMI', 'Insurance', 'Service', 'Other'];
+  CategoryType: string[] = ['Fuel', 'Repair', 'Towing', 'DocumentRenew', 'Salary', 'EMI', 'Insurance', 'Service', 'Tyre', 'Other'];
   vehcilesType: any = [];
   userRole$!: Observable<string | null>;
   role: string | null = null;

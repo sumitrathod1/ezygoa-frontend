@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { VehicleService } from '../services/vehicle.service';
+import { DashboardService } from '../services/dashboard.service';
 import { ExpenseFormComponent } from '../vehicle/expense-form/expense-form.component';
 
 @Component({
@@ -14,133 +15,146 @@ import { ExpenseFormComponent } from '../vehicle/expense-form/expense-form.compo
   styleUrl: './expenses.component.css',
 })
 export class ExpensesComponent implements OnInit {
-  expenses: any[]  = [];
-  vehicles: any[]  = [];
-  summary: any     = null;
-  isLoading        = false;
+  allExpenses: any[] = [];
+  vehicles: any[] = [];
+  summary: any = null;
+  isLoadingSummary = false;
+  isLoadingList = false;
 
-  // Filters
-  selectedVehicle  = '';
-  selectedType     = '';
-  period           = 'month';       // all | week | month | quarter | year | custom
-  customStart      = '';
-  customEnd        = '';
+  selectedMonth: number;
+  selectedYear: number;
+  availableYears: number[] = [];
+
+  readonly months = [
+    { label: 'January', value: 1 }, { label: 'February', value: 2 },
+    { label: 'March', value: 3 },   { label: 'April', value: 4 },
+    { label: 'May', value: 5 },     { label: 'June', value: 6 },
+    { label: 'July', value: 7 },    { label: 'August', value: 8 },
+    { label: 'September', value: 9 },{ label: 'October', value: 10 },
+    { label: 'November', value: 11 },{ label: 'December', value: 12 },
+  ];
+
+  readonly kpiCards = [
+    { key: 'Salary',      icon: 'bi-person-badge-fill', label: 'Salary',      cls: 'kpi-salary'    },
+    { key: 'Fuel',        icon: 'bi-fuel-pump-fill',    label: 'Fuel',        cls: 'kpi-fuel'      },
+    { key: 'Repair',      icon: 'bi-tools',             label: 'Repair',      cls: 'kpi-repair'    },
+    { key: 'EMI',         icon: 'bi-bank',              label: 'EMI',         cls: 'kpi-emi'       },
+    { key: 'Service',     icon: 'bi-wrench-adjustable', label: 'Service',     cls: 'kpi-service'   },
+    { key: 'Insurance',   icon: 'bi-shield-check',      label: 'Insurance',   cls: 'kpi-insurance' },
+    { key: 'Tyre',        icon: 'bi-circle-half',       label: 'Tyre',        cls: 'kpi-tyre'      },
+    { key: 'Other',       icon: 'bi-three-dots',        label: 'Other',       cls: 'kpi-other'     },
+  ];
+
+  filterVehicle = '';
+  filterType = '';
 
   readonly categoryTypes = [
     'Fuel', 'Repair', 'Towing', 'DocumentRenew',
-    'Salary', 'EMI', 'Insurance', 'Service', 'Other',
+    'Salary', 'EMI', 'Insurance', 'Service', 'Tyre', 'Other',
   ];
 
   constructor(
     private _vehicleService: VehicleService,
+    private _dashboardService: DashboardService,
     private _dialog: MatDialog,
     private _toastr: ToastrService,
-  ) {}
+  ) {
+    const now = new Date();
+    this.selectedMonth = now.getMonth() + 1;
+    this.selectedYear  = now.getFullYear();
+    for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+      this.availableYears.push(y);
+    }
+  }
 
   ngOnInit() {
-    this._vehicleService.getAllVehicles().subscribe({ next: (d: any) => this.vehicles = d ?? [] });
-    this.load();
+    this._vehicleService.getAllVehicles().subscribe({
+      next: (d: any) => this.vehicles = Array.isArray(d) ? d : (d?.data ?? []),
+    });
+    this.loadAll();
   }
 
-  get dateRange(): { startDate: string; endDate: string } {
-    const now   = new Date();
-    const today = now.toISOString().split('T')[0];
-
-    if (this.period === 'week') {
-      const d = new Date(now);
-      d.setDate(now.getDate() - 6);
-      return { startDate: d.toISOString().split('T')[0], endDate: today };
-    }
-    if (this.period === 'month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      return { startDate: start, endDate: today };
-    }
-    if (this.period === 'quarter') {
-      const qStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-      return { startDate: qStart.toISOString().split('T')[0], endDate: today };
-    }
-    if (this.period === 'year') {
-      const start = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-      return { startDate: start, endDate: today };
-    }
-    if (this.period === 'custom') {
-      return { startDate: this.customStart, endDate: this.customEnd };
-    }
-    return { startDate: '', endDate: '' }; // all
+  loadAll() {
+    this.loadSummary();
+    this.loadList();
   }
 
-  load() {
-    this.isLoading = true;
-    const { startDate, endDate } = this.dateRange;
-    const params: any = {};
-    if (this.selectedVehicle) params.vehicleId = this.selectedVehicle;
-    if (this.selectedType)    params.type       = this.selectedType;
-    if (startDate)            params.startDate  = startDate;
-    if (endDate)              params.endDate    = endDate;
+  loadSummary() {
+    this.isLoadingSummary = true;
+    this._dashboardService.getExpenseSummary(this.selectedMonth, this.selectedYear).subscribe({
+      next: (data: any) => { this.summary = data; this.isLoadingSummary = false; },
+      error: () => { this.isLoadingSummary = false; },
+    });
+  }
 
-    this._vehicleService.getCombinedExpenses(params).subscribe({
+  loadList() {
+    this.isLoadingList = true;
+    const m   = this.selectedMonth;
+    const y   = this.selectedYear;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const start = `${y}-${pad(m)}-01`;
+    const lastDay = new Date(y, m, 0).getDate();
+    const end   = `${y}-${pad(m)}-${lastDay}`;
+
+    this._vehicleService.getCombinedExpenses({ startDate: start, endDate: end }).subscribe({
       next: (data: any) => {
-        this.expenses  = Array.isArray(data) ? data : [];
-        this.isLoading = false;
-        this.buildSummary();
+        this.allExpenses = Array.isArray(data) ? data : [];
+        this.isLoadingList = false;
       },
-      error: () => { this.isLoading = false; },
+      error: () => { this.isLoadingList = false; },
     });
   }
 
-  buildSummary() {
-    const total = this.expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
-    const byType: Record<string, number> = {};
-    const byVehicle: Record<string, { name: string; total: number }> = {};
-
-    this.expenses.forEach(e => {
-      byType[e.categoryType] = (byType[e.categoryType] || 0) + Number(e.amount);
-      const vid = e.vehicleID;
-      if (!byVehicle[vid]) byVehicle[vid] = { name: e.vehicle?.vehicleName || 'Unknown', total: 0 };
-      byVehicle[vid].total += Number(e.amount);
+  get filteredExpenses(): any[] {
+    return this.allExpenses.filter(e => {
+      if (this.filterVehicle && e.vehicleID?.toString() !== this.filterVehicle) return false;
+      if (this.filterType    && e.categoryType !== this.filterType)              return false;
+      return true;
     });
+  }
 
-    const byVehicleArr = Object.values(byVehicle).sort((a, b) => b.total - a.total);
-    const maxV = byVehicleArr[0]?.total || 1;
+  onMonthYearChange() { this.loadAll(); }
 
-    this.summary = {
-      total,
-      fuel:      byType['Fuel']      || 0,
-      repair:    byType['Repair']    || 0,
-      salary:    byType['Salary']    || 0,
-      emi:       byType['EMI']       || 0,
-      insurance: byType['Insurance'] || 0,
-      byVehicle: byVehicleArr.map(v => ({ ...v, pct: Math.round((v.total / maxV) * 100) })),
-      byType: Object.entries(byType)
-        .map(([t, a]) => ({ type: t, amount: a, pct: total ? Math.round((a / total) * 100) : 0 }))
-        .sort((a, b) => b.amount - a.amount),
-    };
+  getCategoryAmount(key: string): number {
+    if (!this.summary) return 0;
+    if (key === 'Salary') return this.summary.salaryExpenses ?? 0;
+    const found = (this.summary.byCategory as any[])?.find(b => b.category === key);
+    return found?.amount ?? 0;
+  }
+
+  vehicleBarPct(total: number): number {
+    if (!this.summary?.vehicleBreakdown?.length) return 0;
+    const max = Math.max(...(this.summary.vehicleBreakdown as any[]).map(v => v.total));
+    return max > 0 ? Math.round((total / max) * 100) : 0;
+  }
+
+  trendBarPct(amount: number): number {
+    if (!this.summary?.monthlyTrend?.length) return 0;
+    const max = Math.max(...(this.summary.monthlyTrend as any[])
+      .flatMap((t: any) => [t.revenue ?? 0, t.expenses ?? 0]));
+    return max > 0 ? Math.round((amount / max) * 100) : 0;
   }
 
   addExpense() {
-    const ref = this._dialog.open(ExpenseFormComponent, {
-      data: {},
-      width: '480px',
-    });
-    ref.afterClosed().subscribe(() => this.load());
+    const ref = this._dialog.open(ExpenseFormComponent, { data: {}, width: '480px' });
+    ref.afterClosed().subscribe(() => this.loadAll());
   }
 
   editExpense(expense: any) {
     const ref = this._dialog.open(ExpenseFormComponent, {
-      data: { expense, vehicleID: expense.vehicleID },
-      width: '480px',
+      data: { expense, vehicleID: expense.vehicleID }, width: '480px',
     });
-    ref.afterClosed().subscribe(() => this.load());
+    ref.afterClosed().subscribe(() => this.loadAll());
   }
 
   deleteExpense(expense: any) {
-    if (expense.isSalaryRecord) return; // salary records managed via salary module
+    if (expense.isSalaryRecord) return;
     if (!confirm(`Delete ₹${expense.amount} ${expense.categoryType} expense?`)) return;
     this._vehicleService.deleteExpense(expense.vehicleExpenceId).subscribe({
       next: () => {
         this._toastr.success('Expense deleted', 'Done');
-        this.expenses = this.expenses.filter(e => e.vehicleExpenceId !== expense.vehicleExpenceId);
-        this.buildSummary();
+        this.allExpenses = this.allExpenses.filter(e => e.vehicleExpenceId !== expense.vehicleExpenceId);
+        this.loadSummary();
       },
       error: () => this._toastr.error('Error deleting expense', 'Error'),
     });
@@ -148,7 +162,7 @@ export class ExpensesComponent implements OnInit {
 
   exportCSV() {
     const rows = [['Vehicle/Driver', 'Date', 'Type', 'Amount', 'Notes']];
-    this.expenses.forEach(e => {
+    this.filteredExpenses.forEach(e => {
       rows.push([
         e.isSalaryRecord ? (e.driverName || '') : (e.vehicle?.vehicleName || ''),
         e.expenseDate ? new Date(e.expenseDate).toLocaleDateString() : '',
@@ -160,7 +174,8 @@ export class ExpensesComponent implements OnInit {
     const csv  = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a'); a.href = url; a.download = 'expenses.csv'; a.click();
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'expenses.csv'; a.click();
     URL.revokeObjectURL(url);
   }
 
@@ -168,7 +183,8 @@ export class ExpensesComponent implements OnInit {
     const map: Record<string, string> = {
       Fuel: 'badge-fuel', Repair: 'badge-repair', Towing: 'badge-towing',
       DocumentRenew: 'badge-doc', Salary: 'badge-salary', EMI: 'badge-emi',
-      Insurance: 'badge-insurance', Service: 'badge-service', Other: 'badge-other',
+      Insurance: 'badge-insurance', Service: 'badge-service',
+      Tyre: 'badge-tyre', Other: 'badge-other',
     };
     return map[type] || 'badge-other';
   }
