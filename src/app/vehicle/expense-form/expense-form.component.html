@@ -32,21 +32,21 @@
             <i class="bi bi-tag-fill vf-lbl-icon"></i> Category
           </label>
           <select class="vf-select" formControlName="categoryType">
-            <option value="" disabled>Select type</option>
             <option *ngFor="let cat of CategoryType" [value]="cat">{{ cat }}</option>
           </select>
         </div>
       </div>
 
-      <!-- Vehicle (Employee only) -->
-      <div class="vf-field" *ngIf="role === 'Employee'">
+      <!-- Vehicle (optional — not needed for salary/misc) -->
+      <div class="vf-field">
         <label class="vf-label">
           <i class="bi bi-truck vf-lbl-icon"></i> Vehicle
+          <span class="vf-optional">(optional)</span>
         </label>
-        <select class="vf-select" formControlName="vehicle">
-          <option value="" disabled>Select vehicle</option>
-          <option *ngFor="let v of vehcilesType" [value]="v.vehicleId">
-            {{ v.vehicleName }}
+        <select class="vf-select" formControlName="vehicleID">
+          <option [ngValue]="null">— No vehicle —</option>
+          <option *ngFor="let v of vehicles" [ngValue]="v.vehicleId">
+            {{ v.vehicleName }} · {{ v.vehicleNumber }}
           </option>
         </select>
       </div>
@@ -65,7 +65,7 @@
         />
         <span class="vf-err"
           *ngIf="expenseForm.get('amount')?.touched && expenseForm.get('amount')?.invalid">
-          Valid amount required
+          Valid amount required (min ₹1)
         </span>
       </div>
 
@@ -73,6 +73,7 @@
       <div class="vf-field">
         <label class="vf-label">
           <i class="bi bi-chat-left-text vf-lbl-icon"></i> Notes
+          <span class="vf-optional">(optional)</span>
         </label>
         <input
           class="vf-input"
@@ -85,7 +86,7 @@
       <!-- Footer -->
       <div class="vf-footer">
         <button class="vf-btn-cancel" type="button" (click)="onCloseExpense()">Cancel</button>
-        <button class="vf-btn-submit" type="submit" [disabled]="isSubmitting">
+        <button class="vf-btn-submit" type="submit" [disabled]="isSubmitting || expenseForm.invalid">
           <i class="bi bi-check-circle-fill"></i>
           {{ isSubmitting ? 'Saving…' : (isEditMode ? 'Update Expense' : 'Add Expense') }}
         </button>
