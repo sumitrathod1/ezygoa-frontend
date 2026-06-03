@@ -194,8 +194,17 @@ export const routes: Routes = [
       import('./driver/driver-bookings/driver-bookings.component').then(
         (m) => m.DriverBookingsComponent
       ),
-    //canActivate: [authGuard],
-    //data: { role: ['Driver', 'Employee'] },
+    canActivate: [authGuard],
+    data: { role: ['Driver', 'Employee'] },
+  },
+  {
+    path: 'driver-profile',
+    loadComponent: () =>
+      import('./driver/driver-profile/driver-profile.component').then(
+        (m) => m.DriverProfileComponent
+      ),
+    canActivate: [authGuard],
+    data: { role: ['Driver', 'Employee'] },
   },
   {
     path: 'vendor-settlements',

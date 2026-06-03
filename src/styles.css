@@ -229,3 +229,45 @@ table {
     max-width: 1300px;
   }
 }
+
+/* ─── Location Picker Dialog ────────────────────────────────────────── */
+.lp-dialog-panel .mat-mdc-dialog-container {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  max-width: 520px !important;
+  width: 100% !important;
+}
+
+/* Google Places Autocomplete dropdown — must sit above the CDK overlay */
+.pac-container {
+  z-index: 9999 !important;
+  border-radius: 12px !important;
+  margin-top: 4px !important;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.18) !important;
+  border: 1px solid #e0e7ff !important;
+  font-family: inherit !important;
+}
+
+.pac-item {
+  padding: 9px 14px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  border-top: 1px solid #f1f5ff !important;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: #f0f4ff !important;
+}
+
+.pac-item-query {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1e1b4b !important;
+}
+
+.pac-matched {
+  color: #6366f1 !important;
+  font-weight: 700 !important;
+}

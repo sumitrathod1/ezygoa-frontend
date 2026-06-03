@@ -37,6 +37,14 @@ export class SalaryService {
     );
   }
 
+  /** Returns salary records for the currently logged-in driver (uses JWT id) */
+  getMySalaries(): Observable<any[]> {
+    return this._http.get<any>(`${API}/my`).pipe(
+      map((res) => Array.isArray(res) ? res : (res?.data ?? [])),
+      catchError(() => of([]))
+    );
+  }
+
   markPaid(id: number, notes?: string): Observable<any> {
     const q = notes ? `?notes=${encodeURIComponent(notes)}` : '';
     return this._http.put<any>(`${API}/${id}/pay${q}`, {}).pipe(

@@ -64,15 +64,33 @@
           </div>
         </div>
 
-        <!-- Route: From → To -->
+        <!-- Route: From → To (tap to open Google Maps navigation) -->
         <div class="route-row" *ngIf="b.from || b.to">
-          <span class="route-point from">
-            <i class="bi bi-geo-alt"></i> {{ b.from || '—' }}
-          </span>
+          <a
+            class="route-point from map-nav-link"
+            [href]="mapsUrl(b.from)"
+            target="_blank"
+            rel="noopener"
+            [class.disabled-link]="!b.from"
+            (click)="$event.stopPropagation()"
+          >
+            <i class="bi bi-geo-alt"></i>
+            <span class="route-label">{{ b.from || '—' }}</span>
+            <i class="bi bi-send-fill nav-icon" *ngIf="b.from"></i>
+          </a>
           <i class="bi bi-arrow-right route-arrow"></i>
-          <span class="route-point to">
-            <i class="bi bi-geo-alt-fill"></i> {{ b.to || '—' }}
-          </span>
+          <a
+            class="route-point to map-nav-link"
+            [href]="mapsUrl(b.to)"
+            target="_blank"
+            rel="noopener"
+            [class.disabled-link]="!b.to"
+            (click)="$event.stopPropagation()"
+          >
+            <i class="bi bi-geo-alt-fill"></i>
+            <span class="route-label">{{ b.to || '—' }}</span>
+            <i class="bi bi-send-fill nav-icon" *ngIf="b.to"></i>
+          </a>
         </div>
 
         <!-- Vehicle + Driver -->

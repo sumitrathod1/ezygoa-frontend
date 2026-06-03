@@ -1,0 +1,100 @@
+<div class="lp-root">
+
+  <!-- Header -->
+  <div class="lp-header">
+    <div class="lp-header-left">
+      <i class="bi bi-map-fill lp-header-icon"></i>
+      <div>
+        <div class="lp-header-title">Select {{ data.label }}</div>
+        <div class="lp-header-sub">Search or tap anywhere on the map</div>
+      </div>
+    </div>
+    <button class="lp-close-btn" (click)="close()" type="button">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Search bar (Google Places Autocomplete attaches here) -->
+  <div class="lp-search-wrap">
+    <i class="bi bi-search lp-search-icon"></i>
+    <input
+      #searchInput
+      class="lp-search-input"
+      type="text"
+      placeholder="Search airport, hotel, area, city…"
+      [(ngModel)]="searchText"
+      autocomplete="off"
+    />
+    <div class="lp-search-spinner" *ngIf="isSearching">
+      <div class="lp-spinner"></div>
+    </div>
+    <button
+      class="lp-clear-btn"
+      *ngIf="searchText && !isSearching"
+      (click)="searchText = ''"
+      type="button"
+    >
+      <i class="bi bi-x-circle-fill"></i>
+    </button>
+  </div>
+
+  <!-- API error fallback -->
+  <div class="lp-api-error" *ngIf="apiError">
+    <i class="bi bi-wifi-off me-2"></i>
+    Google Maps could not load. Please check your internet connection.
+  </div>
+
+  <!-- Recent picks -->
+  <div class="lp-recent" *ngIf="recentPicks.length > 0 && !searchText.trim()">
+    <div class="lp-recent-title">
+      <i class="bi bi-clock-history me-1"></i> Recent
+    </div>
+    <div class="lp-recent-list">
+      <button
+        class="lp-recent-chip"
+        *ngFor="let p of recentPicks"
+        (click)="pickRecent(p)"
+        type="button"
+      >
+        <i class="bi bi-geo-alt-fill me-1"></i>{{ p.name }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Map loading skeleton -->
+  <div class="lp-map-skeleton" *ngIf="!mapReady && !apiError">
+    <div class="lp-skeleton-shimmer"></div>
+    <div class="lp-map-loading-text">
+      <div class="lp-spinner"></div>
+      <span>Loading Google Maps…</span>
+    </div>
+  </div>
+
+  <!-- Google Map -->
+  <div class="lp-map-container" [class.lp-map-hidden]="!mapReady">
+    <div id="lp-map"></div>
+    <div class="lp-map-hint" *ngIf="mapReady && !selected">
+      <i class="bi bi-hand-index-thumb me-1"></i> Tap anywhere on the map to pin a location
+    </div>
+  </div>
+
+  <!-- Selected location bar -->
+  <div class="lp-selected-bar" *ngIf="selected">
+    <div class="lp-selected-info">
+      <i class="bi bi-geo-alt-fill lp-sel-icon"></i>
+      <div class="lp-sel-text">
+        <div class="lp-sel-name">{{ selected.name }}</div>
+        <div class="lp-sel-coords">{{ selected.lat | number:'1.4-4' }}, {{ selected.lng | number:'1.4-4' }}</div>
+      </div>
+    </div>
+    <button class="lp-confirm-btn" type="button" (click)="confirmSelection()">
+      <i class="bi bi-check-circle-fill me-1"></i> Use This
+    </button>
+  </div>
+
+  <!-- Tip when nothing selected yet -->
+  <div class="lp-footer-tip" *ngIf="!selected && mapReady">
+    Search above or tap on the map, then press <strong>Use This</strong>
+  </div>
+
+</div>

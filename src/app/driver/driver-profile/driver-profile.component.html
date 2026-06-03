@@ -1,0 +1,96 @@
+<div class="driver-app">
+
+  <!-- Loader -->
+  <div *ngIf="isLoading" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="profile-header">
+    <div class="avatar-large">{{ initial }}</div>
+    <h2 class="profile-name">{{ name }}</h2>
+    <p class="profile-role">Driver / Employee</p>
+    <div class="header-badges">
+      <div class="status-badge">
+        <span class="status-dot"></span> Active
+      </div>
+      <div class="licence-badge" *ngIf="licence && licence !== '—'">
+        <i class="bi bi-card-text"></i> {{ licence }}
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-body">
+
+    <!-- Personal info -->
+    <div class="section-label"><span class="section-dot personal"></span> Personal Info</div>
+    <div class="info-card">
+      <div class="info-row" *ngIf="phone">
+        <div class="info-icon-wrap blue"><i class="bi bi-telephone-fill"></i></div>
+        <div>
+          <span class="info-label">Phone</span>
+          <span class="info-value">{{ phone }}</span>
+        </div>
+        <a [href]="'tel:' + phone" class="info-action"><i class="bi bi-telephone"></i></a>
+      </div>
+      <div class="info-row" *ngIf="email">
+        <div class="info-icon-wrap purple"><i class="bi bi-envelope-fill"></i></div>
+        <div>
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ email }}</span>
+        </div>
+      </div>
+      <div class="info-row" *ngIf="dob">
+        <div class="info-icon-wrap green"><i class="bi bi-cake2-fill"></i></div>
+        <div>
+          <span class="info-label">Date of Birth</span>
+          <span class="info-value">{{ dob }} <span class="age-tag" *ngIf="age > 0">Age {{ age }}</span></span>
+        </div>
+      </div>
+      <div class="info-row" *ngIf="address">
+        <div class="info-icon-wrap orange"><i class="bi bi-house-fill"></i></div>
+        <div>
+          <span class="info-label">Address</span>
+          <span class="info-value">{{ address }}</span>
+        </div>
+      </div>
+      <div class="info-row" *ngIf="bankAccount">
+        <div class="info-icon-wrap teal"><i class="bi bi-bank2"></i></div>
+        <div>
+          <span class="info-label">Bank Account</span>
+          <span class="info-value">{{ bankAccount }}</span>
+        </div>
+      </div>
+      <div class="info-row" *ngIf="username">
+        <div class="info-icon-wrap grey"><i class="bi bi-person-fill"></i></div>
+        <div>
+          <span class="info-label">Username</span>
+          <span class="info-value">{{ username }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <button class="logout-btn" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </button>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a routerLink="/driver" class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <i class="bi bi-house-fill nav-icon"></i>
+      <span>Today</span>
+    </a>
+    <a routerLink="/driver-bookings" class="nav-item" routerLinkActive="active">
+      <i class="bi bi-clock-history nav-icon"></i>
+      <span>History</span>
+    </a>
+    <a routerLink="/driver-profile" class="nav-item" routerLinkActive="active">
+      <i class="bi bi-person-circle nav-icon"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+</div>

@@ -1,0 +1,90 @@
+<!-- Backdrop -->
+<div class="backdrop" (click)="close()"></div>
+
+<!-- Bottom sheet -->
+<div class="sheet" [class.success-state]="success">
+
+  <!-- Success -->
+  <div *ngIf="success" class="success-screen">
+    <div class="success-icon">✅</div>
+    <p class="success-text">Expense Saved!</p>
+  </div>
+
+  <!-- Form -->
+  <ng-container *ngIf="!success">
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-header">
+      <span class="sheet-title">Add Expense</span>
+      <button class="close-btn" (click)="close()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <!-- Category grid -->
+    <div class="cat-grid">
+      <button *ngFor="let c of categories" class="cat-btn"
+              [class.active]="selectedCategory === c.value"
+              [style.--cat-color]="c.color"
+              (click)="selectCategory(c.value)">
+        <i class="bi {{ c.icon }} cat-icon"></i>
+        <span>{{ c.label }}</span>
+      </button>
+    </div>
+
+    <!-- Vehicle selector -->
+    <div class="field-group">
+      <label class="field-label">Vehicle</label>
+
+      <div *ngIf="vehiclesLoading" class="vehicle-loading">
+        <span class="mini-spin" style="border-color: rgba(99,102,241,0.3); border-top-color: #6366f1;"></span>
+        <span style="font-size:12px; color:#9ca3af; margin-left:8px;">Loading vehicles…</span>
+      </div>
+
+      <div *ngIf="!vehiclesLoading && vehicles.length === 0" class="vehicle-empty">
+        No vehicles found
+      </div>
+
+      <div *ngIf="!vehiclesLoading && vehicles.length > 0" class="vehicle-scroll">
+        <button *ngFor="let v of vehicles"
+                class="vehicle-pill"
+                [class.active]="selectedVehicleId === vehicleId(v)"
+                (click)="selectVehicle(vehicleId(v))">
+          <i class="bi bi-car-front-fill"></i>
+          {{ vehicleName(v) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Amount -->
+    <div class="field-group">
+      <label class="field-label">Amount (₹)</label>
+      <div class="amount-input-wrap">
+        <span class="rupee">₹</span>
+        <input type="number" inputmode="decimal" class="amount-input"
+               placeholder="0.00" [(ngModel)]="amount" min="0" />
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="field-group">
+      <label class="field-label">Date</label>
+      <input type="date" class="date-input" [(ngModel)]="expDate" />
+    </div>
+
+    <!-- Notes -->
+    <div class="field-group">
+      <label class="field-label">Notes <span class="optional">(optional)</span></label>
+      <textarea class="notes-input" rows="2" placeholder="e.g. Petrol at HP pump, Calangute"
+                [(ngModel)]="notes"></textarea>
+    </div>
+
+    <!-- Error -->
+    <p class="error-msg" *ngIf="error">{{ error }}</p>
+
+    <!-- Submit -->
+    <button class="submit-btn" (click)="submit()" [disabled]="saving">
+      <span *ngIf="!saving"><i class="bi bi-check-circle-fill"></i> Save Expense</span>
+      <span *ngIf="saving" class="spin-wrap"><span class="mini-spin"></span> Saving…</span>
+    </button>
+  </ng-container>
+
+</div>

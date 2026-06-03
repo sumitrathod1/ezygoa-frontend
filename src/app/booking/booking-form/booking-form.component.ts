@@ -13,7 +13,7 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
@@ -31,6 +31,10 @@ import {
 } from '@angular/material/autocomplete';
 import { map, Observable, startWith } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import {
+  LocationPickerComponent,
+  PickedLocation,
+} from '../../shared/location-picker/location-picker.component';
 
 @Component({
   selector: 'app-booking-form',
@@ -100,6 +104,7 @@ export class BookingFormComponent implements OnInit {
     private _agentService: AgentService,
     private _toastr: ToastrService,
     private _dilog: Dialog,
+    private _matDialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.bookingForm = _fb.group({
@@ -415,6 +420,31 @@ export class BookingFormComponent implements OnInit {
   setAmPm(val: 'AM' | 'PM') {
     this.timeAmPm = val;
     this.updateMainTime();
+  }
+
+  openLocationPicker(field: 'from' | 'to', label: string, dayIndex?: number) {
+    const current =
+      dayIndex !== undefined
+        ? this.dayWiseBookings.at(dayIndex).get(field)?.value ?? ''
+        : this.bookingForm.get(field)?.value ?? '';
+
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px',
+      maxWidth: '100vw',
+      height: '90vh',
+      maxHeight: '90vh',
+      panelClass: 'lp-dialog-panel',
+      data: { current, label },
+    });
+
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (!picked) return;
+      if (dayIndex !== undefined) {
+        this.dayWiseBookings.at(dayIndex).patchValue({ [field]: picked.name });
+      } else {
+        this.bookingForm.patchValue({ [field]: picked.name });
+      }
+    });
   }
 
   clossBooking() {

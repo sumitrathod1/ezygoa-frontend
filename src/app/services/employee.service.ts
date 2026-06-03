@@ -58,6 +58,10 @@ export class EmployeeService {
     return this._http.get(`${this.baseUrl}getall-Users`);
   }
 
+  getUserById(id: number): Observable<any> {
+    return this._http.get(`${this.baseUrl}get-user`, { params: { id } });
+  }
+
   getDeletedEmployees(): Observable<any> {
     return this._http.get(`${this.baseUrl}getall-deleted`);
   }

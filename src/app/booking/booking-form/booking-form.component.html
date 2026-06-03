@@ -44,38 +44,32 @@
               </mat-form-field>
             </div>
             <div class="col-6">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>From</mat-label>
-                <input
-                  matInput
-                  placeholder="Type or select"
-                  formControlName="from"
-                  [matAutocomplete]="autoFrom"
-                  #fromTrigger="matAutocompleteTrigger"
-                  (focus)="fromTrigger.openPanel()"
-                  autocomplete="off"
-                />
-                <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
-                  <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">{{ s }}</mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
+              <label class="field-label mt-1"><i class="bi bi-geo-alt"></i> From</label>
+              <button
+                type="button"
+                class="loc-picker-btn"
+                (click)="openLocationPicker('from', 'From Location', i)"
+              >
+                <i class="bi bi-geo-alt-fill loc-btn-icon"></i>
+                <span class="loc-btn-text" [class.loc-btn-placeholder]="!dayCtrl.get('from')?.value">
+                  {{ dayCtrl.get('from')?.value || 'Tap to select' }}
+                </span>
+                <i class="bi bi-chevron-right loc-btn-arrow"></i>
+              </button>
             </div>
             <div class="col-6">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>To</mat-label>
-                <input
-                  matInput
-                  placeholder="Type or select"
-                  formControlName="to"
-                  [matAutocomplete]="autoTo"
-                  #toTrigger="matAutocompleteTrigger"
-                  (focus)="toTrigger.openPanel()"
-                  autocomplete="off"
-                />
-                <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
-                  <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">{{ s }}</mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
+              <label class="field-label mt-1"><i class="bi bi-geo-alt-fill"></i> To</label>
+              <button
+                type="button"
+                class="loc-picker-btn"
+                (click)="openLocationPicker('to', 'To Location', i)"
+              >
+                <i class="bi bi-geo-alt-fill loc-btn-icon loc-btn-icon--to"></i>
+                <span class="loc-btn-text" [class.loc-btn-placeholder]="!dayCtrl.get('to')?.value">
+                  {{ dayCtrl.get('to')?.value || 'Tap to select' }}
+                </span>
+                <i class="bi bi-chevron-right loc-btn-arrow"></i>
+              </button>
             </div>
             <div class="col-6">
               <mat-form-field appearance="outline" class="w-100">
@@ -301,39 +295,33 @@
         <div class="col-12 col-sm-6">
           <div class="field-wrap">
             <label class="field-label"><i class="bi bi-geo-alt"></i> From</label>
-            <mat-form-field appearance="outline" class="w-100">
-              <input
-                matInput
-                placeholder="Type or select"
-                formControlName="from"
-                [matAutocomplete]="autoFrom"
-                #fromTrigger="matAutocompleteTrigger"
-                (focus)="fromTrigger.openPanel()"
-                autocomplete="off"
-              />
-              <mat-autocomplete #autoFrom="matAutocomplete" autoActiveFirstOption>
-                <mat-option *ngFor="let s of filteredFrom$ | async" [value]="s">{{ s }}</mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
+            <button
+              type="button"
+              class="loc-picker-btn"
+              (click)="openLocationPicker('from', 'From Location')"
+            >
+              <i class="bi bi-geo-alt-fill loc-btn-icon"></i>
+              <span class="loc-btn-text" [class.loc-btn-placeholder]="!bookingForm.get('from')?.value">
+                {{ bookingForm.get('from')?.value || 'Tap to select pickup location' }}
+              </span>
+              <i class="bi bi-chevron-right loc-btn-arrow"></i>
+            </button>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="field-wrap">
             <label class="field-label"><i class="bi bi-geo-alt-fill"></i> To</label>
-            <mat-form-field appearance="outline" class="w-100">
-              <input
-                matInput
-                placeholder="Type or select"
-                formControlName="to"
-                [matAutocomplete]="autoTo"
-                #toTrigger="matAutocompleteTrigger"
-                (focus)="toTrigger.openPanel()"
-                autocomplete="off"
-              />
-              <mat-autocomplete #autoTo="matAutocomplete" autoActiveFirstOption>
-                <mat-option *ngFor="let s of filteredTo$ | async" [value]="s">{{ s }}</mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
+            <button
+              type="button"
+              class="loc-picker-btn"
+              (click)="openLocationPicker('to', 'To Location')"
+            >
+              <i class="bi bi-geo-alt-fill loc-btn-icon loc-btn-icon--to"></i>
+              <span class="loc-btn-text" [class.loc-btn-placeholder]="!bookingForm.get('to')?.value">
+                {{ bookingForm.get('to')?.value || 'Tap to select drop location' }}
+              </span>
+              <i class="bi bi-chevron-right loc-btn-arrow"></i>
+            </button>
           </div>
         </div>
         <div class="col-12 col-sm-6">

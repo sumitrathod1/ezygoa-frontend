@@ -83,22 +83,22 @@ export class DatePerBookingsComponent {
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
+        const bookingId = booking.bookingId ?? booking.BookingId;
+        const travelDate = booking.travelDate ?? booking.TravelDate ?? new Date().toISOString().split('T')[0];
         this._bookingService
-          .cancelBooking(booking.bookingId, '2025-02-10', 'User')
+          .cancelBooking(bookingId, travelDate, 'User')
           .subscribe({
             next: (res) => {
               this.bookings = this.bookings.filter(
-                (b) => b.bookingId !== booking.bookingId
+                (b) => (b.bookingId ?? b.BookingId) !== bookingId
               );
               this.calculateTotals();
-              this._totastr.success(
-                'Booking cancelled successfully:',
-                'Success'
-              );
+              this._totastr.success('Booking cancelled successfully', 'Success');
               this._bookingService.notifyBookingUpdated();
             },
             error: (err) => {
-              this._totastr.error('Error cancelling booking:', err);
+              const message = err?.error?.message || 'Error cancelling booking';
+              this._totastr.error(message, 'Error');
             },
           });
       }
@@ -141,6 +141,12 @@ export class DatePerBookingsComponent {
 
   getBalance(b: any): number {
     return (b.amount || 0) - (b.advancePaid || 0);
+  }
+
+  /** Opens Google Maps navigation from driver's current location to the given place */
+  mapsUrl(location: string): string {
+    if (!location || location === '—') return '#';
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`;
   }
 
   openInvoice(booking: any) {

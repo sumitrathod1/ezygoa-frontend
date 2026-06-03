@@ -1,22 +1,94 @@
-<div class="container py-3">
-  <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle shadow rounded">
-      <thead class="table-primary">
-        <tr>
-          <th scope="col">Date</th>
-          <th scope="col">Customer</th>
-          <th scope="col">Pickup</th>
-          <th scope="col">Dropoff</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let expense of pastBookings">
-          <td>{{ expense.travelDate | date }}</td>
-          <td>{{ expense.customer.customerName }}</td>
-          <td>{{ expense.from }}</td>
-          <td>{{ expense.to }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<div class="driver-app">
+
+  <!-- Header -->
+  <header class="db-header">
+    <div class="header-top">
+      <div>
+        <h2 class="db-title">Trip History</h2>
+        <p class="db-sub">{{ pastBookings.length }} of {{ allPast.length }} trips</p>
+      </div>
+      <button *ngIf="searchText || selectedMonth" class="clear-btn" (click)="clearFilters()">
+        Clear filters
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" class="search-input" placeholder="Search customer, pickup, drop…"
+             [(ngModel)]="searchText" (ngModelChange)="applyFilter()" />
+    </div>
+
+    <!-- Month pills -->
+    <div class="month-scroll" *ngIf="monthOptions.length > 1">
+      <button class="month-pill" [class.active]="!selectedMonth"
+              (click)="selectedMonth=''; applyFilter()">All</button>
+      <button *ngFor="let mo of monthOptions"
+              class="month-pill" [class.active]="selectedMonth === mo.value"
+              (click)="selectedMonth = mo.value; applyFilter()">
+        {{ mo.label }}
+      </button>
+    </div>
+  </header>
+
+  <!-- List -->
+  <main class="db-body">
+
+    <div *ngIf="pastBookings.length === 0" class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p class="empty-title">No trips found</p>
+      <p class="empty-sub">Try a different search or month.</p>
+    </div>
+
+    <div *ngFor="let b of pastBookings" class="booking-card">
+      <div class="card-header-row">
+        <span class="date-chip">{{ b.travelDate | date:'EEE, d MMM yyyy' }}</span>
+        <span class="ride-time">{{ formatTime(b.traveltime) }}</span>
+      </div>
+
+      <div class="customer-row">
+        <div class="customer-avatar">{{ b.customer?.customerName?.[0] | uppercase }}</div>
+        <div class="customer-info">
+          <span class="customer-name">{{ b.customer?.customerName }}</span>
+          <span class="customer-meta">{{ b.pax }} pax &bull; {{ b.bookingType }}</span>
+        </div>
+        <div class="amount-pill">₹{{ b.amount }}</div>
+      </div>
+
+      <div class="route-block">
+        <div class="route-line">
+          <span class="route-dot from-dot"></span>
+          <a *ngIf="b.from; else noFrom" [href]="mapsUrl(b.from)" target="_blank" class="route-text route-link">
+            {{ b.from }}
+          </a>
+          <ng-template #noFrom><span class="route-text muted-text">—</span></ng-template>
+        </div>
+        <div class="route-connector"></div>
+        <div class="route-line">
+          <span class="route-dot to-dot"></span>
+          <a *ngIf="b.to; else noTo" [href]="mapsUrl(b.to)" target="_blank" class="route-text route-link to-link">
+            {{ b.to }}
+          </a>
+          <ng-template #noTo><span class="route-text muted-text">—</span></ng-template>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a routerLink="/driver" class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <i class="bi bi-house-fill nav-icon"></i>
+      <span>Today</span>
+    </a>
+    <a routerLink="/driver-bookings" class="nav-item" routerLinkActive="active">
+      <i class="bi bi-clock-history nav-icon"></i>
+      <span>History</span>
+    </a>
+    <a routerLink="/driver-profile" class="nav-item" routerLinkActive="active">
+      <i class="bi bi-person-circle nav-icon"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
 </div>

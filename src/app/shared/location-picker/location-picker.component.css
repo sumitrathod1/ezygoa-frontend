@@ -1,0 +1,332 @@
+.lp-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+/* ── Header ── */
+.lp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.lp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-header-icon {
+  font-size: 22px;
+  opacity: 0.9;
+}
+
+.lp-header-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.lp-header-sub {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 1px;
+}
+
+.lp-close-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.lp-close-btn:hover { background: rgba(255,255,255,0.28); }
+
+/* ── Search bar ── */
+.lp-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px 6px;
+  flex-shrink: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.lp-search-icon {
+  position: absolute;
+  left: 24px;
+  color: #6366f1;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.lp-search-input {
+  width: 100%;
+  padding: 11px 40px 11px 40px;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #1e1b4b;
+  background: #f8faff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.lp-search-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: #fff;
+}
+.lp-search-input::placeholder { color: #9ca3af; }
+
+.lp-search-spinner {
+  position: absolute;
+  right: 24px;
+}
+
+.lp-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e0e7ff;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.lp-clear-btn {
+  position: absolute;
+  right: 24px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 17px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.lp-clear-btn:hover { color: #6366f1; }
+
+/* ── API Error ── */
+.lp-api-error {
+  margin: 6px 12px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── Recent picks ── */
+.lp-recent {
+  padding: 4px 12px 8px;
+  flex-shrink: 0;
+}
+
+.lp-recent-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
+}
+
+.lp-recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lp-recent-chip {
+  background: #f0f4ff;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 20px;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lp-recent-chip:hover {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+
+/* ── Map skeleton loader ── */
+.lp-map-skeleton {
+  flex: 1;
+  margin: 0 12px 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #e0e7ff;
+  position: relative;
+  min-height: 200px;
+  background: #f1f5ff;
+}
+
+.lp-skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #f1f5ff 25%, #e0e7ff 50%, #f1f5ff 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.lp-map-loading-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+}
+
+/* ── Map container ── */
+.lp-map-container {
+  flex: 1;
+  position: relative;
+  min-height: 200px;
+  margin: 0 12px 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #e0e7ff;
+}
+
+.lp-map-hidden {
+  display: none;
+}
+
+#lp-map {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.lp-map-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,27,75,0.78);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── Selected location bar ── */
+.lp-selected-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f0f4ff;
+  border-top: 2px solid #e0e7ff;
+  flex-shrink: 0;
+}
+
+.lp-selected-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.lp-sel-icon {
+  font-size: 22px;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.lp-sel-text { min-width: 0; }
+
+.lp-sel-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e1b4b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-sel-coords {
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.lp-confirm-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.lp-confirm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+}
+
+/* ── Footer tip ── */
+.lp-footer-tip {
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  padding: 8px 12px 10px;
+  flex-shrink: 0;
+}
+
+/* ── Mobile tweaks ── */
+@media (max-width: 480px) {
+  .lp-header-title { font-size: 14px; }
+  .lp-confirm-btn  { padding: 9px 12px; font-size: 12px; }
+}

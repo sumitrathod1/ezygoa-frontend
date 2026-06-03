@@ -1,0 +1,165 @@
+.driver-app {
+  min-height: 100dvh; background: #f4f6fb;
+  display: flex; flex-direction: column;
+  max-width: 480px; margin: 0 auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Loader */
+.loader-overlay {
+  position: fixed; inset: 0; background: rgba(255,255,255,0.85);
+  display: flex; align-items: center; justify-content: center; z-index: 99;
+}
+.loader-spinner {
+  width: 40px; height: 40px; border: 4px solid #e0e7ff;
+  border-top-color: #6366f1; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Header */
+.profile-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #fff; padding: 1.8rem 1rem 1.2rem;
+  border-radius: 0 0 28px 28px; text-align: center;
+  box-shadow: 0 4px 20px rgba(79,70,229,0.3);
+}
+.avatar-large {
+  width: 78px; height: 78px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 3px solid rgba(255,255,255,0.5);
+  font-size: 32px; font-weight: 800; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.profile-name { font-size: 22px; font-weight: 800; margin: 0 0 3px; }
+.profile-role { font-size: 12px; opacity: 0.75; margin: 0 0 10px; }
+
+.header-badges { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.status-badge, .licence-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.3);
+}
+
+/* Salary summary in header */
+.salary-summary {
+  display: flex; align-items: center;
+  background: rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 10px 16px;
+  margin: 0 -4px;
+}
+.sal-item { flex: 1; text-align: center; }
+.sal-label { display: block; font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: .5px; }
+.sal-value { display: block; font-size: 18px; font-weight: 800; }
+.sal-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.25); margin: 0 8px; }
+
+/* Body */
+.profile-body { flex: 1; padding: 1rem; padding-bottom: 90px; }
+
+/* Section label */
+.section-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px;
+  color: #6b7280; margin: 1.2rem 0 0.6rem;
+}
+.section-dot { width: 8px; height: 8px; border-radius: 50%; }
+.section-dot.personal { background: #6366f1; }
+.section-dot.salary   { background: #f59e0b; }
+
+/* Info card */
+.info-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.info-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-bottom: 1px solid #f3f4f6;
+}
+.info-row:last-child { border-bottom: none; }
+.info-icon-wrap {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.info-icon-wrap.blue   { background: #dbeafe; color: #2563eb; }
+.info-icon-wrap.purple { background: #ede9fe; color: #7c3aed; }
+.info-icon-wrap.green  { background: #dcfce7; color: #16a34a; }
+.info-icon-wrap.orange { background: #fef3c7; color: #d97706; }
+.info-icon-wrap.teal   { background: #d1fae5; color: #059669; }
+.info-icon-wrap.grey   { background: #f3f4f6; color: #6b7280; }
+.info-row > div { flex: 1; min-width: 0; }
+.info-label { display: block; font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; }
+.info-value { display: block; font-size: 14px; font-weight: 600; color: #111827; }
+.age-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  background: #ede9fe; color: #6d28d9;
+  padding: 1px 7px; border-radius: 10px; margin-left: 6px;
+}
+.info-action {
+  color: #6366f1; font-size: 18px; text-decoration: none; flex-shrink: 0;
+}
+
+/* Salary history */
+.salary-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden;
+}
+.salary-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px; border-bottom: 1px solid #f3f4f6;
+}
+.salary-row:last-child { border-bottom: none; }
+.salary-row.current { background: #fafafe; }
+.salary-month { display: block; font-size: 13px; font-weight: 600; color: #374151; }
+.salary-amount { display: block; font-size: 18px; font-weight: 800; color: #111827; }
+.paid-date { display: block; font-size: 10px; color: #9ca3af; }
+.salary-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700;
+  padding: 5px 12px; border-radius: 20px;
+}
+.salary-badge.paid    { background: #dcfce7; color: #166534; }
+.salary-badge.pending { background: #fef3c7; color: #92400e; }
+
+/* Empty */
+.empty-state.small-empty {
+  text-align: center; padding: 1.5rem;
+  color: #9ca3af; font-size: 13px;
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+/* Logout */
+.logout-btn {
+  width: 100%; margin-top: 1.5rem; padding: 13px;
+  background: #fff; border: 1.5px solid #fee2e2;
+  border-radius: 14px; color: #dc2626;
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: background 0.15s;
+}
+.logout-btn:active { background: #fef2f2; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; background: #fff;
+  border-top: 1px solid #e5e7eb; display: flex;
+  padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+  z-index: 100; box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; font-size: 10px; font-weight: 600; color: #9ca3af;
+  text-decoration: none; padding: 4px 0;
+  text-transform: uppercase; letter-spacing: .4px; transition: color 0.15s;
+}
+.nav-item.active { color: #6366f1; }
+.nav-icon { font-size: 20px; }
