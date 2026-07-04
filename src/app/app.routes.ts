@@ -281,6 +281,12 @@ export const routes: Routes = [
     data: { role: 'Admin' },
   },
   {
+    path: 'super-admin',
+    loadComponent: () =>
+      import('./super-admin/super-admin.component').then((m) => m.SuperAdminComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./not-found/not-found.component').then((m) => m.NotFoundComponent),

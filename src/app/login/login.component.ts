@@ -65,6 +65,8 @@ export class LoginComponent {
           this.router.navigate(['/home']);
         } else if (role === 'Employee') {
           this.router.navigate(['/driver']);
+        } else if (role === 'SuperAdmin') {
+          this.router.navigate(['/super-admin']);
         } else {
           this._toastr.warning('Unknown role. Contact admin.', 'Warning');
         }

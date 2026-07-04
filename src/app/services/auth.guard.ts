@@ -5,7 +5,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const helper = new JwtHelperService();
-  const token = localStorage.getItem('token');
+  const token  = localStorage.getItem('token');
 
   if (state.url.includes('/forget')) {
     return true;
@@ -17,9 +17,22 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  const decoded = helper.decodeToken(token);
+  const decoded  = helper.decodeToken(token);
   const userRole =
     decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+  // SuperAdmin can ONLY access /super-admin
+  if (userRole === 'SuperAdmin') {
+    if (state.url.startsWith('/super-admin')) return true;
+    router.navigate(['/super-admin']);
+    return false;
+  }
+
+  // Non-SuperAdmin cannot access /super-admin
+  if (state.url.startsWith('/super-admin')) {
+    router.navigate(['/login']);
+    return false;
+  }
 
   const allowedRoles = route.data?.['role'];
   const rolesArray: string[] = Array.isArray(allowedRoles)
@@ -36,5 +49,6 @@ export const authGuard: CanActivateFn = (route, state) => {
     }
     return false;
   }
+
   return true;
 };

@@ -134,6 +134,9 @@
       <div class="duration">
         <div>{{ booking.bookingType }}</div>
         <div>Driver: {{ booking.userName }}</div>
+        <div *ngIf="booking.createdByName" class="added-by">
+          <i class="bi bi-person-plus"></i> Added by: {{ booking.createdByName }}
+        </div>
       </div>
     </div>
 

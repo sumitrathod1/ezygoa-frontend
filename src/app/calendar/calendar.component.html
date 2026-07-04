@@ -10,13 +10,11 @@
     </button>
   </div>
 
-  <!-- Legend -->
-  <div class="legend-row">
-    <span class="legend-chip"><span class="color-dot" style="background:red"></span>Dzire</span>
-    <span class="legend-chip"><span class="color-dot" style="background:#003cff"></span>Ertiga</span>
-    <span class="legend-chip"><span class="color-dot" style="background:#22c55e"></span>TT20</span>
-    <span class="legend-chip"><span class="color-dot" style="background:black"></span>Urbania</span>
-    <span class="legend-chip"><span class="color-dot" style="background:brown"></span>Extra</span>
+  <!-- Legend — dynamic from this month's bookings, hidden when no bookings -->
+  <div class="legend-row" *ngIf="legendItems.length > 0">
+    <span class="legend-chip" *ngFor="let item of legendItems">
+      <span class="color-dot" [style.background]="item.color"></span>{{ item.name }}
+    </span>
   </div>
 
   <!-- Grid -->

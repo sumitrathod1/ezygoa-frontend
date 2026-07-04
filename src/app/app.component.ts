@@ -103,7 +103,9 @@ export class AppComponent implements OnInit {
       .subscribe((role) => {
         const currentUrl = this.router.url;
         if (currentUrl === '/' || currentUrl === '' || currentUrl === '/login') {
-          if (role) {
+          if (role === 'SuperAdmin') {
+            this.router.navigate(['/super-admin']);
+          } else if (role) {
             this.router.navigate(['/home']);
           } else {
             this.router.navigate(['/login']);

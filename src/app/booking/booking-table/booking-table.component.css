@@ -291,3 +291,11 @@
     font-size: 13px;
   }
 }
+
+/* Added-by audit badge */
+.added-by {
+  font-size: 11px;
+  color: #a0a0b8;
+  margin-top: 2px;
+  white-space: nowrap;
+}

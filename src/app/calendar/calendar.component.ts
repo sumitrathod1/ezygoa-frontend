@@ -55,6 +55,18 @@ export class CalendarComponent implements OnChanges {
   // Summary mode when calendarSummary input is wired up
   get isSummaryMode(): boolean { return this.calendarSummary.length > 0 || this.popupLoading; }
 
+  // Dynamic legend — only vehicles that appear in this month's bookings
+  get legendItems(): { name: string; color: string }[] {
+    const seen = new Map<string, string>();
+    for (const item of this.calendarSummary) {
+      for (const name of (item.vehicleNames as string[])) {
+        if (!seen.has(name))
+          seen.set(name, VEHICLE_COLOR_MAP[name] ?? DEFAULT_COLOR);
+      }
+    }
+    return Array.from(seen.entries()).map(([name, color]) => ({ name, color }));
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['newBookings'] && !this.isSummaryMode) {
       this.bookings = this.newBookings.map(b => ({

@@ -56,6 +56,11 @@
       </div>
     </ng-container>
 
+    <!-- SuperAdmin: full-screen standalone shell, no sidebar/header/footer -->
+    <ng-container *ngIf="role === 'SuperAdmin'">
+      <router-outlet></router-outlet>
+    </ng-container>
+
   </div>
 </ng-container>
 
