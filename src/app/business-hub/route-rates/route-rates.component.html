@@ -1,0 +1,214 @@
+<div class="rr-page">
+
+  <!-- Header -->
+  <div class="rr-top">
+    <button class="rr-back-btn" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+      <h1 class="rr-title">Route Rates</h1>
+      <p class="rr-sub">{{ rates.length }} rate{{ rates.length !== 1 ? 's' : '' }} loaded</p>
+    </div>
+    <button class="rr-new-btn" (click)="openCreate()" *ngIf="isAdmin">
+      <i class="bi bi-plus-lg"></i> Add Rate
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="rr-filter-bar">
+    <select class="rr-select" [(ngModel)]="filterFrom">
+      <option value="">All From Places</option>
+      <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+    </select>
+    <select class="rr-select" [(ngModel)]="filterTo">
+      <option value="">All To Places</option>
+      <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+    </select>
+    <select class="rr-select" [(ngModel)]="filterVehicle">
+      <option value="">All Vehicles</option>
+      <option *ngFor="let v of vehicleTypes" [value]="v">{{ v }}</option>
+    </select>
+    <button class="rr-filter-btn" (click)="load()">
+      <i class="bi bi-funnel-fill"></i> Filter
+    </button>
+    <button class="rr-clear-btn" (click)="clearFilters()">
+      <i class="bi bi-x-lg"></i> Clear
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div class="rr-error" *ngIf="error">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="rr-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+
+  <!-- Empty -->
+  <div class="rr-empty" *ngIf="!loading && rates.length === 0 && !error">
+    <i class="bi bi-currency-rupee rr-empty-icon"></i>
+    <p>No rates found for the selected filters.</p>
+  </div>
+
+  <!-- Rates Table -->
+  <div class="rr-table-wrap" *ngIf="!loading && rates.length > 0">
+    <table class="rr-table">
+      <thead>
+        <tr>
+          <th>From</th>
+          <th>To</th>
+          <th>Vehicle</th>
+          <th class="text-right">Price</th>
+          <th class="text-right">Peak</th>
+          <th *ngIf="isAdmin" class="text-right">Floor</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rates" [class.row-inactive]="!r.isActive">
+          <td class="rr-place">{{ placeName(r.fromPlaceId) }}</td>
+          <td class="rr-place">{{ placeName(r.toPlaceId) }}</td>
+          <td><span class="rr-vehicle-badge">{{ r.vehicleType }}</span></td>
+          <td class="text-right rr-price">₹{{ r.price | number }}</td>
+          <td class="text-right rr-peak">
+            <span *ngIf="r.peakPrice">₹{{ r.peakPrice | number }}</span>
+            <span *ngIf="!r.peakPrice" class="rr-na">—</span>
+          </td>
+          <td class="text-right rr-floor" *ngIf="isAdmin">
+            <span *ngIf="r.floorPrice">₹{{ r.floorPrice | number }}</span>
+            <span *ngIf="!r.floorPrice" class="rr-na">—</span>
+          </td>
+          <td>
+            <span class="rr-status" [ngClass]="r.isActive ? 'status-active' : 'status-inactive'">
+              {{ r.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td *ngIf="isAdmin">
+            <button class="rr-act-btn edit" (click)="openEdit(r)">
+              <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Quote Tester ── -->
+  <div class="rr-quote-section">
+    <div class="rr-quote-header">
+      <i class="bi bi-calculator-fill"></i>
+      <h2 class="rr-quote-title">Quote Tester</h2>
+    </div>
+
+    <div class="rr-quote-bar">
+      <select class="rr-select" [(ngModel)]="quoteFrom">
+        <option value="">From Place…</option>
+        <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+      </select>
+      <select class="rr-select" [(ngModel)]="quoteTo">
+        <option value="">To Place…</option>
+        <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+      </select>
+      <button class="rr-filter-btn" (click)="getQuote()" [disabled]="!quoteFrom || !quoteTo || quoteLoading">
+        <i class="bi" [ngClass]="quoteLoading ? 'bi-hourglass-split' : 'bi-search'"></i>
+        {{ quoteLoading ? 'Getting…' : 'Get Quote' }}
+      </button>
+      <button class="rr-clear-btn" (click)="clearQuote()" *ngIf="quoteResult || quoteError">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Quote error / restriction notice -->
+    <div class="rr-quote-error" *ngIf="quoteError">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ quoteError }}
+    </div>
+
+    <!-- Quote results -->
+    <div class="rr-quote-result" *ngIf="quoteResult">
+      <p class="rr-quote-route">
+        <i class="bi bi-geo-alt-fill"></i> {{ quoteResult.from.name }}
+        <i class="bi bi-arrow-right"></i>
+        <i class="bi bi-geo-alt-fill"></i> {{ quoteResult.to.name }}
+      </p>
+      <table class="rr-table rr-quote-table">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th class="text-right">Base Price</th>
+            <th class="text-right">Peak Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rate of quoteResult.rates">
+            <td><span class="rr-vehicle-badge">{{ rate.vehicleType }}</span></td>
+            <td class="text-right rr-price">₹{{ rate.price | number }}</td>
+            <td class="text-right rr-peak">
+              <span *ngIf="rate.peakPrice">₹{{ rate.peakPrice | number }}</span>
+              <span *ngIf="!rate.peakPrice" class="rr-na">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Form overlay ── -->
+  <div class="rr-overlay" *ngIf="showForm" (click)="closeForm()"></div>
+  <div class="rr-form-panel" *ngIf="showForm">
+    <div class="rr-form-header">
+      <h2>{{ editingId ? 'Edit Rate' : 'Add Rate' }}</h2>
+      <button class="rr-form-close" (click)="closeForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="rr-form-error" *ngIf="saveError">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ saveError }}
+    </div>
+
+    <div class="rr-form-body">
+      <label class="rr-label">From Place *</label>
+      <select class="rr-input" [(ngModel)]="form.fromPlaceId">
+        <option [ngValue]="0" disabled>Select place…</option>
+        <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+      </select>
+
+      <label class="rr-label">To Place *</label>
+      <select class="rr-input" [(ngModel)]="form.toPlaceId">
+        <option [ngValue]="0" disabled>Select place…</option>
+        <option *ngFor="let p of places" [ngValue]="p.placeId">{{ p.name }}</option>
+      </select>
+
+      <label class="rr-label">Vehicle Type *</label>
+      <select class="rr-input" [(ngModel)]="form.vehicleType">
+        <option value="" disabled>Select vehicle…</option>
+        <option *ngFor="let v of vehicleTypes" [value]="v">{{ v }}</option>
+      </select>
+
+      <label class="rr-label">Base Price (₹) *</label>
+      <input class="rr-input" type="number" min="0" [(ngModel)]="form.price" placeholder="e.g. 1200" />
+
+      <label class="rr-label">Peak Price (₹) <span class="rr-hint">optional</span></label>
+      <input class="rr-input" type="number" min="0" [(ngModel)]="form.peakPrice" placeholder="e.g. 1500" />
+
+      <label class="rr-label">Floor Price (₹) <span class="rr-hint">internal — never shown to customers</span></label>
+      <input class="rr-input" type="number" min="0" [(ngModel)]="form.floorPrice" placeholder="e.g. 900" />
+
+      <div class="rr-checkrow">
+        <label class="rr-check-label">
+          <input type="checkbox" [(ngModel)]="form.isActive" /> Active
+        </label>
+      </div>
+    </div>
+
+    <div class="rr-form-footer">
+      <button class="rr-cancel-btn" (click)="closeForm()">Cancel</button>
+      <button class="rr-save-btn" (click)="save()" [disabled]="saving">
+        <i class="bi" [ngClass]="saving ? 'bi-hourglass-split' : 'bi-check-lg'"></i>
+        {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Create') }}
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,137 @@
+<div class="pl-page">
+
+  <!-- Header -->
+  <div class="pl-top">
+    <button class="pl-back-btn" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+      <h1 class="pl-title">Places</h1>
+      <p class="pl-sub">{{ places.length }} location{{ places.length !== 1 ? 's' : '' }} configured</p>
+    </div>
+    <button class="pl-new-btn" (click)="openCreate()" *ngIf="isAdmin">
+      <i class="bi bi-plus-lg"></i> Add Place
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="pl-toolbar">
+    <div class="pl-search-wrap">
+      <i class="bi bi-search pl-search-icon"></i>
+      <input class="pl-search" type="text" placeholder="Search by name or alias…" [(ngModel)]="searchQuery" />
+    </div>
+    <label class="pl-inactive-toggle">
+      <input type="checkbox" [checked]="showInactive" (change)="toggleInactive()" />
+      Show inactive
+    </label>
+  </div>
+
+  <!-- Error -->
+  <div class="pl-error" *ngIf="error">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="pl-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+
+  <!-- Empty -->
+  <div class="pl-empty" *ngIf="!loading && filtered.length === 0">
+    <i class="bi bi-geo-alt pl-empty-icon"></i>
+    <p>{{ searchQuery ? 'No places match your search.' : 'No places found.' }}</p>
+  </div>
+
+  <!-- Table -->
+  <div class="pl-table-wrap" *ngIf="!loading && filtered.length > 0">
+    <table class="pl-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Zone</th>
+          <th>Pickup</th>
+          <th>Drop</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filtered" [class.row-inactive]="!p.isActive">
+          <td>
+            <div class="pl-name">{{ p.name }}</div>
+            <div class="pl-alias" *ngIf="p.aliases">{{ p.aliases }}</div>
+          </td>
+          <td><span class="pl-zone-badge" [ngClass]="zoneBadgeClass(p.zone)">{{ zoneLabels[p.zone] }}</span></td>
+          <td>
+            <i class="bi" [ngClass]="p.pickupAllowed ? 'bi-check-circle-fill text-ok' : 'bi-x-circle-fill text-no'"></i>
+          </td>
+          <td>
+            <i class="bi" [ngClass]="p.dropAllowed ? 'bi-check-circle-fill text-ok' : 'bi-x-circle-fill text-no'"></i>
+          </td>
+          <td>
+            <span class="pl-status" [ngClass]="p.isActive ? 'status-active' : 'status-inactive'">
+              {{ p.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td *ngIf="isAdmin">
+            <button class="pl-act-btn edit" (click)="openEdit(p)">
+              <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Form overlay -->
+  <div class="pl-overlay" *ngIf="showForm" (click)="closeForm()"></div>
+  <div class="pl-form-panel" *ngIf="showForm">
+    <div class="pl-form-header">
+      <h2>{{ editingId ? 'Edit Place' : 'Add Place' }}</h2>
+      <button class="pl-form-close" (click)="closeForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="pl-form-error" *ngIf="saveError">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ saveError }}
+    </div>
+
+    <div class="pl-form-body">
+      <label class="pl-label">Name *</label>
+      <input class="pl-input" type="text" [(ngModel)]="form.name" placeholder="e.g. Calangute" />
+
+      <label class="pl-label">Aliases <span class="pl-hint">(comma-separated)</span></label>
+      <input class="pl-input" type="text" [(ngModel)]="form.aliases" placeholder="e.g. Calangute Beach" />
+
+      <label class="pl-label">Zone</label>
+      <select class="pl-input" [(ngModel)]="form.zone">
+        <option *ngFor="let z of zoneOptions" [ngValue]="z.value">{{ z.label }}</option>
+      </select>
+
+      <div class="pl-checkrow">
+        <label class="pl-check-label">
+          <input type="checkbox" [(ngModel)]="form.pickupAllowed" /> Pickup allowed
+        </label>
+        <label class="pl-check-label">
+          <input type="checkbox" [(ngModel)]="form.dropAllowed" /> Drop allowed
+        </label>
+        <label class="pl-check-label">
+          <input type="checkbox" [(ngModel)]="form.isActive" /> Active
+        </label>
+      </div>
+
+      <label class="pl-label">Restriction message <span class="pl-hint">(shown when pickup not allowed)</span></label>
+      <textarea class="pl-input pl-textarea" [(ngModel)]="form.restrictionMessage"
+        placeholder="e.g. We drop here but pickup is outside our zone. Nearest pickup: Madgaon Railway or Dabolim Airport.">
+      </textarea>
+    </div>
+
+    <div class="pl-form-footer">
+      <button class="pl-cancel-btn" (click)="closeForm()">Cancel</button>
+      <button class="pl-save-btn" (click)="save()" [disabled]="saving">
+        <i class="bi" [ngClass]="saving ? 'bi-hourglass-split' : 'bi-check-lg'"></i>
+        {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Create') }}
+      </button>
+    </div>
+  </div>
+
+</div>

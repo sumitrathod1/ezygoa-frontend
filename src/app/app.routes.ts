@@ -267,6 +267,30 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'business-hub/places',
+    loadComponent: () =>
+      import('./business-hub/places/places.component').then((m) => m.PlacesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/route-rates',
+    loadComponent: () =>
+      import('./business-hub/route-rates/route-rates.component').then((m) => m.RouteRatesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/rental-rates',
+    loadComponent: () =>
+      import('./business-hub/rental-rates/rental-rates.component').then((m) => m.RentalRatesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'business-hub/ig-images',
+    loadComponent: () =>
+      import('./business-hub/ig-images/ig-images.component').then((m) => m.IgImagesComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'expenses',
     loadComponent: () =>
       import('./expenses/expenses.component').then((m) => m.ExpensesComponent),

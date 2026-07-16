@@ -256,6 +256,17 @@
           </div>
         </div>
 
+        <div class="col-12 col-sm-6" *ngIf="isSelfDriveRental">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-calendar-check"></i> Return Date</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput [matDatepicker]="returnPicker" formControlName="returnDate" />
+              <mat-datepicker-toggle matSuffix [for]="returnPicker"></mat-datepicker-toggle>
+              <mat-datepicker #returnPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
         <!-- Custom Time Picker -->
         <div class="col-12">
           <div class="time-picker-wrapper">

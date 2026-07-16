@@ -1,0 +1,98 @@
+<div class="ig-page">
+
+  <!-- ── Top bar ── -->
+  <div class="ig-top">
+    <button class="ig-back-btn" (click)="back()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+      <p class="ig-title">Instagram Image Bank</p>
+      <p class="ig-sub">Upload photos · copy URLs for n8n workflows</p>
+    </div>
+    <div class="ig-top-right">
+      <label class="ig-upload-btn" [class.disabled]="uploading">
+        <i class="bi bi-cloud-upload-fill"></i>
+        {{ uploading ? 'Uploading…' : 'Upload Image' }}
+        <input type="file" accept=".jpg,.jpeg,.png" (change)="onFileSelected($event)" hidden [disabled]="uploading" />
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Upload key ── -->
+  <div class="ig-key-row">
+    <i class="bi bi-key-fill" style="color:#0d6e6e"></i>
+    <input
+      class="ig-key-input"
+      type="password"
+      placeholder="Paste IG_UPLOAD_KEY from Easypanel…"
+      [(ngModel)]="uploadKey"
+    />
+    <button class="ig-key-save" (click)="saveKey()">
+      <i class="bi bi-check-lg"></i> Save &amp; Load
+    </button>
+  </div>
+
+  <!-- ── Drop zone ── -->
+  <div
+    class="ig-drop"
+    [class.drag-active]="dragOver"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    <i class="bi bi-image-fill ig-drop-icon"></i>
+    <span>Drag &amp; drop a .jpg or .png here</span>
+    <span class="ig-drop-sub">or use the Upload Image button above · max 8 MB</span>
+  </div>
+
+  <!-- ── Errors / success ── -->
+  <div class="ig-error"   *ngIf="error">       <i class="bi bi-exclamation-circle-fill"></i> {{ error }}</div>
+  <div class="ig-error"   *ngIf="uploadError"> <i class="bi bi-exclamation-circle-fill"></i> {{ uploadError }}</div>
+  <div class="ig-success" *ngIf="lastUrl">
+    <i class="bi bi-check-circle-fill"></i> Uploaded!
+    <a [href]="lastUrl" target="_blank" class="ig-success-link">{{ lastUrl }}</a>
+    <button class="ig-copy-sm" (click)="copyUrl(lastUrl)">
+      {{ copiedUrl === lastUrl ? '✓ Copied' : 'Copy URL' }}
+    </button>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div class="ig-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading images…
+  </div>
+
+  <!-- ── Empty ── -->
+  <div class="ig-empty" *ngIf="!loading && !error && images.length === 0 && uploadKey">
+    <i class="bi bi-images ig-empty-icon"></i>
+    <p>No images yet — upload one above</p>
+  </div>
+
+  <!-- ── No key ── -->
+  <div class="ig-empty" *ngIf="!uploadKey">
+    <i class="bi bi-key ig-empty-icon"></i>
+    <p>Enter your upload key above to load images</p>
+  </div>
+
+  <!-- ── Image grid ── -->
+  <div class="ig-grid" *ngIf="!loading && images.length > 0">
+    <div class="ig-card" *ngFor="let img of images">
+      <div class="ig-thumb-wrap">
+        <img [src]="img.url" [alt]="img.name" class="ig-thumb" loading="lazy" />
+      </div>
+      <div class="ig-card-body">
+        <p class="ig-fname">{{ img.name }}</p>
+        <p class="ig-meta">{{ img.sizeKb }} KB · {{ img.createdAt | date:'dd MMM yyyy, HH:mm' }}</p>
+        <div class="ig-card-actions">
+          <button class="ig-copy-btn" (click)="copyUrl(img.url)">
+            <i class="bi" [class.bi-clipboard]="copiedUrl !== img.url" [class.bi-check-lg]="copiedUrl === img.url"></i>
+            {{ copiedUrl === img.url ? 'Copied!' : 'Copy URL' }}
+          </button>
+          <a [href]="img.url" target="_blank" class="ig-open-btn">
+            <i class="bi bi-box-arrow-up-right"></i> Open
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

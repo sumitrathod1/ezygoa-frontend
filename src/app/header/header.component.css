@@ -5,18 +5,21 @@
   font-family: "Segoe UI", Roboto, sans-serif;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   height: var(--mat-toolbar-standard-height) !important;
+  overflow: hidden;
 }
 
 .logo-button {
   border-radius: 50%;
   padding: 2px;
   overflow: hidden;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
   margin-right: 10px;
   border: 2px solid rgba(255, 255, 255, 0.7);
   transition: border-color 0.3s ease;
   background: transparent;
+  flex-shrink: 0;
 }
 
 .logo-button:hover {
@@ -25,8 +28,8 @@
 }
 
 .logo-image {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   object-fit: cover;
   border-radius: 50%;
   box-shadow: 0 2px 8px #fbbc0455;

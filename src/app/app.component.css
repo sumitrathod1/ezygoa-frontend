@@ -22,7 +22,7 @@ app-header {
 
 :root {
   --header-height: 56px;
-  --footer-height: 64px;
+  --footer-height: 96px;   /* 58px nav + ~26px floating + button overflow + 12px breathing */
   --sidebar-width: 220px;
 }
 

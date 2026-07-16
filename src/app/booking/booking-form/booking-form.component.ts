@@ -67,6 +67,7 @@ export class BookingFormComponent implements OnInit {
     'FullDay',
     'SightSeeing',
     'Shuttle',
+    'SelfDriveRental',
     'Notspecified',
   ];
 
@@ -143,6 +144,7 @@ export class BookingFormComponent implements OnInit {
         [Validators.pattern(/^(\+91\s*|91\s*|0)?[6-9][0-9]{9}$/)],
       ],
       commissionAmount: [data?.commissionAmount ?? null],
+      returnDate: [data?.returnDate ?? null],
     });
 
     if (data?.dayWiseBookings?.length) {
@@ -192,6 +194,10 @@ export class BookingFormComponent implements OnInit {
 
   get isExternalBooking(): boolean {
     return this.bookingForm.get('isExternalBooking')?.value === true;
+  }
+
+  get isSelfDriveRental(): boolean {
+    return this.bookingForm.get('bookingType')?.value === 'SelfDriveRental';
   }
 
   normalizePhone(event: any) {
@@ -395,6 +401,11 @@ export class BookingFormComponent implements OnInit {
         externalEmployee: f.isExternalBooking ? f.externalEmployee : null,
         externalEmployeeNumber: f.isExternalBooking ? f.externalEmployeeNumber : null,
         commissionAmount: f.isExternalBooking ? f.commissionAmount : null,
+        returnDate: f.bookingType === 'SelfDriveRental' && f.returnDate
+          ? (f.returnDate instanceof Date
+              ? f.returnDate.toISOString().split('T')[0]
+              : f.returnDate)
+          : null,
       };
     }
 

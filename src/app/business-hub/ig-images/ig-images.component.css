@@ -1,0 +1,141 @@
+.ig-page {
+  padding: 14px 12px 80px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── Top bar ── */
+.ig-top {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.ig-back-btn {
+  width: 36px; height: 36px; background: #f3f4f6;
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1rem; color: #374151; flex-shrink: 0;
+}
+.ig-back-btn:hover { background: #e5e7eb; }
+.ig-title { font-size: 1.25rem; font-weight: 900; color: #0a1628; margin: 0 0 2px; }
+.ig-sub   { font-size: 11px; color: #9ca3af; margin: 0; }
+.ig-top-right { margin-left: auto; }
+
+.ig-upload-btn {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #0d6e6e, #065f5f);
+  color: #fff; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap; transition: opacity 0.15s; user-select: none;
+}
+.ig-upload-btn:hover { opacity: 0.9; }
+.ig-upload-btn.disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Key row ── */
+.ig-key-row {
+  display: flex; align-items: center; gap: 8px;
+  background: #f9fafb; border: 1.5px solid #e5e7eb;
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+}
+.ig-key-input {
+  flex: 1; border: none; background: transparent; font-size: 13px;
+  color: #374151; outline: none;
+}
+.ig-key-save {
+  padding: 6px 14px; background: #0d6e6e; color: #fff;
+  border: none; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+}
+.ig-key-save:hover { opacity: 0.85; }
+
+/* ── Drop zone ── */
+.ig-drop {
+  border: 2px dashed #d1d5db; border-radius: 14px;
+  padding: 28px 20px; text-align: center;
+  color: #9ca3af; font-size: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  margin-bottom: 16px; transition: border-color 0.15s, background 0.15s;
+  cursor: default;
+}
+.ig-drop.drag-active {
+  border-color: #0d6e6e; background: #f0fdf4; color: #0d6e6e;
+}
+.ig-drop-icon { font-size: 2.2rem; color: #d1d5db; margin-bottom: 4px; }
+.drag-active .ig-drop-icon { color: #0d6e6e; }
+.ig-drop-sub { font-size: 11px; color: #c4c9d4; }
+
+/* ── Alerts ── */
+.ig-error {
+  background: #fee2e2; color: #dc2626;
+  padding: 10px 14px; border-radius: 10px; font-size: 13px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.ig-success {
+  background: #d1fae5; color: #065f5f;
+  padding: 10px 14px; border-radius: 10px; font-size: 13px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.ig-success-link {
+  color: #0d6e6e; font-size: 12px; word-break: break-all; flex: 1;
+}
+.ig-copy-sm {
+  padding: 4px 10px; background: #0d6e6e; color: #fff;
+  border: none; border-radius: 6px; font-size: 11px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+
+/* ── States ── */
+.ig-loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+.ig-empty   { text-align: center; padding: 48px 20px; color: #9ca3af; font-size: 14px; }
+.ig-empty-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+/* ── Image grid ── */
+.ig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.ig-card {
+  border: 1.5px solid #e5e7eb; border-radius: 14px;
+  overflow: hidden; background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: box-shadow 0.15s;
+}
+.ig-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+.ig-thumb-wrap {
+  width: 100%; aspect-ratio: 1/1; overflow: hidden; background: #f3f4f6;
+}
+.ig-thumb {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.2s;
+}
+.ig-card:hover .ig-thumb { transform: scale(1.04); }
+
+.ig-card-body { padding: 10px 12px 12px; }
+.ig-fname {
+  font-size: 12px; font-weight: 700; color: #0a1628;
+  margin: 0 0 3px; word-break: break-all;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ig-meta { font-size: 10px; color: #9ca3af; margin: 0 0 10px; }
+
+.ig-card-actions { display: flex; gap: 6px; }
+.ig-copy-btn {
+  flex: 1; padding: 6px 0; background: #ede9fe; color: #6366f1;
+  border: none; border-radius: 8px; font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 4px; transition: opacity 0.15s;
+}
+.ig-copy-btn:hover { opacity: 0.8; }
+.ig-open-btn {
+  padding: 6px 10px; background: #f0fdf4; color: #0d6e6e;
+  border-radius: 8px; font-size: 11px; font-weight: 700;
+  text-decoration: none; display: flex; align-items: center; gap: 4px;
+  transition: opacity 0.15s;
+}
+.ig-open-btn:hover { opacity: 0.8; }
+
+@media (max-width: 480px) {
+  .ig-grid { grid-template-columns: repeat(2, 1fr); }
+}

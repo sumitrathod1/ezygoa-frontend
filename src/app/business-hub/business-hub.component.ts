@@ -66,6 +66,34 @@ export class BusinessHubComponent {
       route: '/business-hub/salary',
       color: 'tile-gold',
     },
+    {
+      icon: 'bi-geo-alt-fill',
+      label: 'Places',
+      desc: 'Manage pickup & drop locations with zone and restriction settings',
+      route: '/business-hub/places',
+      color: 'tile-teal',
+    },
+    {
+      icon: 'bi-currency-rupee',
+      label: 'Route Rates',
+      desc: 'Set per-vehicle pricing for routes, with peak rates and floor prices',
+      route: '/business-hub/route-rates',
+      color: 'tile-indigo',
+    },
+    {
+      icon: 'bi-car-front-fill',
+      label: 'Rental Rates',
+      desc: 'Daily and weekly self-drive rates per vehicle with deposit and km limits',
+      route: '/business-hub/rental-rates',
+      color: 'tile-navy',
+    },
+    {
+      icon: 'bi-instagram',
+      label: 'Image Bank',
+      desc: 'Upload and manage photos for Instagram posts and n8n workflows',
+      route: '/business-hub/ig-images',
+      color: 'tile-gold',
+    },
   ];
 
   constructor(private _router: Router, private _rcService: RateChartService) {}

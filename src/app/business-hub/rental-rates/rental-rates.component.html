@@ -1,0 +1,148 @@
+<div class="rn-page">
+
+  <!-- Header -->
+  <div class="rn-top">
+    <button class="rn-back-btn" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+      <h1 class="rn-title">Rental Rates</h1>
+      <p class="rn-sub">Self-drive daily pricing per vehicle</p>
+    </div>
+    <div class="rn-top-right">
+      <label class="rn-inactive-toggle">
+        <input type="checkbox" [checked]="showInactive" (change)="toggleInactive()" />
+        Show inactive
+      </label>
+      <button class="rn-new-btn" (click)="openCreate()" *ngIf="isAdmin">
+        <i class="bi bi-plus-lg"></i> Add Rate
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="rn-error" *ngIf="error">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="rn-loading" *ngIf="loading">
+    <i class="bi bi-hourglass-split"></i> Loading…
+  </div>
+
+  <!-- Empty -->
+  <div class="rn-empty" *ngIf="!loading && rates.length === 0 && !error">
+    <i class="bi bi-car-front-fill rn-empty-icon"></i>
+    <p>No rental rates configured yet.</p>
+  </div>
+
+  <!-- Table -->
+  <div class="rn-table-wrap" *ngIf="!loading && rates.length > 0">
+    <table class="rn-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th class="text-right">Per Day</th>
+          <th class="text-right">Weekly</th>
+          <th class="text-right">Deposit</th>
+          <th class="text-center">Min Days</th>
+          <th class="text-center">Km/Day</th>
+          <th class="text-right">Extra Km</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rates" [class.row-inactive]="!r.isActive">
+          <td class="rn-vehicle">
+            <div class="rn-vname">{{ r.vehicle?.vehicleName ?? vehicleName(r.vehicleId) }}</div>
+            <div class="rn-vnum" *ngIf="r.vehicle?.vehicleNumber">{{ r.vehicle!.vehicleNumber }}</div>
+          </td>
+          <td class="text-right rn-price">₹{{ r.pricePerDay | number }}</td>
+          <td class="text-right rn-weekly">
+            <span *ngIf="r.weeklyRate">₹{{ r.weeklyRate | number }}</span>
+            <span *ngIf="!r.weeklyRate" class="rn-na">—</span>
+          </td>
+          <td class="text-right rn-deposit">₹{{ r.securityDeposit | number }}</td>
+          <td class="text-center">{{ r.minDays }}</td>
+          <td class="text-center">
+            <span *ngIf="r.kmPerDay">{{ r.kmPerDay }}</span>
+            <span *ngIf="!r.kmPerDay" class="rn-na">—</span>
+          </td>
+          <td class="text-right rn-extra">
+            <span *ngIf="r.extraKmRate">₹{{ r.extraKmRate | number:'1.0-2' }}/km</span>
+            <span *ngIf="!r.extraKmRate" class="rn-na">—</span>
+          </td>
+          <td>
+            <span class="rn-status" [ngClass]="r.isActive ? 'status-active' : 'status-inactive'">
+              {{ r.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td *ngIf="isAdmin">
+            <button class="rn-act-btn edit" (click)="openEdit(r)">
+              <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Form overlay -->
+  <div class="rn-overlay" *ngIf="showForm" (click)="closeForm()"></div>
+  <div class="rn-form-panel" *ngIf="showForm">
+    <div class="rn-form-header">
+      <h2>{{ editingId ? 'Edit Rental Rate' : 'Add Rental Rate' }}</h2>
+      <button class="rn-form-close" (click)="closeForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="rn-form-error" *ngIf="saveError">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ saveError }}
+    </div>
+
+    <div class="rn-form-body">
+
+      <label class="rn-label">Vehicle *</label>
+      <select class="rn-input" [(ngModel)]="form.vehicleId" [disabled]="!!editingId">
+        <option [ngValue]="0" disabled>Select vehicle…</option>
+        <option *ngFor="let v of vehicles" [ngValue]="v.vehicleId">
+          {{ v.vehicleName }} ({{ v.vehicleNumber }})
+        </option>
+      </select>
+
+      <label class="rn-label">Price Per Day (₹) *</label>
+      <input class="rn-input" type="number" min="0" [(ngModel)]="form.pricePerDay" placeholder="e.g. 2500" />
+
+      <label class="rn-label">Weekly Rate (₹) <span class="rn-hint">optional — 7 consecutive days</span></label>
+      <input class="rn-input" type="number" min="0" [(ngModel)]="form.weeklyRate" placeholder="e.g. 15000" />
+
+      <label class="rn-label">Security Deposit (₹) *</label>
+      <input class="rn-input" type="number" min="0" [(ngModel)]="form.securityDeposit" placeholder="e.g. 5000" />
+
+      <label class="rn-label">Minimum Days</label>
+      <input class="rn-input" type="number" min="1" [(ngModel)]="form.minDays" placeholder="1" />
+
+      <label class="rn-label">Km Included Per Day <span class="rn-hint">optional</span></label>
+      <input class="rn-input" type="number" min="0" [(ngModel)]="form.kmPerDay" placeholder="e.g. 150" />
+
+      <label class="rn-label">Extra Km Rate (₹/km) <span class="rn-hint">optional</span></label>
+      <input class="rn-input" type="number" min="0" step="0.5" [(ngModel)]="form.extraKmRate" placeholder="e.g. 12" />
+
+      <div class="rn-checkrow">
+        <label class="rn-check-label">
+          <input type="checkbox" [(ngModel)]="form.isActive" /> Active
+        </label>
+      </div>
+
+    </div>
+
+    <div class="rn-form-footer">
+      <button class="rn-cancel-btn" (click)="closeForm()">Cancel</button>
+      <button class="rn-save-btn" (click)="save()" [disabled]="saving">
+        <i class="bi" [ngClass]="saving ? 'bi-hourglass-split' : 'bi-check-lg'"></i>
+        {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Create') }}
+      </button>
+    </div>
+  </div>
+
+</div>
