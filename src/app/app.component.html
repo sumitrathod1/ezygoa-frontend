@@ -18,23 +18,32 @@
           <a class="ds-item" routerLink="/booking" routerLinkActive="ds-active">
             <i class="bi bi-calendar-date"></i><span>Bookings</span>
           </a>
+          <a class="ds-item" routerLink="/assign" routerLinkActive="ds-active">
+            <i class="bi bi-diagram-3-fill"></i><span>Assign</span>
+          </a>
           <a class="ds-item" routerLink="/vehicle" routerLinkActive="ds-active">
             <i class="bi bi-car-front-fill"></i><span>Vehicles</span>
           </a>
           <a class="ds-item" routerLink="/employee" routerLinkActive="ds-active">
             <i class="bi bi-people-fill"></i><span>Drivers</span>
           </a>
-          <a class="ds-item" routerLink="/agents" routerLinkActive="ds-active">
+          <!-- <a class="ds-item" routerLink="/agents" routerLinkActive="ds-active">
             <i class="bi bi-person-badge-fill"></i><span>Agents</span>
-          </a>
-          <a class="ds-item" routerLink="/earnings" routerLinkActive="ds-active">
+          </a> -->
+          <!-- <a class="ds-item" routerLink="/earnings" routerLinkActive="ds-active">
             <i class="bi bi-graph-up-arrow"></i><span>Earnings</span>
-          </a>
+          </a> -->
           <a class="ds-item" routerLink="/expenses" routerLinkActive="ds-active">
             <i class="bi bi-cash-stack"></i><span>Expenses</span>
           </a>
           <a class="ds-item" routerLink="/business-hub" routerLinkActive="ds-active">
             <i class="bi bi-briefcase-fill"></i><span>Business Hub</span>
+          </a>
+          <a class="ds-item" routerLink="/email-booking" routerLinkActive="ds-active">
+            <i class="bi bi-envelope-fill"></i><span>Enquiry</span>
+          </a>
+          <a class="ds-item" routerLink="/vendor-settlements" routerLinkActive="ds-active">
+            <i class="bi bi-cash-coin"></i><span>Extra</span>
           </a>
           <a class="ds-item" routerLink="/document-vault" routerLinkActive="ds-active">
             <i class="bi bi-folder2-open"></i><span>Documents</span>
@@ -42,6 +51,17 @@
           <a class="ds-item" routerLink="/bulk-upload" routerLinkActive="ds-active">
             <i class="bi bi-cloud-upload-fill"></i><span>Bulk Upload</span>
           </a>
+
+          <!-- Actions that previously lived only in the header menu -->
+          <button class="ds-item ds-btn" (click)="addVehicle()">
+            <i class="bi bi-plus-circle-fill ds-icon-green"></i><span>Add Vehicle</span>
+          </button>
+
+          <span class="ds-spacer"></span>
+
+          <button class="ds-item ds-btn ds-logout" (click)="onLogout()">
+            <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+          </button>
         </nav>
         <div class="content">
           <router-outlet></router-outlet>

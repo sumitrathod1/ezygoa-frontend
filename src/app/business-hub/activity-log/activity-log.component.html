@@ -1,0 +1,47 @@
+<div class="al-page">
+  <div class="al-top">
+    <button class="al-back-btn" (click)="goBack()" aria-label="Back"><i class="bi bi-arrow-left"></i></button>
+    <div>
+      <h1 class="al-title">Activity Log</h1>
+      <p class="al-sub">{{ total }} change{{ total === 1 ? '' : 's' }} recorded · kept automatically</p>
+    </div>
+  </div>
+
+  <div class="al-filters">
+    <select [(ngModel)]="entityType" (ngModelChange)="apply()">
+      <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+    </select>
+    <input type="number" placeholder="Booking #" [(ngModel)]="bookingId" (keyup.enter)="apply()" />
+    <input type="date" [(ngModel)]="from" (change)="apply()" title="From" />
+    <input type="date" [(ngModel)]="to" (change)="apply()" title="To" />
+    <input class="grow" placeholder="Search text or user…" [(ngModel)]="search" (keyup.enter)="apply()" />
+    <button class="al-btn" (click)="apply()"><i class="bi bi-search"></i> Filter</button>
+  </div>
+
+  <div class="al-state" *ngIf="loading">Loading…</div>
+  <div class="al-state err" *ngIf="error">{{ error }}</div>
+  <div class="al-state" *ngIf="!loading && !error && !rows.length">Nothing recorded for these filters yet.</div>
+
+  <div class="al-list" *ngIf="!loading && rows.length">
+    <div class="al-item" *ngFor="let r of rows" [class.open]="expanded.has(r.auditLogId)">
+      <button class="al-row" type="button" (click)="toggle(r)">
+        <i class="bi al-ic" [ngClass]="[icon(r), r.action.toLowerCase()]"></i>
+        <div class="al-text">
+          <div class="al-summary">{{ r.summary }}</div>
+          <div class="al-meta">{{ r.createdAt | date : 'dd MMM yyyy, h:mm a' }} · {{ r.userName || 'system' }}</div>
+        </div>
+        <i class="bi al-chev" [ngClass]="expanded.has(r.auditLogId) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+      </button>
+      <div class="al-details" *ngIf="expanded.has(r.auditLogId)">
+        <div class="al-d" *ngFor="let d of details(r)"><span>{{ d.field }}</span><b>{{ d.value }}</b></div>
+        <div class="al-d" *ngIf="!details(r).length"><span>No field details</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="al-pager" *ngIf="pages > 1">
+    <button class="al-btn" [disabled]="page === 1" (click)="go(page - 1)">‹ Newer</button>
+    <span>Page {{ page }} of {{ pages }}</span>
+    <button class="al-btn" [disabled]="page === pages" (click)="go(page + 1)">Older ›</button>
+  </div>
+</div>

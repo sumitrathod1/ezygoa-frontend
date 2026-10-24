@@ -24,7 +24,7 @@
 
   <!-- Table -->
   <div class="vt-scroll" *ngIf="filteredMaintenances.length > 0">
-    <table class="vt-table">
+    <table class="rtable vt-table">
       <thead>
         <tr>
           <th>Vehicle</th>
@@ -37,14 +37,14 @@
       </thead>
       <tbody>
         <tr *ngFor="let m of filteredMaintenances">
-          <td class="vt-vehicle">{{ m.vehicle?.vehicleName || '—' }}</td>
-          <td class="vt-date">{{ m.servieDate | date:'dd MMM yy' }}</td>
-          <td class="vt-date">{{ m.nextduedate | date:'dd MMM yy' }}</td>
-          <td>
+          <td class="vt-vehicle" data-label="Vehicle">{{ m.vehicle?.vehicleName || '—' }}</td>
+          <td class="vt-date" data-label="Service Date">{{ m.servieDate | date:'dd MMM yy' }}</td>
+          <td class="vt-date" data-label="Next Due">{{ m.nextduedate | date:'dd MMM yy' }}</td>
+          <td data-label="Type">
             <span class="vt-type">{{ m.maintenanceType }}</span>
           </td>
-          <td class="text-end vt-amount">₹{{ m.cost | number }}</td>
-          <td>
+          <td class="text-end vt-amount" data-label="Cost">₹{{ m.cost | number }}</td>
+          <td data-label="Status">
             <span class="vt-status-badge" [ngClass]="getStatusInfo(m.nextduedate).cls">
               {{ getStatusInfo(m.nextduedate).label }}
             </span>

@@ -4,136 +4,124 @@
     <div class="header-left">
       <div>
         <h3>Booking #{{ booking.bookingId }}</h3>
-        <p>{{ booking.bookingDate }}</p>
+        <p>{{ booking.bookingDate | date : 'dd MMM yyyy' }}</p>
       </div>
     </div>
-
-    <!-- <span class="status-chip pending">Pending</span> -->
-
-    <span
-      class="status-chip"
-      [ngClass]="booking.isSettled ? 'settled' : 'pending'"
-    >
-      {{ booking.isSettled ? "Settled" : "Pending" }}
-    </span>
+    <span class="status-chip" [ngClass]="statusText === 'Settled' ? 'settled' : 'pending'">{{ statusText }}</span>
   </div>
 
-  <!-- Customer -->
+  <!-- Route & partner -->
   <div class="card-section">
-    <div class="section-title">
-      <i class="bi bi-person"></i> Customer Details
-    </div>
-    <div class="section-box">
-      {{ booking.customerName }}
-    </div>
-  </div>
-
-  <!-- Route -->
-  <div class="card-section">
-    <div class="section-title">
-      <i class="bi bi-geo-alt"></i> Route Information
-    </div>
-
+    <div class="section-title"><i class="bi bi-geo-alt"></i> Trip</div>
     <div class="route-box">
-      <div>
-        <small>From: </small>
-        <strong> {{ booking.from }}</strong>
-      </div>
-
+      <div><small>From: </small><strong>{{ booking.from }}</strong></div>
       <span class="arrow">→</span>
-
-      <div>
-        <small>To: </small>
-        <strong> {{ booking.to }}</strong>
-      </div>
+      <div><small>To: </small><strong>{{ booking.to }}</strong></div>
     </div>
-  </div>
-
-  <!-- Vendor -->
-  <div class="card-section">
-    <div class="section-title"><i class="bi bi-people"></i> Driver Details</div>
-
-    <div class="vendor-box">
-      <div>
-        <small>Driver: </small>
-        <strong>{{ booking.vendorName }}</strong>
-      </div>
-
+    <div class="vendor-box mt-2">
+      <div><small>Customer: </small><strong>{{ booking.customerName }}</strong></div>
+      <div><small>Partner: </small><strong>{{ booking.vendorName }}</strong></div>
       <div>
         <small>Contact: </small>
-        <strong (click)="callCustomer(booking.vendorNumber)"
-          >📞 {{ booking.vendorNumber }}</strong
-        >
+        <strong class="link" (click)="callCustomer(booking.vendorNumber)">📞 {{ booking.vendorNumber }}</strong>
       </div>
     </div>
   </div>
 
-  <!-- Financial Summary -->
+  <!-- Money -->
   <div class="card-section">
-    <div class="section-title">
-      <i class="bi bi-cash-stack"></i> Financial Summary
-    </div>
-
+    <div class="section-title"><i class="bi bi-cash-stack"></i> Money</div>
     <div class="finance-grid">
-      <div class="finance-card purple">
-        <label>Amount: </label>
-        <strong>₹{{ booking.bookingAmount }}</strong>
-      </div>
-
-      <div class="finance-card orange">
-        <label>Commission: </label>
-        <strong>₹{{ booking.commission }}</strong>
-      </div>
-
-      <div class="finance-card green">
-        <label>Owner Receivable: </label>
-        <strong>₹{{ booking.ownerReceivable }}</strong>
-      </div>
-
+      <div class="finance-card purple"><label>Fare</label><strong>₹{{ booking.bookingAmount | number : '1.0-0' }}</strong></div>
+      <div class="finance-card orange"><label>Commission</label><strong>₹{{ booking.commission | number : '1.0-0' }}</strong></div>
       <div class="finance-card blue">
-        <label>Vendor Payable: </label>
-        <strong>₹{{ booking.vendorPayable }}</strong>
+        <label>{{ isVendorToOwner ? 'Partner owes you' : 'You owe partner' }}</label>
+        <strong>₹{{ (history?.due ?? 0) | number : '1.0-0' }}</strong>
       </div>
-
+      <div class="finance-card green">
+        <label>{{ isVendorToOwner ? 'Received' : 'Paid' }}</label>
+        <strong>₹{{ (history?.settled ?? 0) | number : '1.0-0' }}</strong>
+      </div>
+      <div class="finance-card red"><label>Still due</label><strong>₹{{ (history?.remaining ?? 0) | number : '1.0-0' }}</strong></div>
       <div class="finance-card teal">
-        <label>Paid to Vendor: </label>
-        <strong>₹{{ booking.totalPaidToVendor }}</strong>
-      </div>
-
-      <div class="finance-card red">
-        <label>Pending Payment: </label>
-        <strong>₹{{ booking.pendingVendorPayment }}</strong>
+        <label>Cash collected by</label><strong>{{ booking.cashCollectedBy === 'Admin' ? 'You' : 'Partner' }}</strong>
       </div>
     </div>
   </div>
 
-  <!-- Settlement Info -->
+  <!-- Payment history -->
   <div class="card-section">
-    <div class="settlement-info">
-      <span>💰 Cash Collected By</span>
-      <strong>
-        {{ booking.cashCollectedBy === "Admin" ? "Admin" : "Driver" }}
-      </strong>
-    </div>
+    <div class="section-title"><i class="bi bi-clock-history"></i> Payment history</div>
 
-    <div class="settlement-info">
-      <span>🔁 Settlement Direction: </span>
-      <strong>{{ booking.settlementDirection }}</strong>
+    <div class="muted small" *ngIf="loadingHistory">Loading…</div>
+    <div class="error-box" *ngIf="historyError">{{ historyError }}</div>
+
+    <ng-container *ngIf="history && !loadingHistory">
+      <div class="muted small" *ngIf="!history.payments.length && !history.earlierUnitemised">No payments recorded yet.</div>
+      <div class="pay-row-item earlier" *ngIf="history.earlierUnitemised > 0">
+        <div>
+          <div class="pay-type">Settled earlier</div>
+          <div class="muted small">Recorded before itemised history was kept</div>
+        </div>
+        <strong>₹{{ history.earlierUnitemised | number : '1.0-0' }}</strong>
+      </div>
+
+      <div class="pay-row-item" *ngFor="let p of history.payments" [class.reversed]="p.isReversed" [class.reversal]="p.entryType === 'Reversal'">
+        <div class="pay-main">
+          <div class="pay-type">
+            {{ typeLabel(p) }}
+            <span class="tag" *ngIf="p.isReversed">Reversed</span>
+          </div>
+          <div class="muted small">
+            {{ p.paidOn | date : 'dd MMM yyyy' }}
+            <span *ngIf="p.paymentMethod"> · {{ p.paymentMethod }}</span>
+            <span *ngIf="p.reference"> · Ref {{ p.reference }}</span>
+            <span *ngIf="p.createdBy"> · by {{ p.createdBy }}</span>
+          </div>
+          <div class="muted small" *ngIf="p.notes">“{{ p.notes }}”</div>
+        </div>
+        <div class="pay-side">
+          <strong [class.neg]="p.entryType === 'Reversal'">{{ p.entryType === 'Reversal' ? '−' : '' }}₹{{ p.amount | number : '1.0-2' }}</strong>
+          <button
+            class="link-btn"
+            *ngIf="p.entryType === 'Payment' && !p.isReversed && reversingId !== p.settlementPaymentId"
+            (click)="startReverse(p)"
+          >Reverse</button>
+        </div>
+
+        <div class="reverse-box" *ngIf="reversingId === p.settlementPaymentId">
+          <input class="reverse-input" [(ngModel)]="reverseReason" placeholder="Reason (e.g. entered twice, wrong amount)" />
+          <div class="reverse-actions">
+            <button class="primary-btn danger" [disabled]="saving" (click)="confirmReverse(p)">Reverse</button>
+            <button class="outline-btn" [disabled]="saving" (click)="cancelReverse()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Activity / audit -->
+  <div class="card-section" *ngIf="activity.length">
+    <button class="section-title toggle" type="button" (click)="showActivity = !showActivity">
+      <i class="bi bi-journal-text"></i> Change history ({{ activity.length }})
+      <i class="bi" [ngClass]="showActivity ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+    </button>
+    <div *ngIf="showActivity" class="activity-list">
+      <div class="activity-item" *ngFor="let a of activity">
+        <div>{{ a.summary }}</div>
+        <div class="muted small">{{ a.createdAt | date : 'dd MMM yyyy, h:mm a' }} · {{ a.userName || 'system' }}</div>
+      </div>
     </div>
   </div>
 
   <!-- Footer -->
   <div class="detail-footer">
-    <button class="btn btn-danger" type="button" (click)="closeDialog()">
-      Close
+    <button class="outline-btn" type="button" (click)="closeDialog()">Close</button>
+    <button class="outline-btn" type="button" *ngIf="booking.vendorId" (click)="openStatement()">
+      <i class="bi bi-file-earmark-pdf"></i> Statement
     </button>
-
-    <button
-      class="primary-btn"
-      *ngIf="!booking.isSettled"
-      (click)="markAsSettled()"
-    >
-      Mark as Settled
+    <button class="primary-btn" *ngIf="history && history.remaining > 0" [disabled]="saving" (click)="settleRemaining()">
+      Settle remaining
     </button>
   </div>
 </div>

@@ -51,8 +51,62 @@ export class SuperAdminComponent implements OnInit {
   showNewPwd = false;
   showConfirmPwd = false;
 
+  // Linked organisations (booking transfers)
+  links: any[] = [];
+  linkA = 0;
+  linkB = 0;
+  linkSaving = false;
+
   ngOnInit(): void {
     this.loadOrgs();
+    this.loadLinks();
+  }
+
+  loadLinks(): void {
+    this.orgSvc.getLinks().subscribe({
+      next: (res: any) => {
+        this.links = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        this.cdr.markForCheck();
+      },
+      error: () => {},
+    });
+  }
+
+  addLink(): void {
+    if (!this.linkA || !this.linkB || this.linkA === this.linkB) return;
+    this.linkSaving = true;
+    this.cdr.markForCheck();
+    this.orgSvc.addLink(this.linkA, this.linkB).subscribe({
+      next: () => {
+        this.toastr.success('Linked. Their admins can now transfer bookings to each other.', 'Done');
+        this.linkSaving = false;
+        this.linkA = this.linkB = 0;
+        this.loadLinks();
+      },
+      error: (err: any) => {
+        this.toastr.error(err?.error?.message || 'Could not link the organisations', 'Error');
+        this.linkSaving = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  removeLink(link: any): void {
+    if (!confirm(`Unlink ${link.orgAName} and ${link.orgBName}? Bookings already transferred stay where they are.`)) return;
+    this.linkSaving = true;
+    this.cdr.markForCheck();
+    this.orgSvc.removeLink(link.orgLinkId).subscribe({
+      next: () => {
+        this.toastr.success('Unlinked', 'Done');
+        this.linkSaving = false;
+        this.loadLinks();
+      },
+      error: (err: any) => {
+        this.toastr.error(err?.error?.message || 'Could not unlink', 'Error');
+        this.linkSaving = false;
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   // ── orgs ──────────────────────────────────────────

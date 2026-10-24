@@ -10,6 +10,10 @@ export class ErrorHandlerService {
   handle(error: HttpErrorResponse): void {
     const message = this.getErrorMessage(error);
 
+    // A failed sign-in is also a 401 but not an expired session — the login screen
+    // shows its own message, so stay quiet here (it used to say "Session expired")
+    if (/\/User\/authenticate/i.test(error.url ?? '')) return;
+
     if (error.status === 401) {
       this.toastr.error('Session expired. Please log in again.', 'Unauthorized');
       localStorage.removeItem('token');

@@ -114,7 +114,9 @@ export class BookingService {
       pax: booking.pax,
 
       bookingType: booking.bookingType ?? 'Notspecified',
-      bookingStatus: 'Pending',
+      // Only send a status when the caller sets one. Hardcoding 'Pending' reset every
+      // edited Completed/Assigned booking back to Pending.
+      bookingStatus: booking.bookingStatus ?? null,
 
       amount: Number(booking.amount) || 0,
       payment: booking.payment ?? 'Admin',
@@ -124,11 +126,17 @@ export class BookingService {
         : booking.vehicleId ?? booking.vehicle,
       userId: isExternalBooking ? null : booking.userId ?? booking.driver,
 
-      travelAgentId: booking.agent ? Number(booking.agent) : null,
+      // The booking form sends travelAgentId / customerWillPay / ownerWillPay, but only
+      // agent / customerPay / ownerPay were read — so the agent and both amounts were
+      // dropped on every save. Accept either name.
+      travelAgentId: Number(booking.travelAgentId ?? booking.agent) || null,
 
-      customerWillPay: Number(booking.customerPay) || 0,
-      ownerWillPay: isExternalBooking ? 0 : Number(booking.ownerPay) || 0,
-      AdvancePay: Number(booking.advancePaid) || 0,
+      customerWillPay: Number(booking.customerWillPay ?? booking.customerPay) || 0,
+      ownerWillPay: isExternalBooking ? 0 : Number(booking.ownerWillPay ?? booking.ownerPay) || 0,
+      AdvancePay: Number(booking.advancePaid ?? booking.advancePay) || 0,
+
+      // Self-drive return date was never forwarded
+      returnDate: booking.returnDate ? formatDateOnly(booking.returnDate) : null,
 
       externalEmployee: isExternalBooking ? booking.externalEmployee : null,
       externalEmployeeNumber: isExternalBooking
@@ -203,12 +211,51 @@ export class BookingService {
     return this._http.post(`${this.baseUrl}reassign-to-external`, payload);
   }
 
-  settleSettlement(bookingId: number) {
+  /**
+   * Record a payment against a partner booking. paidAmount omitted = settle the full
+   * remaining balance. requestId makes a repeated submit (double tap, retry) count once.
+   */
+  settleSettlement(
+    bookingId: number,
+    paidAmount?: number | null,
+    extra: { paymentMethod?: string; reference?: string; notes?: string; paidOn?: string; requestId?: string } = {}
+  ) {
     const payload = {
       bookingId: bookingId,
+      paidAmount: paidAmount ?? null,
+      paymentMethod: extra.paymentMethod || null,
+      reference: extra.reference || null,
+      notes: extra.notes || null,
+      paidOn: extra.paidOn || null,
+      requestId: extra.requestId || null,
     };
 
     return this._http.post(`${this.baseUrl}settle-settlement`, payload);
+  }
+
+  /** Itemised payment history of one partner booking. */
+  getSettlementHistory(bookingId: number): Observable<any> {
+    return this._http.get<any>(`${this.baseUrl}settlements/${bookingId}/payments`);
+  }
+
+  /** Undo a payment with a reversal entry — payments are never deleted. */
+  reverseSettlementPayment(settlementPaymentId: number, reason: string) {
+    return this._http.post(`${this.baseUrl}settlement-payments/${settlementPaymentId}/reverse`, { reason });
+  }
+
+  /** Partner commission statement PDF (period by travel date, or one booking). */
+  getPartnerStatement(
+    vendorId: number,
+    opts: { from?: string | null; to?: string | null; bookingId?: number | null; maskCustomer?: boolean; showFare?: boolean }
+  ): Observable<Blob> {
+    const params: any = {
+      maskCustomer: String(opts.maskCustomer ?? true),
+      showFare: String(opts.showFare ?? true),
+    };
+    if (opts.from) params.from = opts.from;
+    if (opts.to) params.to = opts.to;
+    if (opts.bookingId) params.bookingId = opts.bookingId;
+    return this._http.get(`${this.baseUrl}vendors/${vendorId}/statement`, { params, responseType: 'blob' });
   }
 
   updateBookingCount(count: number) {

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DatePerBookingsComponent } from './date-per-bookings.component';
+import { testProviders } from '../../testing/test-providers';
 
 describe('DatePerBookingsComponent', () => {
   let component: DatePerBookingsComponent;
@@ -8,7 +9,8 @@ describe('DatePerBookingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DatePerBookingsComponent]
+      imports: [DatePerBookingsComponent],
+      providers: testProviders(),
     })
     .compileComponents();
 

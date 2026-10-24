@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExternalFormComponent } from './external-form.component';
+import { testProviders } from '../../testing/test-providers';
 
 describe('ExternalFormComponent', () => {
   let component: ExternalFormComponent;
@@ -8,7 +9,8 @@ describe('ExternalFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExternalFormComponent]
+      imports: [ExternalFormComponent],
+      providers: testProviders(),
     })
     .compileComponents();
 

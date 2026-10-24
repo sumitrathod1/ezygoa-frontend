@@ -88,6 +88,20 @@ export class BusinessHubComponent {
       color: 'tile-navy',
     },
     {
+      icon: 'bi-wallet2',
+      label: 'Earnings & Ads',
+      desc: 'Commission earned, collected and pending, ad spend (Google, Meta) and business expenses',
+      route: '/business-hub/earnings-expenses',
+      color: 'tile-indigo',
+    },
+    {
+      icon: 'bi-journal-text',
+      label: 'Activity Log',
+      desc: 'Who changed which booking, payment or expense — and when',
+      route: '/business-hub/activity-log',
+      color: 'tile-navy',
+    },
+    {
       icon: 'bi-instagram',
       label: 'Image Bank',
       desc: 'Upload and manage photos for Instagram posts and n8n workflows',

@@ -88,3 +88,8 @@
     font-size: 20px;
   }
 }
+
+.earnings-wrap { max-width: 1000px; }
+.chart-box { position: relative; height: 280px; max-width: 420px; margin: 0 auto; width: 100%; }
+@media (max-width: 480px) { .chart-box { height: 240px; } }
+.summary-card.red { border-left: 4px solid #dc2626; }

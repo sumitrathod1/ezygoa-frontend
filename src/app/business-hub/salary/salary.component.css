@@ -240,3 +240,18 @@
 @media (min-width: 1440px) {
   .sal-page { padding: 32px 32px 40px; }
 }
+
+/* Long names spilled over the amount column on phones ("MANBase ₹"): let the
+   info block shrink, and stack the card below 560px. */
+.sal-emp-info { min-width: 0; }
+.sal-emp-name { display: flex; align-items: center; gap: 6px; }
+.sal-emp-name .sal-auto-badge,
+.sal-emp-name .sal-manual-badge { flex-shrink: 0; }
+
+@media (max-width: 560px) {
+  .sal-card { flex-wrap: wrap; align-items: flex-start; }
+  .sal-card-left { flex: 1 1 100%; }
+  .sal-card-mid { flex: 1 1 auto; text-align: left; min-width: 0; }
+  .sal-breakdown { justify-content: flex-start; }
+  .sal-card-right { flex: 0 0 auto; min-width: 0; }
+}

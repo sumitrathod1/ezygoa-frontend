@@ -124,3 +124,10 @@
 .rcl-act-btn.del     { background: #fee2e2; color: #dc2626; }
 
 .mt-3 { margin-top: 12px; }
+
+/* Desktop: use the width instead of a 640px phone column */
+@media (min-width: 1024px) {
+  .rcl-page { max-width: 1100px; padding: 20px 24px 40px; }
+  .rcl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .rcl-grid .rcl-card { margin-bottom: 0; }
+}

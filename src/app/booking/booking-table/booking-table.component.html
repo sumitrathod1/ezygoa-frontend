@@ -146,6 +146,14 @@
       <div class="small text-muted">{{ booking.vehicleName }}</div>
       <div class="mt-2">
         <button class="btn btn-sm btn-primary" (click)="editBooking(booking)">Edit</button>
+        <button
+          *ngIf="(canTransfer$ | async) && booking.status !== 'Canceled' && booking.status !== 'Completed'"
+          class="btn btn-sm btn-outline-primary ms-1"
+          (click)="transferBooking(booking)"
+          title="Transfer to another organisation"
+        >
+          <i class="bi bi-send"></i> Transfer
+        </button>
       </div>
     </div>
   </div>

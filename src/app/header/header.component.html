@@ -1,4 +1,5 @@
 <mat-toolbar class="custom-toolbar">
+  <!-- Menu trigger — mobile/tablet only. From 1024px the desktop sidebar takes over. -->
   <button
     mat-icon-button
     [matMenuTriggerFor]="menu"
@@ -8,23 +9,56 @@
     <img src="assets/Ezy.png" alt="Logo" class="logo-image" />
   </button>
 
+  <!-- Same logo, no menu — desktop only -->
+  <img src="assets/Ezy.png" alt="Logo" class="logo-static" />
+
   <span class="app-title">Ezy</span>
 
   <span class="example-spacer"></span>
+  @if (pending$ | async; as p) {
+    @if (p.total + (p.missed || 0) > 0) {
+      <a
+        class="assign-badge"
+        [class.urgent]="p.today + p.tomorrow + (p.missed || 0) > 0"
+        routerLink="/assign"
+        [attr.aria-label]="p.total + (p.missed || 0) + ' bookings need a driver or vehicle'"
+        title="Bookings that still need a driver or vehicle"
+      >
+        <i class="bi bi-person-exclamation"></i>
+        <span class="ab-count">{{ p.total + (p.missed || 0) }}</span>
+        <span class="ab-text">to assign</span>
+        @if (p.missed > 0) {
+          <span class="ab-sub">{{ p.missed }} missed</span>
+        } @else if (p.today > 0) {
+          <span class="ab-sub">{{ p.today }} today</span>
+        } @else if (p.tomorrow > 0) {
+          <span class="ab-sub">{{ p.tomorrow }} tomorrow</span>
+        }
+      </a>
+    } @else {
+      <a class="assign-badge ok" routerLink="/assign" title="Every upcoming booking has a driver and vehicle">
+        <i class="bi bi-check2-circle"></i>
+        <span class="ab-text">All assigned</span>
+      </a>
+    }
+  }
   <button class="add-booking-btn" (click)="addBooking()">
     <i class="bi bi-plus-lg"></i> Add Booking
   </button>
 </mat-toolbar>
 
 <mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/home">
+  <!-- <button mat-menu-item routerLink="/home">
     <i class="bi bi-house-heart-fill" style="margin-right:6px;color:#6366f1"></i> Home
-  </button>
-  <button mat-menu-item routerLink="/booking">
+  </button> -->
+  <!-- <button mat-menu-item routerLink="/booking">
     <i class="bi bi-calendar-date" style="margin-right:6px;color:#6366f1"></i> Bookings
   </button>
   <button mat-menu-item routerLink="/vehicle">
     <i class="bi bi-car-front-fill" style="margin-right:6px;color:#6366f1"></i> Vehicles
+  </button> -->
+  <button mat-menu-item routerLink="/assign">
+    <i class="bi bi-diagram-3-fill" style="margin-right:6px;color:#ea580c"></i> Assign drivers
   </button>
   <button mat-menu-item routerLink="/employee">
     <i class="bi bi-people-fill" style="margin-right:6px;color:#6366f1"></i> Drivers
@@ -32,12 +66,12 @@
   <button mat-menu-item (click)="addVehicle()">
     <i class="bi bi-plus-circle-fill" style="margin-right:6px;color:#22c55e"></i> Add Vehicle
   </button>
-  <button mat-menu-item routerLink="/agents">
+  <!-- <button mat-menu-item routerLink="/agents">
     <i class="bi bi-person-badge-fill" style="margin-right:6px;color:#6366f1"></i> Agents
-  </button>
-  <button mat-menu-item routerLink="/earnings">
+  </button> -->
+  <!-- <button mat-menu-item routerLink="/earnings">
     <i class="bi bi-graph-up-arrow" style="margin-right:6px;color:#10b981"></i> Earnings
-  </button>
+  </button> -->
   <button mat-menu-item routerLink="/expenses">
     <i class="bi bi-cash-stack" style="margin-right:6px;color:#f97316"></i> Expenses
   </button>

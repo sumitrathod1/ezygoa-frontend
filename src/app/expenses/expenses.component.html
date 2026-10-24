@@ -57,7 +57,8 @@
 
     <!-- ── 8 KPI Cards ── -->
     <div class="exp-kpi-grid">
-      <div class="exp-kpi" [ngClass]="card.cls" *ngFor="let card of kpiCards">
+      <div class="exp-kpi" [ngClass]="card.cls" *ngFor="let card of kpiCards"
+           [routerLink]="card.link || null" [class.clickable]="!!card.link">
         <i class="bi exp-kpi-icon" [ngClass]="card.icon"></i>
         <div class="exp-kpi-val">₹{{ getCategoryAmount(card.key) | number:'1.0-0' }}</div>
         <div class="exp-kpi-lbl">{{ card.label }}</div>

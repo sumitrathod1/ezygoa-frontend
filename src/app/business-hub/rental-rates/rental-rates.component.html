@@ -38,7 +38,7 @@
 
   <!-- Table -->
   <div class="rn-table-wrap" *ngIf="!loading && rates.length > 0">
-    <table class="rn-table">
+    <table class="rtable rn-table">
       <thead>
         <tr>
           <th>Vehicle</th>
@@ -54,31 +54,31 @@
       </thead>
       <tbody>
         <tr *ngFor="let r of rates" [class.row-inactive]="!r.isActive">
-          <td class="rn-vehicle">
+          <td class="rn-vehicle" data-label="Vehicle">
             <div class="rn-vname">{{ r.vehicle?.vehicleName ?? vehicleName(r.vehicleId) }}</div>
             <div class="rn-vnum" *ngIf="r.vehicle?.vehicleNumber">{{ r.vehicle!.vehicleNumber }}</div>
           </td>
-          <td class="text-right rn-price">₹{{ r.pricePerDay | number }}</td>
-          <td class="text-right rn-weekly">
+          <td class="text-right rn-price" data-label="Per Day">₹{{ r.pricePerDay | number }}</td>
+          <td class="text-right rn-weekly" data-label="Weekly">
             <span *ngIf="r.weeklyRate">₹{{ r.weeklyRate | number }}</span>
             <span *ngIf="!r.weeklyRate" class="rn-na">—</span>
           </td>
-          <td class="text-right rn-deposit">₹{{ r.securityDeposit | number }}</td>
-          <td class="text-center">{{ r.minDays }}</td>
-          <td class="text-center">
+          <td class="text-right rn-deposit" data-label="Deposit">₹{{ r.securityDeposit | number }}</td>
+          <td class="text-center" data-label="Min Days">{{ r.minDays }}</td>
+          <td class="text-center" data-label="Km/Day">
             <span *ngIf="r.kmPerDay">{{ r.kmPerDay }}</span>
             <span *ngIf="!r.kmPerDay" class="rn-na">—</span>
           </td>
-          <td class="text-right rn-extra">
+          <td class="text-right rn-extra" data-label="Extra Km">
             <span *ngIf="r.extraKmRate">₹{{ r.extraKmRate | number:'1.0-2' }}/km</span>
             <span *ngIf="!r.extraKmRate" class="rn-na">—</span>
           </td>
-          <td>
+          <td data-label="Status">
             <span class="rn-status" [ngClass]="r.isActive ? 'status-active' : 'status-inactive'">
               {{ r.isActive ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          <td *ngIf="isAdmin">
+          <td *ngIf="isAdmin" data-label="Actions" class="rt-actions">
             <button class="rn-act-btn edit" (click)="openEdit(r)">
               <i class="bi bi-pencil-fill"></i> Edit
             </button>

@@ -236,6 +236,117 @@ mat-form-field {
   color: #6366f1;
 }
 
+/* ── Days Stepper ── */
+.days-stepper {
+  display: flex;
+  align-items: center;
+  background: #f8faff;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 48px;
+  margin-bottom: 4px;
+}
+
+.days-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: #eef2ff;
+  color: #6366f1;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.days-btn:hover {
+  background: #6366f1;
+  color: #fff;
+}
+
+.days-value {
+  flex: 1;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
+/* ── Per-day route cards ── */
+.day-routes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.day-route-card {
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+  padding: 8px 10px 0;
+}
+
+.day-route-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.day-route-num {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.day-route-date {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.day-route-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+
+/* ── Package end date ── */
+.pkg-end-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  margin-top: 4px;
+  padding-left: 2px;
+}
+
+/* ── Remaining amount display ── */
+.remaining-display {
+  background: #f0fdf4;
+  border: 2px solid #86efac;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #16a34a;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.remaining-display.remaining-zero {
+  background: #fef9c3;
+  border-color: #fde047;
+  color: #854d0e;
+}
+
 /* ── Action buttons ── */
 .bf-actions {
   display: flex;
@@ -393,3 +504,7 @@ mat-form-field {
     justify-content: center;
   }
 }
+
+/* Saved-partner picker */
+.partner-opt-name { font-weight: 600; margin-right: 8px; }
+.partner-opt-num { color: #64748b; }

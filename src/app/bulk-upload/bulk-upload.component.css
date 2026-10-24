@@ -192,3 +192,7 @@
   .bu-page { max-width: 900px; padding: 24px; }
   .bu-type-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+@media (min-width: 1280px) {
+  .bu-page { max-width: 1000px; }
+}

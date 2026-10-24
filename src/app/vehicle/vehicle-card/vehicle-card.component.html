@@ -157,7 +157,7 @@
       </div>
 
       <div class="stmt-table-wrap" *ngIf="emiStatement.payments?.length > 0">
-        <table class="stmt-table">
+        <table class="rtable stmt-table">
           <thead>
             <tr>
               <th>#</th>
@@ -168,10 +168,10 @@
           </thead>
           <tbody>
             <tr *ngFor="let p of emiStatement.payments; let i = index">
-              <td class="stmt-num">{{ i + 1 }}</td>
-              <td class="stmt-date">{{ p.expenseDate | date:'dd MMM yyyy' }}</td>
-              <td class="stmt-amt">₹{{ p.amount | number:'1.0-0' }}</td>
-              <td class="stmt-note">{{ p.notes || '—' }}</td>
+              <td class="stmt-num" data-label="#">{{ i + 1 }}</td>
+              <td class="stmt-date" data-label="Date">{{ p.expenseDate | date:'dd MMM yyyy' }}</td>
+              <td class="stmt-amt" data-label="Amount">₹{{ p.amount | number:'1.0-0' }}</td>
+              <td class="stmt-note" data-label="Note">{{ p.notes || '—' }}</td>
             </tr>
           </tbody>
         </table>

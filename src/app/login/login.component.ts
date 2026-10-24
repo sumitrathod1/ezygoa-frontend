@@ -75,7 +75,14 @@ export class LoginComponent {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        const msg = error?.error?.message || 'Invalid username or password';
+        const status = error?.status;
+        const msg =
+          status === 0 ? 'Cannot reach the server. Is the API running?'
+          : status === 429 ? 'Too many login attempts. Wait 1 minute and try again.'
+          : status === 401 && error?.error?.message !== 'Invalid credentials' && error?.error?.message
+            ? error.error.message   // e.g. "User account is deactivated"
+          : status === 401 ? 'Wrong username or password. Usernames are lowercase (e.g. "superadmin").'
+          : error?.error?.message || `Login failed (server error ${status ?? ''}).`;
         this._toastr.error(msg, 'Login Failed');
         this.isLoading = false;
         this.cdr.markForCheck();

@@ -123,3 +123,32 @@ app-header {
   color: #6366f1;
   border-left-color: #6366f1;
 }
+
+/* Button variant of .ds-item — for actions, not routes */
+.ds-btn {
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ds-icon-green {
+  color: #22c55e;
+}
+
+/* Pushes Logout to the bottom of the sidebar */
+.ds-spacer {
+  flex: 1 1 auto;
+  min-height: 12px;
+}
+
+.ds-logout {
+  color: #ef4444;
+}
+.ds-logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}

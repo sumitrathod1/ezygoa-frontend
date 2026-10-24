@@ -203,3 +203,35 @@
   background: #22c55e;
   color: #fff;
 }
+
+/* Payment history & change log */
+.muted { color: #64748b; }
+.small { font-size: 12px; }
+.link { cursor: pointer; }
+.error-box { background: #fef2f2; color: #b91c1c; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.pay-row-item {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px;
+  padding: 9px 0; border-bottom: 1px dashed #e5e7eb;
+}
+.pay-row-item:last-child { border-bottom: none; }
+.pay-row-item.earlier { background: #f8fafc; border-radius: 8px; padding: 8px 10px; border: none; margin-bottom: 4px; }
+.pay-row-item.reversed .pay-type, .pay-row-item.reversed strong { text-decoration: line-through; color: #94a3b8; }
+.pay-row-item.reversal .pay-type { color: #b91c1c; }
+.pay-main { min-width: 0; flex: 1 1 200px; }
+.pay-type { font-weight: 600; font-size: 13.5px; }
+.pay-side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.neg { color: #b91c1c; }
+.tag { margin-left: 6px; font-size: 10.5px; background: #fee2e2; color: #991b1b; padding: 1px 6px; border-radius: 6px; }
+.link-btn { border: none; background: none; color: #dc2626; font-size: 12px; padding: 0; cursor: pointer; text-decoration: underline; }
+.reverse-box { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.reverse-input { flex: 1 1 200px; padding: 7px 10px; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; min-width: 0; }
+.reverse-actions { display: flex; gap: 6px; }
+.primary-btn.danger { background: #dc2626; }
+.outline-btn { background: #fff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.section-title.toggle { border: none; background: none; padding: 0; display: flex; gap: 6px; align-items: center; cursor: pointer; width: 100%; }
+.activity-list { max-height: 220px; overflow-y: auto; }
+.activity-item { padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.detail-footer { gap: 8px; flex-wrap: wrap; }
+.finance-card label { display: block; }
+.mt-2 { margin-top: 8px; }
+.vendor-box { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }

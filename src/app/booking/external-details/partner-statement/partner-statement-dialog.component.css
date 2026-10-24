@@ -1,0 +1,25 @@
+.ps-wrap { padding: 18px; max-width: 460px; font-size: 14px; }
+.ps-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.ps-title { font-size: 17px; font-weight: 700; color: #0f172a; }
+.ps-sub { color: #64748b; font-size: 13px; }
+.ps-x { border: none; background: #f1f5f9; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; }
+.ps-label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin: 10px 0 6px; }
+.ps-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.ps-chip {
+  border: 1px solid #c7d2fe; background: #fff; color: #4338ca; border-radius: 999px;
+  padding: 5px 12px; font-size: 13px; cursor: pointer;
+}
+.ps-chip.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.ps-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ps-input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+.ps-check { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; cursor: pointer; }
+.ps-check input { margin-top: 3px; }
+.ps-check small { color: #64748b; }
+.ps-note { margin: 14px 0 0; padding: 10px 12px; background: #f5f3ff; border-radius: 10px; color: #4338ca; font-size: 12.5px; }
+.ps-error { margin-top: 10px; color: #b91c1c; background: #fef2f2; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.ps-actions { display: flex; gap: 10px; margin-top: 16px; }
+.ps-btn { flex: 1; padding: 10px 12px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; gap: 6px; justify-content: center; align-items: center; }
+.ps-btn.outline { background: #fff; border: 1px solid #cbd5e1; color: #0f172a; }
+.ps-btn.primary { background: #4f46e5; border: none; color: #fff; }
+.ps-btn:disabled { opacity: 0.6; cursor: wait; }
+@media (max-width: 420px) { .ps-dates { grid-template-columns: 1fr; } }

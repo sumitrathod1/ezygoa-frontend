@@ -79,7 +79,7 @@ export class BookingFormComponent implements OnInit {
   agentTypes: any = [];
   times: string[] = [];
   isEditMode = false;
-  isPackage = false;
+  dayRoutes: { from: string; to: string }[] = [{ from: '', to: '' }, { from: '', to: '' }];
 
   // Custom time picker state
   timeHour = 12;
@@ -90,6 +90,10 @@ export class BookingFormComponent implements OnInit {
 
   filteredFrom$!: Observable<string[]>;
   filteredTo$!: Observable<string[]>;
+
+  /** Partners already saved for this organisation (ExternalEmployees), one per phone number. */
+  partners: { id: number; name: string; number: string }[] = [];
+  filteredPartners$!: Observable<{ id: number; name: string; number: string }[]>;
 
   @ViewChild('fromTrigger', { read: MatAutocompleteTrigger })
   fromTrigger!: MatAutocompleteTrigger;
@@ -131,25 +135,47 @@ export class BookingFormComponent implements OnInit {
       amount: data?.amount ?? '',
       bookingType: data?.bookingType ?? '',
       payment: data?.payment ?? '',
-      ownerPay: data?.ownerPay ?? null,
-      customerPay: data?.customerPay ?? null,
+      ownerPay: data?.ownerPay ?? (data?.ownerWillPay || null),
+      customerPay: data?.customerPay ?? (data?.customerWillPay || null),
       agent: data?.travelAgentId ? Number(data.travelAgentId) : null,
       isPackage: [false],
       dayWiseBookings: this._fb.array([]),
       advancePaid: data?.advancePaid ?? null,
-      isExternalBooking: [data?.externalEmployeeNumber ? true : false],
-      externalEmployee: [data?.externalEmployee ?? null],
+      // Booking lists return externalEmployee as an object, not the name/number strings —
+      // so editing a partner booking opened it as in-house and saving detached the partner.
+      isExternalBooking: [!!(data?.externalEmployeeNumber || data?.externalEmployee?.externalEmployeeNumber || data?.externalEmployeeId)],
+      externalEmployee: [data?.externalEmployee?.externalEmployeeName ?? (typeof data?.externalEmployee === 'string' ? data.externalEmployee : null)],
       externalEmployeeNumber: [
-        data?.externalEmployeeNumber ?? null,
+        data?.externalEmployeeNumber ?? data?.externalEmployee?.externalEmployeeNumber ?? null,
         [Validators.pattern(/^(\+91\s*|91\s*|0)?[6-9][0-9]{9}$/)],
       ],
       commissionAmount: [data?.commissionAmount ?? null],
       returnDate: [data?.returnDate ?? null],
+      packageStartDate: [null],
+      packageDays: [2],
+      packageFrom: [''],
+      packageTo: [''],
+      packageTime: [''],
+      packageBookingType: ['FullDay'],
     });
 
     if (data?.dayWiseBookings?.length) {
       this.bookingForm.patchValue({ isPackage: true });
-      data.dayWiseBookings.forEach((d: any) => this.addDay(d));
+      const first = data.dayWiseBookings[0];
+      const totalAmt = data.dayWiseBookings.reduce(
+        (s: number, d: any) => s + (Number(d.amount) || 0), 0
+      );
+      this.bookingForm.patchValue({
+        packageStartDate: first.travelDate ? new Date(first.travelDate) : null,
+        packageDays: data.dayWiseBookings.length,
+        packageTime: first.travelTime || '',
+        packageBookingType: first.bookingType || 'FullDay',
+        amount: totalAmt,
+      });
+      this.dayRoutes = data.dayWiseBookings.map((d: any) => ({
+        from: d.from || '',
+        to: d.to || '',
+      }));
     }
 
     if (data) {
@@ -161,6 +187,19 @@ export class BookingFormComponent implements OnInit {
       patch.driver = data.driver ?? data.userid ?? patch.driver;
       if (Array.isArray(patch.from)) patch.from = patch.from[0];
       if (Array.isArray(patch.to)) patch.to = patch.to[0];
+      // List rows carry the partner as an object — the form needs its name and number.
+      // Patching the raw object put "[object Object]" in the name field and broke saving.
+      if (data.externalEmployee && typeof data.externalEmployee === 'object') {
+        patch.externalEmployee = data.externalEmployee.externalEmployeeName ?? '';
+        patch.externalEmployeeNumber = data.externalEmployee.externalEmployeeNumber ?? '';
+        patch.isExternalBooking = true;
+      }
+      if (data.customer && typeof data.customer === 'object') {
+        patch.customerName = data.customer.customerName ?? patch.customerName;
+        patch.customerNumber = data.customer.customerNumber ?? patch.customerNumber;
+      }
+      delete patch.customer;
+      delete patch.vehicleId;
       this.bookingForm.patchValue(patch);
     }
 
@@ -196,11 +235,40 @@ export class BookingFormComponent implements OnInit {
     return this.bookingForm.get('isExternalBooking')?.value === true;
   }
 
+  get isPackage(): boolean {
+    return this.bookingForm.get('isPackage')?.value === true;
+  }
+
   get isSelfDriveRental(): boolean {
     return this.bookingForm.get('bookingType')?.value === 'SelfDriveRental';
   }
 
-  normalizePhone(event: any) {
+  get remaining(): number {
+    const total = this.n(this.bookingForm.get('amount')?.value);
+    const advance = this.n(this.bookingForm.get('advancePaid')?.value);
+    return total - advance;
+  }
+
+  /** What the partner keeps after our commission — null until both amounts are entered. */
+  get partnerEarning(): number | null {
+    const fare = this.bookingForm.get('amount')?.value;
+    const com = this.bookingForm.get('commissionAmount')?.value;
+    if (fare === '' || fare == null || com === '' || com == null) return null;
+    return Math.max(0, this.n(fare) - this.n(com));
+  }
+
+  get packageEndDate(): Date | null {
+    const start = this.bookingForm.get('packageStartDate')?.value;
+    const days = this.n(this.bookingForm.get('packageDays')?.value);
+    if (!start || days < 1) return null;
+    const d = new Date(start);
+    d.setDate(d.getDate() + days - 1);
+    return d;
+  }
+
+  /** Clean up a phone input. Writes back to the field being typed in — it used to always
+   *  write to customerNumber, so typing the driver's number overwrote the customer's. */
+  normalizePhone(event: any, controlName: 'customerNumber' | 'externalEmployeeNumber' = 'customerNumber') {
     let value = event.target.value || '';
     value = value.replace(/[^0-9+]/g, '');
     if (value.startsWith('+91')) {
@@ -210,7 +278,7 @@ export class BookingFormComponent implements OnInit {
     if (digits.length > 12) {
       value = value.slice(0, value.length - 1);
     }
-    this.bookingForm.get('customerNumber')?.setValue(value, { emitEvent: false });
+    this.bookingForm.get(controlName)?.setValue(value, { emitEvent: false });
   }
 
   createDayGroup(day?: any) {
@@ -236,6 +304,46 @@ export class BookingFormComponent implements OnInit {
     this.dayWiseBookings.removeAt(index);
   }
 
+  incDays() {
+    const ctrl = this.bookingForm.get('packageDays')!;
+    ctrl.setValue((this.n(ctrl.value) || 2) + 1);
+  }
+
+  decDays() {
+    const ctrl = this.bookingForm.get('packageDays')!;
+    const current = this.n(ctrl.value) || 2;
+    if (current > 2) ctrl.setValue(current - 1);
+  }
+
+  private localDate(d: Date): string {
+    const p = (n: number) => n < 10 ? '0' + n : String(n);
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
+
+  getDayDate(i: number): Date | null {
+    const start = this.bookingForm.get('packageStartDate')?.value;
+    if (!start) return null;
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    return d;
+  }
+
+  openDayLocationPicker(field: 'from' | 'to', index: number) {
+    const current = this.dayRoutes[index]?.[field] ?? '';
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px',
+      maxWidth: '100vw',
+      height: '90vh',
+      maxHeight: '90vh',
+      panelClass: 'lp-dialog-panel',
+      data: { current, label: field === 'from' ? 'From Location' : 'To Location' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (!picked || !this.dayRoutes[index]) return;
+      this.dayRoutes[index][field] = picked.name;
+    });
+  }
+
   ngOnInit() {
     this.filteredFrom$ = this.bookingForm.get('from')!.valueChanges.pipe(
       startWith(this.bookingForm.get('from')!.value || ''),
@@ -246,10 +354,21 @@ export class BookingFormComponent implements OnInit {
       startWith(this.bookingForm.get('to')!.value || ''),
       map((v) => this._filterStates(v))
     );
+    this.filteredPartners$ = this.bookingForm.get('externalEmployee')!.valueChanges.pipe(
+      startWith(this.bookingForm.get('externalEmployee')!.value || ''),
+      map((v) => this._filterPartners(v))
+    );
     this.generateTimeSlots();
     this.loadEmployees();
     this.loadVehciles();
     this.loadAgents();
+    this.loadPartners();
+
+    this.bookingForm.get('packageDays')!.valueChanges.subscribe((days) => {
+      const n = Math.max(this.n(days), 1);
+      while (this.dayRoutes.length < n) this.dayRoutes.push({ from: '', to: '' });
+      if (this.dayRoutes.length > n) this.dayRoutes = this.dayRoutes.slice(0, n);
+    });
 
     this.bookingForm.get('isExternalBooking')?.valueChanges.subscribe((isExt) => {
       if (isExt) {
@@ -269,8 +388,57 @@ export class BookingFormComponent implements OnInit {
     return this.states.filter((s) => s.toLowerCase().includes(filter));
   }
 
-  toggleFields() {
-    this.isPackage = !this.isPackage;
+  private static last10(v: any): string {
+    return String(v ?? '').replace(/\D/g, '').slice(-10);
+  }
+
+  /** Matches on name or on phone digits, so "shehen" and "98789" both find Shehensha. */
+  private _filterPartners(value: any) {
+    const text = String(value ?? '').trim().toLowerCase();
+    const digits = text.replace(/\D/g, '');
+    const list = !text
+      ? this.partners
+      : this.partners.filter(
+          (p) => p.name.toLowerCase().includes(text) || (digits.length >= 3 && p.number.replace(/\D/g, '').includes(digits))
+        );
+    return list.slice(0, 20);
+  }
+
+  loadPartners() {
+    this._bookingService.getExternalEmployees().subscribe({
+      next: (res: any) => {
+        const raw: any[] = Array.isArray(res) ? res : (res?.data ?? []);
+        // The same partner can be stored more than once ("+91 98…" and "98…") — show them once
+        const byNumber = new Map<string, { id: number; name: string; number: string }>();
+        for (const e of raw) {
+          const name = String(e.externalEmployeeName ?? '').trim();
+          const number = String(e.externalEmployeeNumber ?? '').trim();
+          const key = BookingFormComponent.last10(number);
+          if (!name || key.length < 10 || byNumber.has(key)) continue;
+          byNumber.set(key, { id: e.externalEmployeeID, name, number });
+        }
+        this.partners = [...byNumber.values()].sort((a, b) => a.name.localeCompare(b.name));
+        // Re-run the filter so the list is ready the first time the field is focused
+        const ctrl = this.bookingForm.get('externalEmployee')!;
+        ctrl.setValue(ctrl.value, { emitEvent: true });
+      },
+      error: () => (this.partners = []),
+    });
+  }
+
+  pickPartner(p: { name: string; number: string }) {
+    this.bookingForm.patchValue({ externalEmployee: p.name, externalEmployeeNumber: p.number });
+    this.bookingForm.get('externalEmployeeNumber')?.markAsTouched();
+  }
+
+  /** Typed the number of a saved partner but left the name empty — fill it in. */
+  fillPartnerNameFromNumber() {
+    const name = String(this.bookingForm.get('externalEmployee')?.value ?? '').trim();
+    if (name) return;
+    const key = BookingFormComponent.last10(this.bookingForm.get('externalEmployeeNumber')?.value);
+    if (key.length < 10) return;
+    const match = this.partners.find((p) => BookingFormComponent.last10(p.number) === key);
+    if (match) this.bookingForm.patchValue({ externalEmployee: match.name });
   }
 
   loadAgents() {
@@ -344,9 +512,74 @@ export class BookingFormComponent implements OnInit {
   ];
   errorMessage = '';
 
+  private fmtDate(d: any): string {
+    if (!d) return this.localDate(new Date());
+    if (d instanceof Date) return this.localDate(d);
+    return d;
+  }
+
+  private n(val: any): number {
+    const v = Number(val);
+    return isNaN(v) ? 0 : v;
+  }
+
+  /** Everything that would make the booking wrong or fail on save, in plain words. */
+  validationErrors(): string[] {
+    const f = this.bookingForm.value;
+    const errs: string[] = [];
+    const c = (name: string) => this.bookingForm.get(name);
+
+    if (!String(f.customerName ?? '').trim()) errs.push('Customer name is required.');
+    if (c('customerNumber')?.invalid) errs.push('Enter a valid 10-digit customer number.');
+
+    const amount = this.n(f.amount);
+    if (amount < 0) errs.push('Amount cannot be negative.');
+    if (this.n(f.advancePaid) < 0) errs.push('Advance cannot be negative.');
+    if (amount > 0 && this.n(f.advancePaid) > amount) errs.push('Advance cannot be more than the amount.');
+
+    if (f.isPackage) {
+      // An empty start date became 1 Jan 1970 for every day of the package
+      if (!f.packageStartDate) errs.push('Choose the package start date.');
+      if (this.n(f.packageDays) < 2) errs.push('A package needs at least 2 days.');
+    } else {
+      // An empty date was silently saved as today
+      if (!f.travelDate) errs.push('Choose the travel date.');
+      if (f.bookingType === 'SelfDriveRental') {
+        if (!f.returnDate) errs.push('Choose the return date for the rental.');
+        else if (f.travelDate && new Date(f.returnDate) < new Date(f.travelDate)) errs.push('Return date cannot be before the travel date.');
+      }
+    }
+
+    if (f.isExternalBooking) {
+      if (!String(f.externalEmployee ?? '').trim()) errs.push('Enter the partner / driver name.');
+      if (!String(f.externalEmployeeNumber ?? '').trim() || c('externalEmployeeNumber')?.invalid)
+        errs.push('Enter a valid 10-digit partner number.');
+      const com = f.commissionAmount;
+      if (com === null || com === undefined || com === '') errs.push('Enter your commission (0 if none).');
+      else if (this.n(com) < 0) errs.push('Commission cannot be negative.');
+      else if (this.n(com) > amount) errs.push('Commission cannot be more than the amount.');
+    }
+    return errs;
+  }
+
+  /** Readable message from any API error (ApiResponse, ASP.NET validation problem, network). */
+  private apiError(err: any): string {
+    const e = err?.error;
+    if (typeof e?.message === 'string' && e.message) return e.message;
+    if (e?.errors && typeof e.errors === 'object' && !Array.isArray(e.errors)) {
+      const first = Object.values(e.errors).flat().find((m) => typeof m === 'string');
+      if (first) return String(first);
+    }
+    if (typeof e?.title === 'string') return e.title;
+    if (err?.status === 0) return 'No connection to the server. Check your internet and try again.';
+    return 'Save failed. Please try again.';
+  }
+
   onFormSubmit() {
-    if (!this.bookingForm.valid) {
-      this._toastr.warning('Please fill all required fields');
+    const errs = this.validationErrors();
+    if (errs.length) {
+      this.bookingForm.markAllAsTouched();
+      this._toastr.warning(errs.join('<br>'), 'Please check the booking', { enableHtml: true });
       return;
     }
 
@@ -354,29 +587,40 @@ export class BookingFormComponent implements OnInit {
     const f = this.bookingForm.value;
     let payload: any;
 
-    if (f.isPackage && f.dayWiseBookings && f.dayWiseBookings.length) {
+    if (f.isPackage) {
+      const start = f.packageStartDate instanceof Date
+        ? f.packageStartDate
+        : new Date(f.packageStartDate);
+      const days = Math.max(this.n(f.packageDays), 1);
+      const total = this.n(f.amount);
+      const amtPerDay = parseFloat((total / days).toFixed(2));
+      const dayWiseBookings = Array.from({ length: days }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        return {
+          travelDate: this.localDate(d),
+          from: this.dayRoutes[i]?.from || '',
+          to: this.dayRoutes[i]?.to || '',
+          travelTime: f.packageTime || '',
+          bookingType: f.packageBookingType || 'FullDay',
+          amount: amtPerDay,
+        };
+      });
       payload = {
         bookingId: f.bookingId || 0,
         customerName: f.customerName,
         customerNumber: f.customerNumber,
-        dayWiseBookings: f.dayWiseBookings.map((d: any) => ({
-          travelDate: d.travelDate,
-          from: d.from,
-          to: d.to,
-          travelTime: d.travelTime,
-          bookingType: d.bookingType,
-          amount: d.amount,
-        })),
-        bookingDate: f.bookingDate ?? new Date().toISOString().split('T')[0],
-        pax: f.pax,
-        vehicleId: Number(f.vehicle),
-        userId: Number(f.driver),
+        dayWiseBookings,
+        bookingDate: this.localDate(start),
+        pax: this.n(f.pax),
+        vehicleId: this.n(f.vehicle),
+        userId: this.n(f.driver),
         payment: f.payment,
-        travelAgentId: f.agent ?? 0,
-        customerWillPay: f.customerPay ?? 0,
-        ownerWillPay: f.ownerPay ?? 0,
-        amount: f.amount ?? 0,
-        advancePaid: f.advancePaid ?? 0,
+        travelAgentId: this.n(f.agent),
+        customerWillPay: this.n(f.customerPay),
+        ownerWillPay: this.n(f.ownerPay),
+        amount: total,
+        advancePaid: this.n(f.advancePaid),
       };
     } else {
       payload = {
@@ -384,27 +628,25 @@ export class BookingFormComponent implements OnInit {
         customerName: f.customerName,
         customerNumber: f.customerNumber,
         dayWiseBookings: [],
-        bookingDate: f.travelDate ?? new Date().toISOString().split('T')[0],
+        bookingDate: this.fmtDate(f.travelDate),
         travelTime: f.travelTime,
         from: f.from,
         to: f.to,
-        pax: f.pax,
-        vehicleId: Number(f.vehicle),
-        userId: Number(f.driver),
+        pax: this.n(f.pax),
+        vehicleId: this.n(f.vehicle),
+        userId: this.n(f.driver),
         bookingType: f.bookingType,
         payment: f.payment,
-        travelAgentId: f.agent ?? 0,
-        customerWillPay: f.customerPay ?? 0,
-        ownerWillPay: f.ownerPay ?? 0,
-        amount: f.amount ?? 0,
-        advancePaid: f.advancePaid ?? 0,
+        travelAgentId: this.n(f.agent),
+        customerWillPay: this.n(f.customerPay),
+        ownerWillPay: this.n(f.ownerPay),
+        amount: this.n(f.amount),
+        advancePaid: this.n(f.advancePaid),
         externalEmployee: f.isExternalBooking ? f.externalEmployee : null,
         externalEmployeeNumber: f.isExternalBooking ? f.externalEmployeeNumber : null,
         commissionAmount: f.isExternalBooking ? f.commissionAmount : null,
         returnDate: f.bookingType === 'SelfDriveRental' && f.returnDate
-          ? (f.returnDate instanceof Date
-              ? f.returnDate.toISOString().split('T')[0]
-              : f.returnDate)
+          ? this.fmtDate(f.returnDate)
           : null,
       };
     }
@@ -417,7 +659,7 @@ export class BookingFormComponent implements OnInit {
         this.isSubmitting = false;
       },
       error: (err) => {
-        this._toastr.error(err?.error?.message || 'Save failed');
+        this._toastr.error(this.apiError(err), 'Booking not saved');
         this.isSubmitting = false;
       },
     });
@@ -434,10 +676,14 @@ export class BookingFormComponent implements OnInit {
   }
 
   openLocationPicker(field: 'from' | 'to', label: string, dayIndex?: number) {
+    const pkgField = field === 'from' ? 'packageFrom' : 'packageTo';
+    const isPackageField = dayIndex === undefined && this.isPackage;
     const current =
       dayIndex !== undefined
         ? this.dayWiseBookings.at(dayIndex).get(field)?.value ?? ''
-        : this.bookingForm.get(field)?.value ?? '';
+        : isPackageField
+          ? this.bookingForm.get(pkgField)?.value ?? ''
+          : this.bookingForm.get(field)?.value ?? '';
 
     const ref = this._matDialog.open(LocationPickerComponent, {
       width: '520px',
@@ -452,6 +698,8 @@ export class BookingFormComponent implements OnInit {
       if (!picked) return;
       if (dayIndex !== undefined) {
         this.dayWiseBookings.at(dayIndex).patchValue({ [field]: picked.name });
+      } else if (isPackageField) {
+        this.bookingForm.patchValue({ [pkgField]: picked.name });
       } else {
         this.bookingForm.patchValue({ [field]: picked.name });
       }

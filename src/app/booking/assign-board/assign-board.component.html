@@ -1,0 +1,280 @@
+<div class="ab-page" cdkDropListGroup>
+  <!-- Header -->
+  <div class="ab-head">
+    <div>
+      <h1 class="ab-title"><i class="bi bi-diagram-3-fill"></i> Assign drivers &amp; vehicles</h1>
+      <p class="ab-hint">
+        <span class="hint-desktop">Drag a driver or vehicle onto a booking, or click an empty slot.</span>
+        <span class="hint-mobile">Tap an empty slot to choose a driver or vehicle.</span>
+      </p>
+    </div>
+    <div class="ab-missing" *ngIf="board" [class.none]="missingCount === 0">
+      <ng-container *ngIf="missingCount > 0; else allDone">
+        <strong>{{ missingCount }}</strong> still to assign
+      </ng-container>
+      <ng-template #allDone><i class="bi bi-check2-circle"></i> All assigned</ng-template>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="ab-filters">
+    <div class="ab-chips" role="group" aria-label="Period">
+      <button type="button" class="chip" [class.active]="range === 'today'" (click)="setRange('today')">Today</button>
+      <button type="button" class="chip" [class.active]="range === 'tomorrow'" (click)="setRange('tomorrow')">Tomorrow</button>
+      <button type="button" class="chip" [class.active]="range === 'week'" (click)="setRange('week')">Next 7 days</button>
+      <button type="button" class="chip" [class.active]="range === 'custom'" (click)="setRange('custom')">Pick date</button>
+      <input
+        *ngIf="range === 'custom'"
+        type="date"
+        class="ab-date"
+        [(ngModel)]="customDate"
+        (ngModelChange)="load()"
+        aria-label="Date"
+      />
+    </div>
+    <label class="ab-toggle">
+      <input type="checkbox" [(ngModel)]="onlyMissing" />
+      <span>Only bookings that need something</span>
+    </label>
+  </div>
+
+  <div class="ab-error" *ngIf="error">
+    {{ error }} <button type="button" class="link" (click)="load()">Try again</button>
+  </div>
+
+  <div class="ab-layout">
+    <!-- Bookings -->
+    <section class="ab-bookings" aria-label="Bookings">
+      <div class="ab-loading" *ngIf="loading">Loading bookings…</div>
+
+      <div class="ab-empty" *ngIf="!loading && board && !groups.length">
+        <i class="bi bi-emoji-smile"></i>
+        <div *ngIf="onlyMissing">Nothing to assign in this period.</div>
+        <div *ngIf="!onlyMissing">No bookings in this period.</div>
+      </div>
+
+      <div class="ab-day" *ngFor="let g of groups" [class.missed]="isPast(g.date)">
+        <h2 class="ab-day-title">{{ dayLabel(g.date) }} <span>{{ g.items.length }}</span></h2>
+        <p class="ab-missed-note" *ngIf="isPast(g.date)">
+          The trip date has passed but no driver / vehicle was saved. Fill in who did it, or cancel the booking if it did not happen.
+        </p>
+
+        <article
+          class="bk"
+          *ngFor="let b of g.items; trackBy: trackBooking"
+          [class.ready]="b.vehicleId && (b.userId || !b.needsDriver)"
+        >
+          <header class="bk-top">
+            <div class="bk-time">
+              <i class="bi bi-clock"></i> {{ time(b.travelTime) || 'Time not set' }}
+            </div>
+            <span class="bk-type">{{ b.bookingType }}</span>
+            <span class="bk-from-org" *ngIf="b.transferredFrom" title="Transferred from {{ b.transferredFrom }}">
+              <i class="bi bi-arrow-left-right"></i> from {{ b.transferredFrom }}
+            </span>
+            <button
+              *ngIf="hasTransferTargets"
+              type="button"
+              class="bk-transfer"
+              (click)="transfer(b)"
+              title="Send this booking to another organisation"
+            >
+              <i class="bi bi-send"></i><span> Transfer</span>
+            </button>
+          </header>
+
+          <div class="bk-route">
+            <i class="bi bi-geo-alt"></i> {{ b.from || '—' }}
+            <i class="bi bi-arrow-right"></i> {{ b.to || '—' }}
+            <span class="bk-until" *ngIf="b.returnDate && b.returnDate !== b.travelDate">until {{ b.returnDate | date: 'd MMM' }}</span>
+          </div>
+          <div class="bk-cust">
+            <i class="bi bi-person"></i> {{ b.customerName || 'Customer' }}
+            <span class="dot">·</span> {{ b.pax || 1 }} pax
+            <a *ngIf="b.customerNumber" class="bk-call" [href]="'tel:' + b.customerNumber"><i class="bi bi-telephone"></i></a>
+          </div>
+
+          <div class="bk-slots">
+            <!-- Vehicle slot -->
+            <div
+              class="slot"
+              cdkDropList
+              [cdkDropListData]="{ booking: b, kind: 'vehicle' }"
+              [cdkDropListEnterPredicate]="canEnter"
+              (cdkDropListDropped)="dropped($event)"
+              [class.filled]="b.vehicleId"
+              [class.drop-hint]="dragging?.kind === 'vehicle'"
+              [class.drop-warn]="dragging?.kind === 'vehicle' && busyWith(b, 'vehicle', dragging!.id).length"
+              (click)="openPicker(b, 'vehicle')"
+              (keydown.enter)="openPicker(b, 'vehicle')"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="b.vehicleId ? 'Vehicle ' + b.vehicleName + ', change' : 'Choose vehicle'"
+            >
+              <i class="bi bi-car-front-fill slot-icon"></i>
+              <ng-container *ngIf="saving.has(slotKey(b, 'vehicle')); else vehicleBody">
+                <span class="slot-saving">Saving…</span>
+              </ng-container>
+              <ng-template #vehicleBody>
+                <ng-container *ngIf="b.vehicleId; else noVehicle">
+                  <span class="slot-name">{{ b.vehicleName }}</span>
+                  <small class="slot-sub">{{ b.vehicleNumber }}</small>
+                  <button type="button" class="slot-x" (click)="clear(b, 'vehicle', $event)" aria-label="Remove vehicle">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </ng-container>
+                <ng-template #noVehicle><span class="slot-empty"><span class="hint-desktop">Drop or click to choose vehicle</span><span class="hint-mobile">Tap to choose vehicle</span></span></ng-template>
+              </ng-template>
+              <small class="slot-warn" *ngIf="dragging?.kind === 'vehicle' && busyText(b, 'vehicle', dragging!.id) as w">{{ w }}</small>
+            </div>
+
+            <!-- Driver slot -->
+            <div
+              *ngIf="b.needsDriver; else selfDrive"
+              class="slot"
+              cdkDropList
+              [cdkDropListData]="{ booking: b, kind: 'driver' }"
+              [cdkDropListEnterPredicate]="canEnter"
+              (cdkDropListDropped)="dropped($event)"
+              [class.filled]="b.userId"
+              [class.drop-hint]="dragging?.kind === 'driver'"
+              [class.drop-warn]="dragging?.kind === 'driver' && busyWith(b, 'driver', dragging!.id).length"
+              (click)="openPicker(b, 'driver')"
+              (keydown.enter)="openPicker(b, 'driver')"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="b.userId ? 'Driver ' + b.driverName + ', change' : 'Choose driver'"
+            >
+              <i class="bi bi-person-badge-fill slot-icon"></i>
+              <ng-container *ngIf="saving.has(slotKey(b, 'driver')); else driverBody">
+                <span class="slot-saving">Saving…</span>
+              </ng-container>
+              <ng-template #driverBody>
+                <ng-container *ngIf="b.userId; else noDriver">
+                  <span class="slot-name">{{ b.driverName }}</span>
+                  <button type="button" class="slot-x" (click)="clear(b, 'driver', $event)" aria-label="Remove driver">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </ng-container>
+                <ng-template #noDriver><span class="slot-empty"><span class="hint-desktop">Drop or click to choose driver</span><span class="hint-mobile">Tap to choose driver</span></span></ng-template>
+              </ng-template>
+              <small class="slot-warn" *ngIf="dragging?.kind === 'driver' && busyText(b, 'driver', dragging!.id) as w">{{ w }}</small>
+            </div>
+            <ng-template #selfDrive>
+              <div class="slot slot-na"><i class="bi bi-key-fill slot-icon"></i><span class="slot-empty">Self-drive · no driver needed</span></div>
+            </ng-template>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Drivers & vehicles (desktop: drag from here) -->
+    <aside class="ab-panel" aria-label="Drivers and vehicles">
+      <div class="panel-tabs" role="tablist">
+        <button type="button" role="tab" [class.active]="panelTab === 'driver'" (click)="panelTab = 'driver'">
+          <i class="bi bi-person-badge"></i> Drivers <span>{{ board?.drivers?.length || 0 }}</span>
+        </button>
+        <button type="button" role="tab" [class.active]="panelTab === 'vehicle'" (click)="panelTab = 'vehicle'">
+          <i class="bi bi-car-front"></i> Vehicles <span>{{ board?.vehicles?.length || 0 }}</span>
+        </button>
+      </div>
+      <input class="panel-search" type="search" placeholder="Search name or number" [(ngModel)]="search" aria-label="Search" />
+      <p class="panel-note">Drag onto a booking. The number shows jobs already in this period.</p>
+
+      <div
+        class="panel-list"
+        *ngIf="panelTab === 'driver'"
+        cdkDropList
+        cdkDropListSortingDisabled
+        [cdkDropListEnterPredicate]="noEnter"
+      >
+        <div
+          class="chip-card"
+          *ngFor="let d of drivers"
+          cdkDrag
+          [cdkDragData]="{ kind: 'driver', id: d.userId }"
+          (cdkDragStarted)="dragStarted($event)"
+          (cdkDragEnded)="dragEnded()"
+        >
+          <i class="bi bi-grip-vertical grip"></i>
+          <span class="cc-name">{{ d.name }}</span>
+          <span class="cc-jobs" [class.free]="!jobs('driver', d.userId)">{{ jobs('driver', d.userId) || 'free' }}</span>
+          <div class="chip-preview" *cdkDragPreview><i class="bi bi-person-badge-fill"></i> {{ d.name }}</div>
+        </div>
+        <div class="panel-empty" *ngIf="!drivers.length">No drivers found.</div>
+      </div>
+
+      <div
+        class="panel-list"
+        *ngIf="panelTab === 'vehicle'"
+        cdkDropList
+        cdkDropListSortingDisabled
+        [cdkDropListEnterPredicate]="noEnter"
+      >
+        <div
+          class="chip-card"
+          *ngFor="let v of vehicles"
+          cdkDrag
+          [cdkDragData]="{ kind: 'vehicle', id: v.vehicleId }"
+          (cdkDragStarted)="dragStarted($event)"
+          (cdkDragEnded)="dragEnded()"
+        >
+          <i class="bi bi-grip-vertical grip"></i>
+          <span class="cc-name">
+            {{ v.vehicleName }}
+            <small>{{ v.rentalOnly ? 'Rent-a-car only' : v.vehicleNumber }}</small>
+          </span>
+          <span class="cc-jobs" [class.free]="!jobs('vehicle', v.vehicleId)">{{ jobs('vehicle', v.vehicleId) || 'free' }}</span>
+          <div class="chip-preview" *cdkDragPreview><i class="bi bi-car-front-fill"></i> {{ v.vehicleName }}</div>
+        </div>
+        <div class="panel-empty" *ngIf="!vehicles.length">No vehicles found.</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Tap-to-assign picker (works everywhere, the main way on phones) -->
+<div class="picker-backdrop" *ngIf="picker" (click)="closePicker()"></div>
+<div class="picker" *ngIf="picker as p" role="dialog" aria-modal="true" [attr.aria-label]="p.kind === 'driver' ? 'Choose driver' : 'Choose vehicle'">
+  <div class="picker-head">
+    <div>
+      <div class="picker-title">{{ p.kind === 'driver' ? 'Choose driver' : 'Choose vehicle' }}</div>
+      <div class="picker-sub">#{{ p.booking.bookingId }} · {{ time(p.booking.travelTime) }} · {{ p.booking.from }} → {{ p.booking.to }}</div>
+    </div>
+    <button type="button" class="picker-x" (click)="closePicker()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <input class="panel-search" type="search" placeholder="Search name or number" [(ngModel)]="search" aria-label="Search" />
+
+  <div class="picker-list">
+    <ng-container *ngIf="p.kind === 'driver'">
+      <button
+        type="button"
+        class="pick-row"
+        *ngFor="let d of drivers"
+        [class.current]="p.booking.userId === d.userId"
+        (click)="pick(d.userId)"
+      >
+        <span class="pr-name">{{ d.name }}</span>
+        <span class="pr-busy" *ngIf="busyText(p.booking, 'driver', d.userId) as w; else free">{{ w }}</span>
+      </button>
+      <div class="panel-empty" *ngIf="!drivers.length">No drivers found.</div>
+    </ng-container>
+
+    <ng-container *ngIf="p.kind === 'vehicle'">
+      <ng-container *ngFor="let v of vehicles">
+        <button
+          type="button"
+          class="pick-row"
+          *ngIf="vehicleAllowed(p.booking, v)"
+          [class.current]="p.booking.vehicleId === v.vehicleId"
+          (click)="pick(v.vehicleId)"
+        >
+          <span class="pr-name">{{ v.vehicleName }} <small>{{ v.vehicleNumber }} · {{ v.seatingcapacity }} seats</small></span>
+          <span class="pr-busy" *ngIf="busyText(p.booking, 'vehicle', v.vehicleId) as w; else free">{{ w }}</span>
+        </button>
+      </ng-container>
+      <div class="panel-empty" *ngIf="!vehicles.length">No vehicles found.</div>
+    </ng-container>
+  </div>
+</div>
+<ng-template #free><span class="pr-free">Free</span></ng-template>

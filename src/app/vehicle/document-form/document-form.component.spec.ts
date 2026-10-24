@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DocumentFormComponent } from './document-form.component';
+import { testProviders } from '../../testing/test-providers';
 
 describe('DocumentFormComponent', () => {
   let component: DocumentFormComponent;
@@ -8,7 +9,8 @@ describe('DocumentFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DocumentFormComponent]
+      imports: [DocumentFormComponent],
+      providers: testProviders(),
     })
     .compileComponents();
 

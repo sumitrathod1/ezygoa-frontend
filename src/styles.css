@@ -271,3 +271,77 @@ table {
   color: #6366f1 !important;
   font-weight: 700 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Responsive data tables — add class="rtable" to the <table> and a
+   data-label="Column" to each body cell. Below 640px every row becomes a
+   card with label/value pairs, so key columns (Amount, Status, Edit) are
+   never pushed off-screen behind an unannounced horizontal scroll.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  table.rtable {
+    min-width: 0 !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+    background: transparent !important;
+  }
+  table.rtable thead { display: none !important; }
+  table.rtable,
+  table.rtable tbody,
+  table.rtable tfoot,
+  table.rtable tr,
+  table.rtable td { display: block !important; }
+
+  table.rtable tbody tr {
+    background: #fff;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px;
+    padding: 6px 12px;
+    margin: 0 0 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+  table.rtable tbody td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 0 !important;
+    border: none !important;
+    border-bottom: 1px dashed #eef0f4 !important;
+    text-align: right !important;
+    white-space: normal !important;
+    min-width: 0;
+    word-break: break-word;
+  }
+  table.rtable tbody td:last-child { border-bottom: none !important; }
+  table.rtable tbody td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    max-width: 45%;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  /* First column reads as the card title */
+  table.rtable tbody td:first-child { font-weight: 700; }
+  /* Action buttons: no label, aligned right */
+  table.rtable tbody td.rt-actions::before { content: none; }
+  table.rtable tbody td.rt-actions { justify-content: flex-end; gap: 8px; padding-top: 10px !important; }
+
+  /* Totals row as a summary card */
+  table.rtable tfoot tr {
+    display: flex !important;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #eef2ff;
+    font-weight: 700;
+  }
+  table.rtable tfoot td { border: none !important; padding: 0 !important; }
+  table.rtable tfoot td:empty { display: none !important; }
+
+  /* Wrappers that forced horizontal scrolling no longer need to */
+  .table-responsive:has(> table.rtable),
+  div:has(> table.rtable) { overflow-x: visible !important; }
+}

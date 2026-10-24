@@ -46,7 +46,9 @@ export class VehicleComponent {
   get expensesByVehicle(): { name: string; amount: number }[] {
     const map: Record<string, { name: string; amount: number }> = {};
     this.expenses.forEach((e: any) => {
-      const id = e.vehicle?.vehicleId ?? 'unknown';
+      // The expense payload's vehicle has no vehicleId, so everything fell into one
+      // 'unknown' bucket labelled with the first vehicle's name.
+      const id = e.vehicleID ?? e.vehicleId ?? e.vehicle?.vehicleId ?? e.vehicle?.vehicleNumber ?? 'unknown';
       const name = e.vehicle?.vehicleName || 'Unknown';
       if (!map[id]) map[id] = { name, amount: 0 };
       map[id].amount += e.amount || 0;

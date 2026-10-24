@@ -7,11 +7,15 @@ import { ConfirmDialogComponent } from '../../confirm-dialog/confirm-dialog.comp
 import { ToastrService } from 'ngx-toastr';
 import { ExternalFormComponent } from '../../booking/external-form/external-form.component';
 import { InvoicePreviewComponent } from '../invoice-preview/invoice-preview.component';
+import { RouterModule } from '@angular/router';
+import { Observable } from 'rxjs';
+import { DispatchService } from '../../services/dispatch.service';
+import { TransferBookingDialogComponent } from '../../booking/transfer-booking-dialog/transfer-booking-dialog.component';
 
 @Component({
   selector: 'app-date-per-bookings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './date-per-bookings.component.html',
   styleUrl: './date-per-bookings.component.css',
 })
@@ -23,12 +27,38 @@ export class DatePerBookingsComponent {
 
   totalAmount: number = 0;
   totalBookings: number = 0;
+  /** Show "Transfer" only when this organisation has a linked one */
+  canTransfer$: Observable<boolean>;
 
   constructor(
     private _dialog: MatDialog,
     private _bookingService: BookingService,
-    private _totastr: ToastrService
-  ) {}
+    private _totastr: ToastrService,
+    private _dispatch: DispatchService
+  ) {
+    this.canTransfer$ = this._dispatch.canTransfer();
+  }
+
+  isPartner(b: any): boolean {
+    return !!(b.externalEmployeeId || b.externalEmployee || b.externalEmployeeNumber);
+  }
+
+  transferBooking(booking: any) {
+    const id = booking.bookingId ?? booking.BookingId;
+    const ref = this._dialog.open(TransferBookingDialogComponent, {
+      width: '440px',
+      maxWidth: '95vw',
+      data: {
+        bookingId: id,
+        summary: `${booking.customer?.customerName ?? 'Customer'} · ${booking.from ?? ''} → ${booking.to ?? ''} · ${this.formatTime(booking.traveltime)}`,
+      },
+    });
+    ref.afterClosed().subscribe((done) => {
+      if (!done) return;
+      this.bookings = this.bookings.filter((b) => (b.bookingId ?? b.BookingId) !== id);
+      this.calculateTotals();
+    });
+  }
   get formattedDate(): string {
     return this.selectedDate ? this.selectedDate.toDateString() : '';
   }

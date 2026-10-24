@@ -434,3 +434,43 @@
   .sa-header-right { gap: .25rem; }
   .sa-header-right .btn-ghost { font-size: .75rem; }
 }
+
+/* ── LINKED ORGANISATIONS ── */
+.links-card {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+}
+.links-help { margin: 0 0 .9rem; font-size: .83rem; color: #94a3b8; }
+.links-list { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+}
+.link-pair { font-weight: 600; color: #e2e8f0; }
+.link-pair i { color: #38bdf8; margin: 0 .4rem; }
+.links-none { color: #64748b; font-size: .85rem; margin-bottom: 1rem; }
+.link-form { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.link-form i { color: #64748b; }
+.link-form select {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: .5rem .6rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+.btn-sm { padding: .3rem .6rem; font-size: .78rem; }
+@media (max-width: 640px) {
+  .link-form > i { display: none; }
+  .link-form select, .link-form .btn-primary { flex-basis: 100%; }
+}

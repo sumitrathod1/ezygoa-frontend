@@ -14,7 +14,7 @@
         class="table-responsive shadow-sm p-3 rounded bg-white"
         style="max-height: 300px; overflow-y: auto"
       >
-        <table class="table table-striped mb-0 custom-table">
+        <table class="rtable table table-striped mb-0 custom-table">
           <thead class="bg-white" style="position: sticky; top: 0; z-index: 1">
             <tr>
               <th>Name</th>
@@ -29,10 +29,10 @@
               style="cursor: pointer"
               (click)="onEmployeeClick(employee)"
             >
-              <td>{{ employee.employeeName }}</td>
-              <td>{{ employee.number }}</td>
-              <td>{{ employee.licence }}</td>
-              <td>{{ employee.employeAge }}</td>
+              <td data-label="Name">{{ employee.employeeName }}</td>
+              <td data-label="contact">{{ employee.number }}</td>
+              <td data-label="licence">{{ employee.licence }}</td>
+              <td data-label="Age">{{ employee.employeAge }}</td>
             </tr>
           </tbody>
         </table>

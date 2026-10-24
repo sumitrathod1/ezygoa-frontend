@@ -136,26 +136,40 @@ export class EarningsComponent implements OnInit {
       });
   }
 
+  /** 'yyyy-mm-dd' parsed as a LOCAL date (new Date('yyyy-mm-dd') is UTC midnight). */
+  private toLocalDate(v: any): Date | null {
+    if (!v || v === '0001-01-01') return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));
+    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  /** What the business earns: commission only on partner bookings (from the API). */
+  private earned(b: any): number {
+    return Number(b.earnedAmount ?? b.amount) || 0;
+  }
+
   applyPeriodFilter() {
     const { from, to } = this.dateRange();
 
-    const filtered = this.allBookings.filter((b) => {
-      if (!b.travelDate || b.travelDate === '0001-01-01') return false;
-      const d = new Date(b.travelDate);
+    // Bookings and expenses must use the SAME period. Picking a month used to filter
+    // bookings to that month but leave expenses unfiltered, so net profit subtracted
+    // every expense ever recorded.
+    const inPeriod = (d: Date | null): boolean => {
+      if (!d) return false;
       if (this.selectedMonth !== 'all') {
         const [y, m] = this.selectedMonth.split('-');
         return d.getFullYear() === +y && d.getMonth() + 1 === +m;
       }
       return (!from || d >= from) && (!to || d <= to);
-    });
+    };
 
-    const filteredExp = this.allExpenses.filter((e) => {
-      const ds = e.expenseDate || e.date || e.createdAt;
-      const d = ds ? new Date(ds) : null;
-      return !d || ((!from || d >= from) && (!to || d <= to));
-    });
+    const filtered = this.allBookings.filter((b) => inPeriod(this.toLocalDate(b.travelDate)));
+    const filteredExp = this.allExpenses.filter((e) =>
+      inPeriod(this.toLocalDate(e.expenseDate || e.date || e.createdAt))
+    );
 
-    this.totalRevenue = filtered.reduce((s, b) => s + (b.amount || 0), 0);
+    this.totalRevenue = filtered.reduce((s, b) => s + this.earned(b), 0);
     this.totalExpenses = filteredExp.reduce((s, e) => s + (e.amount || 0), 0);
     this.netProfit = this.totalRevenue - this.totalExpenses;
 
@@ -163,11 +177,10 @@ export class EarningsComponent implements OnInit {
     const prev = this.prevPeriodRange(from, to);
     const prevRevenue = this.allBookings
       .filter((b) => {
-        if (!b.travelDate || b.travelDate === '0001-01-01') return false;
-        const d = new Date(b.travelDate);
-        return (!prev.from || d >= prev.from) && (!prev.to || d <= prev.to);
+        const d = this.toLocalDate(b.travelDate);
+        return !!d && (!prev.from || d >= prev.from) && (!prev.to || d <= prev.to);
       })
-      .reduce((s, b) => s + (b.amount || 0), 0);
+      .reduce((s, b) => s + this.earned(b), 0);
 
     this.growth =
       prevRevenue > 0
@@ -184,7 +197,7 @@ export class EarningsComponent implements OnInit {
       if (!b.travelDate || b.travelDate === '0001-01-01') return;
       const d = new Date(b.travelDate);
       const key = d.toLocaleString('default', { month: 'short', year: '2-digit' });
-      map[key] = (map[key] || 0) + (b.amount || 0);
+      map[key] = (map[key] || 0) + this.earned(b);
     });
     this.lineChartData = {
       labels: Object.keys(map),

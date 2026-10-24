@@ -1,0 +1,57 @@
+<div class="ps-wrap">
+  <div class="ps-head">
+    <div>
+      <div class="ps-title">Partner statement</div>
+      <div class="ps-sub">{{ data.vendorName }}<span *ngIf="singleBooking"> · Booking #{{ data.bookingId }}</span></div>
+    </div>
+    <button class="ps-x" type="button" (click)="close()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <ng-container *ngIf="!singleBooking">
+    <label class="ps-label">Period (by travel date)</label>
+    <div class="ps-presets">
+      <button
+        type="button"
+        *ngFor="let p of presets"
+        class="ps-chip"
+        [class.active]="preset === p.key"
+        (click)="applyPreset(p.key)"
+      >{{ p.label }}</button>
+    </div>
+
+    <div class="ps-dates" *ngIf="preset === 'custom' || preset !== 'all'">
+      <div>
+        <label class="ps-label">From</label>
+        <input class="ps-input" type="date" [(ngModel)]="from" (ngModelChange)="preset = 'custom'" />
+      </div>
+      <div>
+        <label class="ps-label">To</label>
+        <input class="ps-input" type="date" [(ngModel)]="to" (ngModelChange)="preset = 'custom'" />
+      </div>
+    </div>
+  </ng-container>
+
+  <label class="ps-check">
+    <input type="checkbox" [(ngModel)]="maskCustomer" />
+    <span>Hide customer names <small>(shows "Aarav M." — phone numbers are never included)</small></span>
+  </label>
+  <label class="ps-check">
+    <input type="checkbox" [(ngModel)]="showFare" />
+    <span>Show what the partner earns <small>(fare minus your commission)</small></span>
+  </label>
+
+  <p class="ps-note">
+    Includes only this partner's bookings, commission and payments — no expenses or other partners.
+  </p>
+
+  <div class="ps-error" *ngIf="error">{{ error }}</div>
+
+  <div class="ps-actions">
+    <button type="button" class="ps-btn outline" [disabled]="!!busy" (click)="run('download')">
+      <i class="bi bi-download"></i> {{ busy === 'download' ? 'Preparing…' : 'Download PDF' }}
+    </button>
+    <button type="button" class="ps-btn primary" [disabled]="!!busy" (click)="run('share')">
+      <i class="bi bi-share"></i> {{ busy === 'share' ? 'Preparing…' : 'Share' }}
+    </button>
+  </div>
+</div>

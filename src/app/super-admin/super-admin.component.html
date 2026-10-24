@@ -59,6 +59,40 @@
           <div class="org-id">ID: {{ org.orgId }}</div>
         </div>
       </div>
+
+      <!-- Linked organisations: admins can transfer bookings between these -->
+      <section class="links-card" *ngIf="!loading && orgs.length > 1">
+        <h3 class="section-title"><i class="bi bi-link-45deg"></i> Linked organisations</h3>
+        <p class="links-help">
+          Admins of two linked organisations can send bookings to each other in one click.
+          Organisations that are not linked never see each other.
+        </p>
+
+        <div class="links-list" *ngIf="links.length; else noLinks">
+          <div class="link-row" *ngFor="let l of links">
+            <span class="link-pair">{{ l.orgAName }} <i class="bi bi-arrow-left-right"></i> {{ l.orgBName }}</span>
+            <button class="btn-outline btn-sm" (click)="removeLink(l)" [disabled]="linkSaving">
+              <i class="bi bi-x-lg"></i> Unlink
+            </button>
+          </div>
+        </div>
+        <ng-template #noLinks><div class="links-none">No organisations are linked yet.</div></ng-template>
+
+        <div class="link-form">
+          <select [(ngModel)]="linkA" aria-label="First organisation">
+            <option [ngValue]="0">Choose organisation</option>
+            <option *ngFor="let o of orgs" [ngValue]="o.orgId">{{ o.name }}</option>
+          </select>
+          <i class="bi bi-arrow-left-right"></i>
+          <select [(ngModel)]="linkB" aria-label="Second organisation">
+            <option [ngValue]="0">Choose organisation</option>
+            <option *ngFor="let o of orgs" [ngValue]="o.orgId" [disabled]="o.orgId === linkA">{{ o.name }}</option>
+          </select>
+          <button class="btn-primary" (click)="addLink()" [disabled]="linkSaving || !linkA || !linkB || linkA === linkB">
+            <i class="bi bi-link"></i> Link
+          </button>
+        </div>
+      </section>
     </ng-container>
 
     <!-- ── ORG DETAIL ── -->
@@ -103,7 +137,7 @@
       </div>
 
       <div class="table-wrap" *ngIf="!usersLoading && orgUsers.length > 0">
-        <table class="sa-table">
+        <table class="rtable sa-table">
           <thead>
             <tr>
               <th>ID</th><th>Name</th><th>Username</th>
@@ -112,21 +146,21 @@
           </thead>
           <tbody>
             <tr *ngFor="let u of orgUsers">
-              <td>{{ u.userId }}</td>
-              <td>{{ u.employeeName }}</td>
-              <td>{{ u.userName }}</td>
-              <td>
+              <td data-label="ID">{{ u.userId }}</td>
+              <td data-label="Name">{{ u.employeeName }}</td>
+              <td data-label="Username">{{ u.userName }}</td>
+              <td data-label="Role">
                 <span class="role-badge"
                   [class.admin]="u.role === 1 || u.role === 'Admin'"
                   [class.superadmin]="u.role === 2 || u.role === 'SuperAdmin'">
                   {{ roleLabel(u.role) }}
                 </span>
               </td>
-              <td>
+              <td data-label="Status">
                 <span class="status-dot" [class.active]="u.status"></span>
                 {{ u.status ? 'Active' : 'Inactive' }}
               </td>
-              <td>{{ u.number }}</td>
+              <td data-label="Number">{{ u.number }}</td>
             </tr>
           </tbody>
         </table>

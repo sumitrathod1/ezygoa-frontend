@@ -58,4 +58,17 @@ export class OrganizationService {
   getOrgUsers(orgId: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/${orgId}/users`);
   }
+
+  /** Linked organisation pairs — their admins can transfer bookings to each other */
+  getLinks(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/links`);
+  }
+
+  addLink(orgAId: number, orgBId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/links`, { orgAId, orgBId });
+  }
+
+  removeLink(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/links/${id}`);
+  }
 }

@@ -1,0 +1,60 @@
+<div class="tb-wrap">
+  <div class="tb-head">
+    <div>
+      <div class="tb-title"><i class="bi bi-send"></i> Transfer booking #{{ data.bookingId }}</div>
+      <div class="tb-sub" *ngIf="data.summary">{{ data.summary }}</div>
+    </div>
+    <button type="button" class="tb-x" (click)="close()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="tb-loading" *ngIf="loading">Loading…</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="tb-none" *ngIf="!targets.length && !error">
+      <i class="bi bi-link-45deg"></i>
+      <div>
+        <strong>No linked organisation yet.</strong>
+        <p>Ask the super admin to link your organisations first (Super admin → Linked organisations).</p>
+      </div>
+    </div>
+
+    <ng-container *ngIf="targets.length">
+      <label class="tb-label">Send to</label>
+      <div class="tb-orgs" role="radiogroup" aria-label="Organisation">
+        <button
+          type="button"
+          class="tb-org"
+          *ngFor="let t of targets"
+          role="radio"
+          [attr.aria-checked]="selected?.orgId === t.orgId"
+          [class.active]="selected?.orgId === t.orgId"
+          (click)="selected = t"
+        >
+          <i class="bi" [class.bi-check-circle-fill]="selected?.orgId === t.orgId" [class.bi-circle]="selected?.orgId !== t.orgId"></i>
+          {{ t.name }}
+        </button>
+      </div>
+
+      <ul class="tb-what">
+        <li><i class="bi bi-check2"></i> Customer, route, fare and advance go with the booking.</li>
+        <li><i class="bi bi-x"></i> Your driver, vehicle and agent are removed — they belong to your company.</li>
+        <li><i class="bi bi-bell"></i> {{ selected?.name || 'They' }} get a notification to assign their own driver.</li>
+      </ul>
+    </ng-container>
+
+    <div class="tb-error" *ngIf="error">{{ error }}</div>
+
+    <div class="tb-actions">
+      <button type="button" class="tb-btn outline" (click)="close()">Cancel</button>
+      <button
+        *ngIf="targets.length"
+        type="button"
+        class="tb-btn primary"
+        [disabled]="!selected || busy"
+        (click)="transfer()"
+      >
+        {{ busy ? 'Transferring…' : 'Transfer to ' + (selected?.name || '…') }}
+      </button>
+    </div>
+  </ng-container>
+</div>

@@ -52,7 +52,12 @@ export class PlacesComponent implements OnInit {
     this.loading = true;
     this.error   = '';
     this._svc.getAll(this.showInactive).subscribe({
-      next: (data) => { this.places = data; this.loading = false; },
+      // API sends the zone as text ("North"), the table looks labels up by number —
+      // every zone badge rendered empty.
+      next: (data) => {
+        this.places = data.map((p) => ({ ...p, zone: this._parseZone(p.zone) }));
+        this.loading = false;
+      },
       error: () => { this.error = 'Failed to load places.'; this.loading = false; },
     });
   }

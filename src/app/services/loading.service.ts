@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, observeOn } from 'rxjs/operators';
+import { asapScheduler } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class LoadingService {
   private activeRequests = 0;
   private loadingSubject = new BehaviorSubject<boolean>(false);
-  readonly loading$ = this.loadingSubject.asObservable();
+  // Requests start while components are being checked; emitting on the next microtask
+  // avoids ExpressionChangedAfterItHasBeenChecked on the global spinner.
+  readonly loading$ = this.loadingSubject.pipe(distinctUntilChanged(), observeOn(asapScheduler));
 
   show(): void {
     this.activeRequests++;

@@ -179,7 +179,7 @@
        LIST VIEW
   ══════════════════════════════════ -->
   <div class="dv-list-wrap" *ngIf="!loading && filteredDocuments.length > 0 && viewMode === 'list'">
-    <table class="dv-list-table">
+    <table class="rtable dv-list-table">
       <thead>
         <tr>
           <th>Type</th>
@@ -193,22 +193,22 @@
       </thead>
       <tbody>
         <tr class="dv-list-row" *ngFor="let d of filteredDocuments">
-          <td class="dv-list-type">
+          <td class="dv-list-type" data-label="Type">
             <i class="bi {{ getDocTypeIcon(d.documentType) }} dv-list-icon"></i>
             {{ d.documentType || d.title || '—' }}
           </td>
-          <td class="dv-list-entity">{{ getEntityLabel(d) }}</td>
-          <td class="dv-list-num">{{ d.documentNumber || '—' }}</td>
-          <td class="dv-list-issuer">{{ d.issuedBy || '—' }}</td>
-          <td class="dv-list-expiry">
+          <td class="dv-list-entity" data-label="Vehicle / Driver">{{ getEntityLabel(d) }}</td>
+          <td class="dv-list-num" data-label="Doc No.">{{ d.documentNumber || '—' }}</td>
+          <td class="dv-list-issuer" data-label="Issued By">{{ d.issuedBy || '—' }}</td>
+          <td class="dv-list-expiry" data-label="Expiry">
             {{ (d.expiryDate && d.hasExpiry !== false) ? (d.expiryDate | date:'dd MMM yy') : 'No expiry' }}
           </td>
-          <td>
+          <td data-label="Status">
             <span class="dv-status-badge sm" [ngClass]="getExpiryInfo(d).cls">
               {{ getExpiryInfo(d).label }}
             </span>
           </td>
-          <td class="dv-list-actions">
+          <td class="rt-actions dv-list-actions" data-label="">
             <button class="dv-act-btn sm dv-act-edit" (click)="editDocument(d)" title="Edit">
               <i class="bi bi-pencil-fill"></i>
             </button>

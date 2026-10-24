@@ -1,3 +1,4 @@
+import { RouterModule } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +11,7 @@ import { ExpenseFormComponent } from '../vehicle/expense-form/expense-form.compo
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.css',
 })
@@ -43,6 +44,8 @@ export class ExpensesComponent implements OnInit {
     { key: 'Insurance',   icon: 'bi-shield-check',      label: 'Insurance',   cls: 'kpi-insurance' },
     { key: 'Tyre',        icon: 'bi-circle-half',       label: 'Tyre',        cls: 'kpi-tyre'      },
     { key: 'Other',       icon: 'bi-three-dots',        label: 'Other',       cls: 'kpi-other'     },
+    // Organisation-level spend (ads, software…) — included in Total Expenses
+    { key: 'Business',    icon: 'bi-megaphone-fill',    label: 'Business & ads', cls: 'kpi-business', link: '/business-hub/earnings-expenses' },
   ];
 
   filterVehicle = '';
@@ -118,6 +121,7 @@ export class ExpensesComponent implements OnInit {
   getCategoryAmount(key: string): number {
     if (!this.summary) return 0;
     if (key === 'Salary') return this.summary.salaryExpenses ?? 0;
+    if (key === 'Business') return this.summary.businessExpenses ?? 0;
     const found = (this.summary.byCategory as any[])?.find(b => b.category === key);
     return found?.amount ?? 0;
   }

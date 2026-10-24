@@ -44,7 +44,7 @@
 
   <!-- Table -->
   <div class="pl-table-wrap" *ngIf="!loading && filtered.length > 0">
-    <table class="pl-table">
+    <table class="rtable pl-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -57,23 +57,23 @@
       </thead>
       <tbody>
         <tr *ngFor="let p of filtered" [class.row-inactive]="!p.isActive">
-          <td>
+          <td data-label="Name">
             <div class="pl-name">{{ p.name }}</div>
             <div class="pl-alias" *ngIf="p.aliases">{{ p.aliases }}</div>
           </td>
-          <td><span class="pl-zone-badge" [ngClass]="zoneBadgeClass(p.zone)">{{ zoneLabels[p.zone] }}</span></td>
-          <td>
+          <td data-label="Zone"><span class="pl-zone-badge" [ngClass]="zoneBadgeClass(p.zone)">{{ zoneLabels[p.zone] }}</span></td>
+          <td data-label="Pickup">
             <i class="bi" [ngClass]="p.pickupAllowed ? 'bi-check-circle-fill text-ok' : 'bi-x-circle-fill text-no'"></i>
           </td>
-          <td>
+          <td data-label="Drop">
             <i class="bi" [ngClass]="p.dropAllowed ? 'bi-check-circle-fill text-ok' : 'bi-x-circle-fill text-no'"></i>
           </td>
-          <td>
+          <td data-label="Status">
             <span class="pl-status" [ngClass]="p.isActive ? 'status-active' : 'status-inactive'">
               {{ p.isActive ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          <td *ngIf="isAdmin">
+          <td *ngIf="isAdmin" data-label="Actions" class="rt-actions">
             <button class="pl-act-btn edit" (click)="openEdit(p)">
               <i class="bi bi-pencil-fill"></i> Edit
             </button>

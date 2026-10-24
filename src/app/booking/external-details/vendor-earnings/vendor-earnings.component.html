@@ -2,7 +2,7 @@
   <p>Loading earnings...</p>
 </div>
 
-<div *ngIf="!isLoading" class="container py-3">
+<div *ngIf="!isLoading" class="container py-3 earnings-wrap">
   <!-- SUMMARY CARDS -->
   <div class="row g-3">
     <div class="col-6 col-md-3">
@@ -40,6 +40,21 @@
     </div>
   </div>
 
+  <div class="row g-3 mt-1">
+    <div class="col-6">
+      <div class="card summary-card green">
+        <div class="label">Partners still owe you</div>
+        <div class="value">{{ summary.vendorToAdminPending | indianCurrency }}</div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="card summary-card red">
+        <div class="label">You still owe partners</div>
+        <div class="value">{{ summary.adminToVendorPending | indianCurrency }}</div>
+      </div>
+    </div>
+  </div>
+
   <!-- NET EARNING -->
   <!-- <div class="card net-card mt-3">
     💰 Net Earning:
@@ -48,12 +63,14 @@
 
   <!-- PIE CHART -->
   <div class="card mt-4 p-3">
-    <h5 class="mb-2">Earnings Distribution</h5>
+    <h5 class="mb-2">How the fare is split</h5>
+    <div class="chart-box">
     <canvas
       baseChart
       [type]="pieChartType"
       [data]="pieChartData"
       [options]="pieChartOptions"
     ></canvas>
+    </div>
   </div>
 </div>

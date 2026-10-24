@@ -8,6 +8,9 @@ import { EmployeeService } from '../../services/employee.service';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
+import { Observable } from 'rxjs';
+import { DispatchService } from '../../services/dispatch.service';
+import { TransferBookingDialogComponent } from '../transfer-booking-dialog/transfer-booking-dialog.component';
 
 type Period = 'week' | 'month' | 'quarter' | 'year' | 'custom' | '';
 
@@ -60,8 +63,28 @@ export class BookingTableComponent implements OnInit {
     private _dialog: MatDialog,
     private _bookingservice: BookingService,
     private _vehicleService: VehicleService,
-    private _employeeService: EmployeeService
-  ) {}
+    private _employeeService: EmployeeService,
+    private _dispatch: DispatchService
+  ) {
+    this.canTransfer$ = this._dispatch.canTransfer();
+  }
+
+  /** Show "Transfer" only when this organisation has a linked one */
+  canTransfer$: Observable<boolean>;
+
+  transferBooking(booking: any) {
+    this._dialog
+      .open(TransferBookingDialogComponent, {
+        width: '440px',
+        maxWidth: '95vw',
+        data: {
+          bookingId: booking.bookingId,
+          summary: `${booking.customerName ?? 'Customer'} · ${booking.from ?? ''} → ${booking.to ?? ''} · ${booking.travelDate ?? ''}`,
+        },
+      })
+      .afterClosed()
+      .subscribe((done) => done && this.applyFilter());
+  }
 
   ngOnInit() {
     this.applyFilter();

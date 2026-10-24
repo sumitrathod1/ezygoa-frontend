@@ -20,7 +20,7 @@
 
   <!-- Table -->
   <div class="vt-scroll" *ngIf="filteredDocuments.length > 0">
-    <table class="vt-table">
+    <table class="rtable vt-table">
       <thead>
         <tr>
           <th>Vehicle</th>
@@ -32,18 +32,18 @@
       </thead>
       <tbody>
         <tr *ngFor="let d of filteredDocuments">
-          <td class="vt-vehicle">{{ d.vehicle?.vehicleName || '—' }}</td>
-          <td>
+          <td class="vt-vehicle" data-label="Vehicle">{{ d.vehicle?.vehicleName || '—' }}</td>
+          <td data-label="Title">
             <span class="vt-doc-title">
               <i class="bi {{ getDocIcon(d.documentType) }} vt-doc-icon"></i>
               {{ d.title || '—' }}
             </span>
           </td>
-          <td>
+          <td data-label="Type">
             <span class="vt-type">{{ d.documentType || '—' }}</span>
           </td>
-          <td class="vt-date">{{ d.expiryDate | date:'dd MMM yy' }}</td>
-          <td>
+          <td class="vt-date" data-label="Expiry">{{ d.expiryDate | date:'dd MMM yy' }}</td>
+          <td data-label="Status">
             <span class="vt-exp-badge" [ngClass]="getExpiryStatus(d.expiryDate).cls">
               {{ getExpiryStatus(d.expiryDate).label }}
             </span>

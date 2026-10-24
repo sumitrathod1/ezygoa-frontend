@@ -54,7 +54,7 @@
 
   <!-- Rates Table -->
   <div class="rr-table-wrap" *ngIf="!loading && rates.length > 0">
-    <table class="rr-table">
+    <table class="rtable rr-table">
       <thead>
         <tr>
           <th>From</th>
@@ -69,24 +69,24 @@
       </thead>
       <tbody>
         <tr *ngFor="let r of rates" [class.row-inactive]="!r.isActive">
-          <td class="rr-place">{{ placeName(r.fromPlaceId) }}</td>
-          <td class="rr-place">{{ placeName(r.toPlaceId) }}</td>
-          <td><span class="rr-vehicle-badge">{{ r.vehicleType }}</span></td>
-          <td class="text-right rr-price">₹{{ r.price | number }}</td>
-          <td class="text-right rr-peak">
+          <td class="rr-place" data-label="From">{{ placeName(r.fromPlaceId) }}</td>
+          <td class="rr-place" data-label="To">{{ placeName(r.toPlaceId) }}</td>
+          <td data-label="Vehicle"><span class="rr-vehicle-badge">{{ r.vehicleType }}</span></td>
+          <td class="text-right rr-price" data-label="Price">₹{{ r.price | number }}</td>
+          <td class="text-right rr-peak" data-label="Peak">
             <span *ngIf="r.peakPrice">₹{{ r.peakPrice | number }}</span>
             <span *ngIf="!r.peakPrice" class="rr-na">—</span>
           </td>
-          <td class="text-right rr-floor" *ngIf="isAdmin">
+          <td class="text-right rr-floor" *ngIf="isAdmin" data-label="Floor">
             <span *ngIf="r.floorPrice">₹{{ r.floorPrice | number }}</span>
             <span *ngIf="!r.floorPrice" class="rr-na">—</span>
           </td>
-          <td>
+          <td data-label="Status">
             <span class="rr-status" [ngClass]="r.isActive ? 'status-active' : 'status-inactive'">
               {{ r.isActive ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          <td *ngIf="isAdmin">
+          <td *ngIf="isAdmin" data-label="Actions" class="rt-actions">
             <button class="rr-act-btn edit" (click)="openEdit(r)">
               <i class="bi bi-pencil-fill"></i> Edit
             </button>
@@ -133,7 +133,7 @@
         <i class="bi bi-arrow-right"></i>
         <i class="bi bi-geo-alt-fill"></i> {{ quoteResult.to.name }}
       </p>
-      <table class="rr-table rr-quote-table">
+      <table class="rtable rr-table rr-quote-table">
         <thead>
           <tr>
             <th>Vehicle</th>
@@ -143,9 +143,9 @@
         </thead>
         <tbody>
           <tr *ngFor="let rate of quoteResult.rates">
-            <td><span class="rr-vehicle-badge">{{ rate.vehicleType }}</span></td>
-            <td class="text-right rr-price">₹{{ rate.price | number }}</td>
-            <td class="text-right rr-peak">
+            <td data-label="Vehicle"><span class="rr-vehicle-badge">{{ rate.vehicleType }}</span></td>
+            <td class="text-right rr-price" data-label="Base Price">₹{{ rate.price | number }}</td>
+            <td class="text-right rr-peak" data-label="Peak Price">
               <span *ngIf="rate.peakPrice">₹{{ rate.peakPrice | number }}</span>
               <span *ngIf="!rate.peakPrice" class="rr-na">—</span>
             </td>

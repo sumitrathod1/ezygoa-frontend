@@ -12,7 +12,7 @@
         <i class="bi bi-toggles"></i> Options
       </div>
       <div class="toggle-row" *ngIf="!isExternalBooking">
-        <mat-checkbox formControlName="isPackage" (change)="toggleFields()">
+        <mat-checkbox formControlName="isPackage">
           Package (Day Wise)
         </mat-checkbox>
       </div>
@@ -23,93 +23,97 @@
       </div>
     </div>
 
-    <!-- Day-wise bookings -->
-    <div class="form-section day-section" *ngIf="bookingForm.get('isPackage')!.value">
+    <!-- Package Booking (Simplified) -->
+    <div class="form-section day-section" *ngIf="isPackage">
       <div class="section-title">
-        <i class="bi bi-calendar-range"></i> Day Wise Bookings
+        <i class="bi bi-calendar-range"></i> Package Details
       </div>
-      <div formArrayName="dayWiseBookings">
-        <div
-          *ngFor="let dayCtrl of dayWiseBookings.controls; let i = index"
-          [formGroupName]="i"
-          class="day-item"
-        >
-          <div class="row g-2">
-            <div class="col-6">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Date</mat-label>
-                <input matInput [matDatepicker]="dayPicker" formControlName="travelDate" />
-                <mat-datepicker-toggle matSuffix [for]="dayPicker"></mat-datepicker-toggle>
-                <mat-datepicker #dayPicker></mat-datepicker>
-              </mat-form-field>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-calendar3"></i> Start Date</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput [matDatepicker]="pkgStartPicker" formControlName="packageStartDate" />
+              <mat-datepicker-toggle matSuffix [for]="pkgStartPicker"></mat-datepicker-toggle>
+              <mat-datepicker #pkgStartPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-calendar-week"></i> Number of Days</label>
+            <div class="days-stepper">
+              <button type="button" class="days-btn" (click)="decDays()">−</button>
+              <span class="days-value">{{ bookingForm.get('packageDays')?.value || 2 }}</span>
+              <button type="button" class="days-btn" (click)="incDays()">+</button>
             </div>
-            <div class="col-6">
-              <label class="field-label mt-1"><i class="bi bi-geo-alt"></i> From</label>
-              <button
-                type="button"
-                class="loc-picker-btn"
-                (click)="openLocationPicker('from', 'From Location', i)"
-              >
-                <i class="bi bi-geo-alt-fill loc-btn-icon"></i>
-                <span class="loc-btn-text" [class.loc-btn-placeholder]="!dayCtrl.get('from')?.value">
-                  {{ dayCtrl.get('from')?.value || 'Tap to select' }}
-                </span>
-                <i class="bi bi-chevron-right loc-btn-arrow"></i>
-              </button>
-            </div>
-            <div class="col-6">
-              <label class="field-label mt-1"><i class="bi bi-geo-alt-fill"></i> To</label>
-              <button
-                type="button"
-                class="loc-picker-btn"
-                (click)="openLocationPicker('to', 'To Location', i)"
-              >
-                <i class="bi bi-geo-alt-fill loc-btn-icon loc-btn-icon--to"></i>
-                <span class="loc-btn-text" [class.loc-btn-placeholder]="!dayCtrl.get('to')?.value">
-                  {{ dayCtrl.get('to')?.value || 'Tap to select' }}
-                </span>
-                <i class="bi bi-chevron-right loc-btn-arrow"></i>
-              </button>
-            </div>
-            <div class="col-6">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Booking Type</mat-label>
-                <mat-select formControlName="bookingType">
-                  <mat-option>None</mat-option>
-                  @for (bt of BookingType; track bt) {
-                    <mat-option [value]="bt">{{ bt }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <div class="col-6">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Time</mat-label>
-                <mat-select formControlName="travelTime">
-                  <mat-option>None</mat-option>
-                  @for (tt of times; track tt) {
-                    <mat-option [value]="tt">{{ tt }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <div class="col-5">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Amount</mat-label>
-                <input matInput type="number" min="0" formControlName="amount" />
-              </mat-form-field>
-            </div>
-            <div class="col-1 d-flex align-items-center justify-content-center pb-3">
-              <button mat-icon-button color="warn" type="button" (click)="removeDay(i)">
-                <i class="bi bi-trash"></i>
-              </button>
+            <div class="pkg-end-date" *ngIf="packageEndDate">
+              <i class="bi bi-arrow-right-short"></i> Ends {{ packageEndDate | date:'d MMM yyyy' }}
             </div>
           </div>
         </div>
+        <!-- Per-day routes -->
+        <div class="col-12">
+          <label class="field-label"><i class="bi bi-map"></i> Routes (per day)</label>
+          <div class="day-routes-list">
+            <div class="day-route-card" *ngFor="let r of dayRoutes; let i = index">
+              <div class="day-route-header">
+                <span class="day-route-num">Day {{ i + 1 }}</span>
+                <span class="day-route-date" *ngIf="getDayDate(i)">{{ getDayDate(i) | date:'EEE, d MMM' }}</span>
+              </div>
+              <div class="day-route-fields">
+                <button type="button" class="loc-picker-btn" (click)="openDayLocationPicker('from', i)">
+                  <i class="bi bi-geo-alt-fill loc-btn-icon"></i>
+                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!r.from">
+                    {{ r.from || 'From — tap to select' }}
+                  </span>
+                  <i class="bi bi-chevron-right loc-btn-arrow"></i>
+                </button>
+                <button type="button" class="loc-picker-btn" (click)="openDayLocationPicker('to', i)">
+                  <i class="bi bi-geo-alt-fill loc-btn-icon loc-btn-icon--to"></i>
+                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!r.to">
+                    {{ r.to || 'To — tap to select' }}
+                  </span>
+                  <i class="bi bi-chevron-right loc-btn-arrow"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-tag"></i> Booking Type (all days)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select formControlName="packageBookingType">
+                @for (bt of BookingType; track bt) {
+                  <mat-option [value]="bt">{{ bt }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-clock"></i> Time (all days)</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select formControlName="packageTime">
+                <mat-option>None</mat-option>
+                @for (tt of times; track tt) {
+                  <mat-option [value]="tt">{{ tt }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-people"></i> No. of Pax</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput type="number" placeholder="Passengers" min="1" formControlName="pax" />
+            </mat-form-field>
+          </div>
+        </div>
       </div>
-      <button class="btn-add-day" type="button" (click)="addDay()">
-        <i class="bi bi-plus-circle me-1"></i> Add Day
-      </button>
     </div>
 
     <!-- SECTION 2: Customer Details -->
@@ -195,21 +199,39 @@
         <ng-container *ngIf="isExternalBooking">
           <div class="col-12 col-sm-6">
             <div class="field-wrap">
-              <label class="field-label"><i class="bi bi-person-x"></i> External Driver Name</label>
+              <label class="field-label"><i class="bi bi-person-x"></i> Partner / Driver Name</label>
               <mat-form-field appearance="outline" class="w-100">
-                <input matInput formControlName="externalEmployee" />
+                <input
+                  matInput
+                  formControlName="externalEmployee"
+                  [matAutocomplete]="partnerAuto"
+                  placeholder="Type a name or number"
+                  autocomplete="off"
+                />
+                <mat-autocomplete #partnerAuto="matAutocomplete">
+                  @for (p of filteredPartners$ | async; track p.number) {
+                    <mat-option [value]="p.name" (onSelectionChange)="$event.isUserInput && pickPartner(p)">
+                      <span class="partner-opt-name">{{ p.name }}</span>
+                      <small class="partner-opt-num">{{ p.number }}</small>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+                @if (partners.length) {
+                  <mat-hint>Pick a saved partner, or type a new one — it is saved with this booking</mat-hint>
+                }
               </mat-form-field>
             </div>
           </div>
           <div class="col-12 col-sm-6">
             <div class="field-wrap">
-              <label class="field-label"><i class="bi bi-telephone-x"></i> External Driver Number</label>
+              <label class="field-label"><i class="bi bi-telephone-x"></i> Partner / Driver Number</label>
               <mat-form-field appearance="outline" class="w-100">
                 <input
                   matInput
                   type="text"
                   formControlName="externalEmployeeNumber"
-                  (input)="normalizePhone($event)"
+                  (input)="normalizePhone($event, 'externalEmployeeNumber')"
+                  (blur)="fillPartnerNameFromNumber()"
                 />
               </mat-form-field>
             </div>
@@ -219,6 +241,9 @@
               <label class="field-label"><i class="bi bi-cash"></i> Commission Amount</label>
               <mat-form-field appearance="outline" class="w-100">
                 <input matInput type="number" min="0" formControlName="commissionAmount" />
+                @if (partnerEarning !== null) {
+                  <mat-hint>Partner earns ₹{{ partnerEarning | number : '1.0-0' }} (fare − commission)</mat-hint>
+                }
               </mat-form-field>
             </div>
           </div>
@@ -335,7 +360,7 @@
             </button>
           </div>
         </div>
-        <div class="col-12 col-sm-6">
+        <div class="col-12 col-sm-6" [ngClass]="{ 'hide-field': isPackage }">
           <div class="field-wrap">
             <label class="field-label"><i class="bi bi-people"></i> No. of Pax</label>
             <mat-form-field appearance="outline" class="w-100">
@@ -352,9 +377,12 @@
         <i class="bi bi-currency-rupee"></i> Financials
       </div>
       <div class="row g-2">
-        <div class="col-12 col-sm-6" [ngClass]="{ 'hide-field': isPackage }">
+        <div class="col-12 col-sm-6">
           <div class="field-wrap">
-            <label class="field-label"><i class="bi bi-cash-stack"></i> Amount (₹)</label>
+            <label class="field-label">
+              <i class="bi bi-cash-stack"></i>
+              {{ isPackage ? 'Total Amount (₹)' : 'Amount (₹)' }}
+            </label>
             <mat-form-field appearance="outline" class="w-100">
               <input matInput type="number" min="0" formControlName="amount" />
             </mat-form-field>
@@ -366,6 +394,14 @@
             <mat-form-field appearance="outline" class="w-100">
               <input matInput type="number" min="0" formControlName="advancePaid" />
             </mat-form-field>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6" *ngIf="isPackage">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-receipt"></i> Remaining (₹)</label>
+            <div class="remaining-display" [class.remaining-zero]="remaining <= 0">
+              ₹ {{ remaining | number:'1.0-0' }}
+            </div>
           </div>
         </div>
         <div class="col-12 col-sm-6">

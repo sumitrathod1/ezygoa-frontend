@@ -100,11 +100,19 @@ export const routes: Routes = [
         (m) => m.MaintenanceTableComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'booking',
     loadComponent: () =>
       import('./booking/booking.component').then((m) => m.BookingComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: 'assign',
+    loadComponent: () =>
+      import('./booking/assign-board/assign-board.component').then((m) => m.AssignBoardComponent),
     canActivate: [authGuard],
     data: { role: 'Admin' },
   },
@@ -115,6 +123,7 @@ export const routes: Routes = [
         (m) => m.BookingListComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'booking-table',
@@ -123,12 +132,14 @@ export const routes: Routes = [
         (m) => m.BookingTableComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'employee',
     loadComponent: () =>
       import('./employee/employee.component').then((m) => m.EmployeeComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'employee-list',
@@ -137,24 +148,28 @@ export const routes: Routes = [
         (m) => m.EmployeeListComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'agent',
     loadComponent: () =>
       import('./agents/agents.component').then((m) => m.AgentsComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'calendar',
     loadComponent: () =>
       import('./calendar/calendar.component').then((m) => m.CalendarComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'agents',
     loadComponent: () =>
       import('./agents/agents.component').then((m) => m.AgentsComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'agent-details/:id',
@@ -163,6 +178,7 @@ export const routes: Routes = [
         (p) => p.AgentDetailsComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'driver',
@@ -179,6 +195,7 @@ export const routes: Routes = [
         (m) => m.EarningsComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'email-booking',
@@ -187,6 +204,7 @@ export const routes: Routes = [
         (m) => m.EmailBookingComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'driver-bookings',
@@ -212,7 +230,8 @@ export const routes: Routes = [
       import(
         './booking/external-details/vendor-settlements/vendor-settlements.component'
       ).then((m) => m.VendorSettlementsComponent),
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'vendor-earnings',
@@ -220,7 +239,8 @@ export const routes: Routes = [
       import(
         './booking/external-details/vendor-earnings/vendor-earnings.component'
       ).then((m) => m.VendorEarningsComponent),
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'document-vault',
@@ -229,12 +249,14 @@ export const routes: Routes = [
         (m) => m.DocumentVaultComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub',
     loadComponent: () =>
       import('./business-hub/business-hub.component').then((m) => m.BusinessHubComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/rate-charts',
@@ -243,6 +265,7 @@ export const routes: Routes = [
         (m) => m.RateChartListComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/rate-charts/new',
@@ -251,6 +274,7 @@ export const routes: Routes = [
         (m) => m.RateChartEditorComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/rate-charts/:id',
@@ -259,36 +283,56 @@ export const routes: Routes = [
         (m) => m.RateChartEditorComponent
       ),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/salary',
     loadComponent: () =>
       import('./business-hub/salary/salary.component').then((m) => m.SalaryComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/places',
     loadComponent: () =>
       import('./business-hub/places/places.component').then((m) => m.PlacesComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/route-rates',
     loadComponent: () =>
       import('./business-hub/route-rates/route-rates.component').then((m) => m.RouteRatesComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/rental-rates',
     loadComponent: () =>
       import('./business-hub/rental-rates/rental-rates.component').then((m) => m.RentalRatesComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: 'business-hub/earnings-expenses',
+    loadComponent: () =>
+      import('./business-hub/earnings-expenses/earnings-expenses.component').then((m) => m.EarningsExpensesComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: 'business-hub/activity-log',
+    loadComponent: () =>
+      import('./business-hub/activity-log/activity-log.component').then((m) => m.ActivityLogComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'business-hub/ig-images',
     loadComponent: () =>
       import('./business-hub/ig-images/ig-images.component').then((m) => m.IgImagesComponent),
     canActivate: [authGuard],
+    data: { role: 'Admin' },
   },
   {
     path: 'expenses',

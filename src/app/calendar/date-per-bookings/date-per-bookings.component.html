@@ -58,6 +58,15 @@
             <button class="invoice-btn" (click)="openInvoice(b)" title="Generate invoice">
               <i class="bi bi-receipt"></i>
             </button>
+            <button
+              *ngIf="canTransfer$ | async"
+              class="invoice-btn"
+              (click)="transferBooking(b)"
+              title="Transfer to another organisation"
+              aria-label="Transfer to another organisation"
+            >
+              <i class="bi bi-send"></i>
+            </button>
             <button class="cancel-btn" (click)="cancelBooking(b)" title="Cancel booking">
               <i class="bi bi-x-circle-fill"></i>
             </button>
@@ -95,14 +104,27 @@
 
         <!-- Vehicle + Driver -->
         <div class="info-row">
-          <span class="info-item">
-            <i class="bi bi-car-front-fill info-icon vehicle"></i>
-            {{ b.vehicle?.vehicleName || 'External' }}
-          </span>
-          <span class="info-item driver-item" (click)="openAssignExternalDialog(b)">
-            <i class="bi bi-person-circle info-icon driver"></i>
-            {{ b.user?.employeeName || 'Other Driver' }}
-          </span>
+          <ng-container *ngIf="isPartner(b); else ownFleet">
+            <span class="info-item driver-item" (click)="openAssignExternalDialog(b)">
+              <i class="bi bi-person-circle info-icon driver"></i>
+              Partner: {{ b.externalEmployee?.externalEmployeeName || b.externalEmployee || 'Other driver' }}
+            </span>
+          </ng-container>
+          <ng-template #ownFleet>
+            <span class="info-item" [class.not-assigned]="!b.vehicle?.vehicleName">
+              <i class="bi bi-car-front-fill info-icon vehicle"></i>
+              <ng-container *ngIf="b.vehicle?.vehicleName; else noCar">{{ b.vehicle.vehicleName }}</ng-container>
+              <ng-template #noCar><a routerLink="/assign" (click)="onClose()">Vehicle not assigned</a></ng-template>
+            </span>
+            <span class="info-item" [class.not-assigned]="!b.user?.employeeName && b.bookingType !== 'SelfDriveRental'">
+              <i class="bi bi-person-circle info-icon driver"></i>
+              <ng-container *ngIf="b.user?.employeeName; else noDriver">{{ b.user.employeeName }}</ng-container>
+              <ng-template #noDriver>
+                <ng-container *ngIf="b.bookingType === 'SelfDriveRental'; else assignDriver">Self-drive</ng-container>
+                <ng-template #assignDriver><a routerLink="/assign" (click)="onClose()">Driver not assigned</a></ng-template>
+              </ng-template>
+            </span>
+          </ng-template>
         </div>
 
         <!-- Time + Pax -->

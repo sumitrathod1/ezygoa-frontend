@@ -28,7 +28,7 @@
 
   <!-- Table -->
   <div class="vt-scroll" *ngIf="filteredExpenses.length > 0">
-    <table class="vt-table">
+    <table class="rtable vt-table">
       <thead>
         <tr>
           <th>Vehicle</th>
@@ -41,16 +41,16 @@
       </thead>
       <tbody>
         <tr *ngFor="let e of filteredExpenses">
-          <td class="vt-vehicle">{{ e.vehicle?.vehicleName || '—' }}</td>
-          <td class="vt-date">{{ e.expenseDate | date:'dd MMM yy' }}</td>
-          <td>
+          <td class="vt-vehicle" data-label="Vehicle">{{ e.vehicle?.vehicleName || '—' }}</td>
+          <td class="vt-date" data-label="Date">{{ e.expenseDate | date:'dd MMM yy' }}</td>
+          <td data-label="Type">
             <span class="vt-badge" [ngClass]="getBadgeClass(e.categoryType)">
               {{ e.categoryType }}
             </span>
           </td>
-          <td class="vt-notes">{{ e.notes || '—' }}</td>
-          <td class="text-end vt-amount">₹{{ e.amount | number }}</td>
-          <td class="text-end vt-actions">
+          <td class="vt-notes" data-label="Notes">{{ e.notes || '—' }}</td>
+          <td class="text-end vt-amount" data-label="Amount">₹{{ e.amount | number }}</td>
+          <td class="rt-actions text-end vt-actions" data-label="Actions">
             <button class="vt-act-btn edit" (click)="editExpense(e)" title="Edit">
               <i class="bi bi-pencil-fill"></i>
             </button>

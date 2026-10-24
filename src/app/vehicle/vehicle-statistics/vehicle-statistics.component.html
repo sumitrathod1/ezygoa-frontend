@@ -80,7 +80,7 @@
       <i class="bi bi-car-front me-1 text-primary"></i> Per Vehicle Breakdown
     </h6>
     <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0">
+      <table class="rtable table table-sm table-hover mb-0">
         <thead class="table-light">
           <tr>
             <th>Vehicle</th>
@@ -91,10 +91,10 @@
         </thead>
         <tbody>
           <tr *ngFor="let v of vehicleStats">
-            <td class="fw-semibold">{{ v.name }}</td>
-            <td class="text-end text-success fw-semibold">{{ v.revenue | indianCurrency }}</td>
-            <td class="text-end text-danger fw-semibold">{{ v.expenses | indianCurrency }}</td>
-            <td class="text-end fw-bold"
+            <td class="fw-semibold" data-label="Vehicle">{{ v.name }}</td>
+            <td class="text-end text-success fw-semibold" data-label="Revenue">{{ v.revenue | indianCurrency }}</td>
+            <td class="text-end text-danger fw-semibold" data-label="Expenses">{{ v.expenses | indianCurrency }}</td>
+            <td class="text-end fw-bold" data-label="Profit / Loss"
                 [class.text-success]="v.profit >= 0"
                 [class.text-danger]="v.profit < 0">
               {{ v.profit | indianCurrency }}

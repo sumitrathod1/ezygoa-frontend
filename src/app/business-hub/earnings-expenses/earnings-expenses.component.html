@@ -1,0 +1,204 @@
+<div class="ee-page">
+  <!-- Header -->
+  <div class="ee-top">
+    <button class="ee-back-btn" (click)="goBack()" aria-label="Back"><i class="bi bi-arrow-left"></i></button>
+    <div class="ee-head-text">
+      <h1 class="ee-title">Earnings &amp; Ads</h1>
+      <p class="ee-sub">What you actually earn — commission only on partner bookings</p>
+    </div>
+    <button class="ee-new-btn" (click)="openCreate()"><i class="bi bi-plus-lg"></i> Add<span class="ee-hide-xs">&nbsp;expense</span></button>
+  </div>
+
+  <!-- Period -->
+  <div class="ee-period">
+    <button class="ee-chip" [class.active]="period === 'thisMonth'" (click)="setPeriod('thisMonth')">This month</button>
+    <button class="ee-chip" [class.active]="period === 'lastMonth'" (click)="setPeriod('lastMonth')">Last month</button>
+    <button class="ee-chip" [class.active]="period === 'thisYear'" (click)="setPeriod('thisYear')">This year</button>
+    <button class="ee-chip" [class.active]="period === 'custom'" (click)="period = 'custom'">Custom</button>
+    <div class="ee-custom" *ngIf="period === 'custom'">
+      <input type="date" [(ngModel)]="from" /> <span>to</span> <input type="date" [(ngModel)]="to" />
+      <button class="ee-apply" (click)="applyCustom()">Apply</button>
+    </div>
+  </div>
+
+  <div class="ee-loading" *ngIf="loadingSummary">Loading earnings…</div>
+
+  <ng-container *ngIf="summary && !loadingSummary">
+    <!-- Headline -->
+    <div class="ee-kpis">
+      <div class="ee-kpi">
+        <span class="lbl">Earned revenue</span>
+        <span class="val">₹{{ summary.earnedRevenue | number : '1.0-0' }}</span>
+        <span class="hint">Own trips ₹{{ summary.ownBookingRevenue | number : '1.0-0' }} + commission ₹{{ summary.commissionEarned | number : '1.0-0' }}</span>
+      </div>
+      <div class="ee-kpi">
+        <span class="lbl">Total expenses</span>
+        <span class="val red">₹{{ summary.expenses.total | number : '1.0-0' }}</span>
+        <span class="hint">incl. ads ₹{{ summary.expenses.advertising | number : '1.0-0' }}</span>
+      </div>
+      <div class="ee-kpi strong">
+        <span class="lbl">Net earnings</span>
+        <span class="val" [ngClass]="netClass">₹{{ summary.netEarnings | number : '1.0-0' }}</span>
+        <span class="hint">after all recorded expenses</span>
+      </div>
+      <div class="ee-kpi muted-kpi">
+        <span class="lbl">Gross booking value</span>
+        <span class="val">₹{{ summary.grossBookingValue | number : '1.0-0' }}</span>
+        <span class="hint">customer fares — not all of it is yours</span>
+      </div>
+    </div>
+
+    <!-- Commission -->
+    <div class="ee-card">
+      <div class="ee-card-title"><i class="bi bi-people"></i> Partner commission</div>
+      <div class="ee-grid4">
+        <div><span class="lbl">Earned</span><b class="blue">₹{{ summary.commissionEarned | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">Collected</span><b class="green">₹{{ summary.commissionCollected | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">Partners still owe you</span><b class="red">₹{{ summary.commissionOutstanding | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">You still owe partners</span><b class="red">₹{{ summary.payableToPartners | number : '1.0-0' }}</b></div>
+      </div>
+
+      <table class="rtable ee-table" *ngIf="summary.partners?.length">
+        <thead>
+          <tr><th>Partner</th><th class="r">Bookings</th><th class="r">Commission</th><th class="r">Collected</th><th class="r">Owes you</th><th class="r">You owe</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of summary.partners">
+            <td data-label="Partner">{{ p.name }}</td>
+            <td class="r" data-label="Bookings">{{ p.bookings }}</td>
+            <td class="r" data-label="Commission">₹{{ p.commission | number : '1.0-0' }}</td>
+            <td class="r" data-label="Collected">₹{{ p.collected | number : '1.0-0' }}</td>
+            <td class="r red" data-label="Owes you">₹{{ p.outstanding | number : '1.0-0' }}</td>
+            <td class="r" data-label="You owe">₹{{ p.weOwe | number : '1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="ee-empty-sm" *ngIf="!summary.partners?.length">No partner bookings in this period.</p>
+    </div>
+
+    <!-- Advertising -->
+    <div class="ee-card">
+      <div class="ee-card-title"><i class="bi bi-megaphone"></i> Advertising</div>
+      <div class="ee-grid4">
+        <div><span class="lbl">Ad spend</span><b>₹{{ summary.advertising.total | number : '1.0-0' }}</b></div>
+        <div>
+          <span class="lbl">Commission per ₹1 spent</span>
+          <b>{{ summary.advertising.commissionPerRupeeSpent != null ? '₹' + (summary.advertising.commissionPerRupeeSpent | number : '1.2-2') : '—' }}</b>
+        </div>
+        <div>
+          <span class="lbl">Earned per ₹1 spent</span>
+          <b>{{ summary.advertising.earnedPerRupeeSpent != null ? '₹' + (summary.advertising.earnedPerRupeeSpent | number : '1.2-2') : '—' }}</b>
+        </div>
+        <div>
+          <span class="lbl">Ads as % of earned</span>
+          <b>{{ summary.advertising.adSpendShareOfEarned != null ? (summary.advertising.adSpendShareOfEarned | number : '1.1-1') + '%' : '—' }}</b>
+        </div>
+      </div>
+      <div class="ee-chips" *ngIf="summary.advertising.byPlatform?.length">
+        <span class="ee-pchip" *ngFor="let p of summary.advertising.byPlatform">{{ p.platform }} · ₹{{ p.amount | number : '1.0-0' }}</span>
+      </div>
+      <div class="ee-chips" *ngIf="summary.advertising.byCampaign?.length">
+        <span class="ee-pchip light" *ngFor="let c of summary.advertising.byCampaign">{{ c.campaign }} ({{ c.platform }}) · ₹{{ c.amount | number : '1.0-0' }}</span>
+      </div>
+      <p class="ee-estimate"><i class="bi bi-info-circle"></i> Estimate. {{ summary.advertising.note }}</p>
+    </div>
+
+    <!-- Cost breakdown -->
+    <div class="ee-card">
+      <div class="ee-card-title"><i class="bi bi-pie-chart"></i> Where the money went</div>
+      <div class="ee-grid4">
+        <div><span class="lbl">Vehicles</span><b>₹{{ summary.expenses.vehicle | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">Salaries</span><b>₹{{ summary.expenses.salaries | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">Advertising</span><b>₹{{ summary.expenses.advertising | number : '1.0-0' }}</b></div>
+        <div><span class="lbl">Other business</span><b>₹{{ summary.expenses.business | number : '1.0-0' }}</b></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Expense ledger -->
+  <div class="ee-card">
+    <div class="ee-card-title row">
+      <span><i class="bi bi-receipt"></i> Business &amp; ad expenses</span>
+      <span class="ee-total">₹{{ expenseTotal | number : '1.0-0' }}</span>
+    </div>
+    <div class="ee-filters">
+      <select [(ngModel)]="filterCategory" (ngModelChange)="loadExpenses()">
+        <option value="">All categories</option>
+        <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+      </select>
+      <select [(ngModel)]="filterPlatform" (ngModelChange)="loadExpenses()">
+        <option value="">All platforms</option>
+        <option *ngFor="let p of platforms" [value]="p">{{ p }}</option>
+      </select>
+    </div>
+
+    <div class="ee-loading" *ngIf="loadingExpenses">Loading…</div>
+    <div class="ee-empty" *ngIf="!loadingExpenses && !expenses.length">
+      No business expenses in this period. Use <b>Add expense</b> to record Google / Meta ads, software and more.
+    </div>
+
+    <table class="rtable ee-table" *ngIf="!loadingExpenses && expenses.length">
+      <thead>
+        <tr><th>Date</th><th>Category</th><th>Platform / campaign</th><th>Note</th><th>Paid by</th><th class="r">Amount</th><th class="r">Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of expenses">
+          <td data-label="Date">{{ e.expenseDate | date : 'dd MMM yyyy' }}</td>
+          <td data-label="Category"><span class="ee-cat" [class.ad]="isAd(e)">{{ e.category }}</span></td>
+          <td data-label="Platform / campaign">{{ e.platform || '—' }}<span class="muted" *ngIf="e.campaignName"> · {{ e.campaignName }}</span></td>
+          <td data-label="Note">{{ e.description || '—' }}</td>
+          <td data-label="Paid by">{{ e.paymentMethod || '—' }}</td>
+          <td class="r" data-label="Amount"><b>₹{{ e.amount | number : '1.0-2' }}</b></td>
+          <td class="r rt-actions" data-label="Actions">
+            <button class="ee-icon" (click)="openEdit(e)" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+            <button class="ee-icon del" (click)="remove(e)" title="Delete"><i class="bi bi-trash-fill"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add / edit -->
+<div class="ee-overlay" *ngIf="showForm" (click)="showForm = false">
+  <div class="ee-modal" (click)="$event.stopPropagation()">
+    <div class="ee-modal-head">
+      <b>{{ editingId ? 'Edit expense' : 'Add expense' }}</b>
+      <button class="ee-x" (click)="showForm = false" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="ee-form">
+      <label>Date<input type="date" [(ngModel)]="form.expenseDate" /></label>
+      <label>Amount (₹)<input type="number" min="1" inputmode="decimal" [(ngModel)]="form.amount" /></label>
+      <label class="wide">Category
+        <select [(ngModel)]="form.category">
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          <option value="__custom">+ New category…</option>
+        </select>
+      </label>
+      <label class="wide" *ngIf="form.category === '__custom'">New category name
+        <input [(ngModel)]="customCategory" maxlength="60" placeholder="e.g. Hotel tie-up gifts" />
+      </label>
+      <ng-container *ngIf="formIsAd">
+        <label>Platform
+          <select [(ngModel)]="form.platform">
+            <option *ngFor="let p of platforms" [value]="p">{{ p }}</option>
+          </select>
+        </label>
+        <label>Campaign<input [(ngModel)]="form.campaignName" maxlength="80" placeholder="e.g. Airport taxi – Oct" /></label>
+      </ng-container>
+      <label>Paid by
+        <select [(ngModel)]="form.paymentMethod">
+          <option *ngFor="let m of paymentMethods" [value]="m">{{ m }}</option>
+        </select>
+      </label>
+      <label class="wide">Note<input [(ngModel)]="form.description" maxlength="200" placeholder="Optional" /></label>
+    </div>
+
+    <div class="ee-error" *ngIf="formError">{{ formError }}</div>
+    <div class="ee-modal-actions">
+      <button class="ee-btn outline" (click)="showForm = false" [disabled]="saving">Cancel</button>
+      <button class="ee-btn primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+    </div>
+  </div>
+</div>

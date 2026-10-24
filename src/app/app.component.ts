@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
+import { VehicleFormComponent } from './vehicle/vehicle-form/vehicle-form.component';
 import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
 import { EmployeeService } from './services/employee.service';
@@ -50,6 +52,7 @@ export class AppComponent implements OnInit {
     private pushService: PushNotificationService,
     private router: Router,
     private bookingService: BookingService,
+    private _dialog: MatDialog,
     loadingService: LoadingService
   ) {
     this.loading$ = loadingService.loading$;
@@ -101,7 +104,9 @@ export class AppComponent implements OnInit {
     this._employeService.userRole$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((role) => {
-        const currentUrl = this.router.url;
+        // router.url is still '/' until the first navigation completes, which
+        // made every refresh / deep link bounce to /home. Read the real path.
+        const currentUrl = window.location.pathname;
         if (currentUrl === '/' || currentUrl === '' || currentUrl === '/login') {
           if (role === 'SuperAdmin') {
             this.router.navigate(['/super-admin']);
@@ -112,6 +117,15 @@ export class AppComponent implements OnInit {
           }
         }
       });
+  }
+
+  // Desktop sidebar actions — the mobile equivalents live in the header menu
+  addVehicle() {
+    this._dialog.open(VehicleFormComponent);
+  }
+
+  onLogout() {
+    this._employeService.logout();
   }
 
   ngOnDestroy(): void {

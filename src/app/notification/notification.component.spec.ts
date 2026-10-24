@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NotificationComponent } from './notification.component';
+import { testProviders } from '../testing/test-providers';
 
 describe('NotificationComponent', () => {
   let component: NotificationComponent;
@@ -8,7 +9,8 @@ describe('NotificationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NotificationComponent]
+      imports: [NotificationComponent],
+      providers: testProviders(),
     })
     .compileComponents();
 

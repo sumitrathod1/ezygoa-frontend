@@ -419,3 +419,7 @@
     to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
   }
 }
+
+/* Booking saved without driver / vehicle yet */
+.info-item.not-assigned { color: #c2410c; font-weight: 600; }
+.info-item.not-assigned a { color: inherit; text-decoration: underline; }

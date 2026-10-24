@@ -208,3 +208,6 @@
   .exp-page { padding: 32px; }
   .exp-right-col { width: 360px; }
 }
+
+.kpi-business { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+.exp-kpi.clickable { cursor: pointer; }
