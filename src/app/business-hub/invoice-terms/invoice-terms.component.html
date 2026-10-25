@@ -1,0 +1,77 @@
+<div class="it-page">
+  <div class="it-head">
+    <a routerLink="/business-hub" class="it-back"><i class="bi bi-arrow-left"></i> Business Hub</a>
+    <h1 class="it-title"><i class="bi bi-card-checklist"></i> Invoice terms &amp; conditions</h1>
+    <p class="it-sub">Printed on customer invoices when "Include terms &amp; conditions" is ticked (automatic for Full Day bookings).</p>
+  </div>
+
+  <div class="it-msg" *ngIf="loading">Loading…</div>
+
+  <ng-container *ngIf="terms">
+    <!-- Night charges -->
+    <section class="it-card">
+      <h2>Driver night charges</h2>
+      <p class="it-help">Rows with ₹0 are not printed. "Airport / station" rows are printed only when the pickup or drop time falls inside the window.</p>
+      <div class="it-table">
+        <div class="it-row it-row-head nights">
+          <span>Shown as</span><span>From</span><span>To</span><span>Charge (₹)</span><span>Applies to</span><span></span>
+        </div>
+        <div class="it-row nights" *ngFor="let n of terms.nightCharges; let i = index; trackBy: trackIndex">
+          <input type="text" [(ngModel)]="n.label" (ngModelChange)="changed()" placeholder="e.g. 7 pm – 12 am" aria-label="Shown as" />
+          <input type="time" [(ngModel)]="n.from" (ngModelChange)="changed()" aria-label="From" />
+          <input type="time" [(ngModel)]="n.to" (ngModelChange)="changed()" aria-label="To" />
+          <input type="number" min="0" [(ngModel)]="n.amount" (ngModelChange)="changed()" aria-label="Charge" [class.zero]="!n.amount" />
+          <select [(ngModel)]="n.appliesTo" (ngModelChange)="changed()" aria-label="Applies to">
+            <option *ngFor="let o of appliesOptions" [value]="o.value">{{ o.label }}</option>
+          </select>
+          <button type="button" class="it-x" (click)="removeNight(i)" aria-label="Remove row"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+      <button type="button" class="it-add" (click)="addNight()"><i class="bi bi-plus-lg"></i> Add night charge</button>
+    </section>
+
+    <!-- Extra hour / km -->
+    <section class="it-card">
+      <h2>Extra hours / km after the Full Day package</h2>
+      <p class="it-help">Full Day is 8 hr / 80 km or 12 hr / 120 km. The invoice shows only the row of the booked vehicle (or the whole table if it is not known).</p>
+      <div class="it-table">
+        <div class="it-row it-row-head rates"><span>Vehicle</span><span>Per extra hour (₹)</span><span>Per extra km (₹)</span><span></span></div>
+        <div class="it-row rates" *ngFor="let r of terms.extraRates; let i = index; trackBy: trackIndex">
+          <input type="text" [(ngModel)]="r.category" (ngModelChange)="changed()" placeholder="e.g. Ertiga" aria-label="Vehicle" />
+          <input type="number" min="0" [(ngModel)]="r.perHour" (ngModelChange)="changed()" aria-label="Per extra hour" />
+          <input type="number" min="0" [(ngModel)]="r.perKm" (ngModelChange)="changed()" aria-label="Per extra km" />
+          <button type="button" class="it-x" (click)="removeRate(i)" aria-label="Remove row"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+      <button type="button" class="it-add" (click)="addRate()"><i class="bi bi-plus-lg"></i> Add vehicle rate</button>
+    </section>
+
+    <!-- Other terms -->
+    <section class="it-card">
+      <h2>Other terms</h2>
+      <p class="it-help">One per line — e.g. "Toll and parking charges extra".</p>
+      <textarea rows="4" [(ngModel)]="terms.otherTerms" (ngModelChange)="changed()" placeholder="Toll and parking charges extra"></textarea>
+    </section>
+
+    <div class="it-save-bar">
+      <span class="it-unsaved" *ngIf="dirty">Unsaved changes</span>
+      <button type="button" class="it-save" [disabled]="saving || !dirty" (click)="save()">
+        <i class="bi bi-check-circle"></i> {{ saving ? 'Saving…' : 'Save terms' }}
+      </button>
+    </div>
+
+    <!-- Vehicle → rate row -->
+    <section class="it-card">
+      <h2>Which rate does each vehicle use?</h2>
+      <p class="it-help">Pick once per vehicle; saved straight away. Save the table above first if you added a new vehicle rate.</p>
+      <div class="it-veh" *ngFor="let v of vehicles">
+        <span class="it-veh-name">{{ v.vehicleName }} <small>{{ v.vehicleNumber }}</small></span>
+        <select [ngModel]="v.rateCategory || ''" (ngModelChange)="setCategory(v, $event)" [disabled]="savingVehicle === v.vehicleId" [attr.aria-label]="'Rate for ' + v.vehicleName">
+          <option value="">— not set (whole table shown) —</option>
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="it-msg" *ngIf="!vehicles.length">No vehicles yet.</div>
+    </section>
+  </ng-container>
+</div>

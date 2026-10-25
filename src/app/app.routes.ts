@@ -110,6 +110,13 @@ export const routes: Routes = [
     data: { role: 'Admin' },
   },
   {
+    path: 'rentals',
+    loadComponent: () =>
+      import('./booking/rentals/rentals.component').then((m) => m.RentalsComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
     path: 'assign',
     loadComponent: () =>
       import('./booking/assign-board/assign-board.component').then((m) => m.AssignBoardComponent),
@@ -317,6 +324,20 @@ export const routes: Routes = [
     path: 'business-hub/earnings-expenses',
     loadComponent: () =>
       import('./business-hub/earnings-expenses/earnings-expenses.component').then((m) => m.EarningsExpensesComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: 'business-hub/my-organization',
+    loadComponent: () =>
+      import('./business-hub/my-organization/my-organization.component').then((m) => m.MyOrganizationComponent),
+    canActivate: [authGuard],
+    data: { role: 'Admin' },
+  },
+  {
+    path: 'business-hub/invoice-terms',
+    loadComponent: () =>
+      import('./business-hub/invoice-terms/invoice-terms.component').then((m) => m.InvoiceTermsComponent),
     canActivate: [authGuard],
     data: { role: 'Admin' },
   },

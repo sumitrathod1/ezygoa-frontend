@@ -43,6 +43,12 @@
 .app-title {
   color: yellow;
   font-weight: 600;
+  /* Long organisation names shorten instead of pushing the badge off-screen */
+  min-width: 0;
+  max-width: 45vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .add-booking-btn {
@@ -160,3 +166,5 @@
   .assign-badge .ab-text,
   .assign-badge .ab-sub { display: none; }
 }
+
+.logo-image, .logo-static { object-fit: contain; }

@@ -1,58 +1,144 @@
-<div class="container mt-3">
+<div class="bo-page">
 
-  <!-- KPI Cards -->
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-md">
-      <a class="kpi-card total text-decoration-none d-block" routerLink="/booking-table">
-        <i class="bi bi-calendar2-check kpi-icon"></i>
-        <div class="kpi-value">{{ totalBookings }}</div>
-        <div class="kpi-label">Total Bookings</div>
-      </a>
+  <div class="bo-head">
+    <div>
+      <h1>Bookings</h1>
+      <p *ngIf="data">{{ periodLabel }} · {{ data.days }} day{{ data.days === 1 ? '' : 's' }}</p>
     </div>
-    <div class="col-6 col-md">
-      <a class="kpi-card revenue text-decoration-none d-block" routerLink="/earnings">
-        <i class="bi bi-cash-stack kpi-icon"></i>
-        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
-        <div class="kpi-label">Total Revenue</div>
-      </a>
-    </div>
-    <div class="col-4 col-md">
-      <div class="kpi-card pending">
-        <i class="bi bi-clock kpi-icon"></i>
-        <div class="kpi-value">{{ pendingCount }}</div>
-        <div class="kpi-label">Pending</div>
-      </div>
-    </div>
-    <div class="col-4 col-md">
-      <div class="kpi-card completed">
-        <i class="bi bi-check-circle kpi-icon"></i>
-        <div class="kpi-value">{{ completedCount }}</div>
-        <div class="kpi-label">Completed</div>
-      </div>
-    </div>
-    <div class="col-4 col-md">
-      <div class="kpi-card cancelled">
-        <i class="bi bi-x-circle kpi-icon"></i>
-        <div class="kpi-value">{{ cancelledCount }}</div>
-        <div class="kpi-label">Cancelled</div>
-      </div>
-    </div>
+    <a routerLink="/booking-table" class="bo-link">All bookings <i class="bi bi-chevron-right"></i></a>
   </div>
 
-  <!-- Charts -->
-  <div class="row g-4 mt-1">
-    <div class="col-12 col-md-6">
-      <div class="card p-3 chart-card shadow-effect">
-        <h5>Monthly Bookings</h5>
-        <canvas baseChart [data]="barChartData" [type]="barChartType" [options]="barChartOptions"></canvas>
+  <app-period-chips [key]="periodKey" (changed)="onPeriod($event)"></app-period-chips>
+
+  <div class="bo-error" *ngIf="error">{{ error }} <button (click)="load()">Try again</button></div>
+  <div class="bo-loading" *ngIf="loading && !data">Loading…</div>
+
+  <div class="bo-body" *ngIf="data as d" [class.dim]="loading">
+
+    <!-- Headline -->
+    <div class="bo-hero">
+      <a class="hero-block" routerLink="/booking-table">
+        <span class="h-label"><i class="bi bi-calendar2-check"></i> Bookings</span>
+        <span class="h-val">{{ d.totals.bookings | number }}</span>
+        <span class="h-foot" *ngIf="d.totals.previous.bookings">
+          <span class="chg" [ngClass]="trend(d.totals.change.bookings).cls"><i class="bi" [ngClass]="trend(d.totals.change.bookings).icon"></i> {{ trend(d.totals.change.bookings).text }}</span>
+          vs {{ d.totals.previous.bookings | number }} before
+        </span>
+      </a>
+      <a class="hero-block" routerLink="/earnings">
+        <span class="h-label"><i class="bi bi-wallet2"></i> Earned</span>
+        <span class="h-val">{{ d.totals.earned | indianCurrency }}</span>
+        <span class="h-foot" *ngIf="d.totals.previous.earned">
+          <span class="chg" [ngClass]="trend(d.totals.change.earned).cls"><i class="bi" [ngClass]="trend(d.totals.change.earned).icon"></i> {{ trend(d.totals.change.earned).text }}</span>
+          vs before
+        </span>
+        <span class="h-sub" *ngIf="d.totals.gross > d.totals.earned">of {{ d.totals.gross | indianCurrency }} booking value</span>
+      </a>
+    </div>
+
+    <!-- Why "Earned" can be far below the booking value -->
+    <div class="bo-warn" *ngIf="d.totals.partnerNoCommission > 0">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <strong>{{ d.totals.partnerNoCommission | number }} partner booking{{ d.totals.partnerNoCommission === 1 ? '' : 's' }} ({{ d.totals.partnerNoCommissionValue | indianCurrency }}) have no commission recorded.</strong>
+        <span>A partner booking's fare belongs to the partner — only your commission counts as earned, so these add ₹0.
+          Enter the commission on them in Extra to see your real earnings.</span>
+        <a routerLink="/vendor-settlements">Open Extra <i class="bi bi-chevron-right"></i></a>
       </div>
     </div>
-    <div class="col-12 col-md-6">
-      <div class="card p-3 chart-card shadow-effect">
-        <h5>Bookings by Type</h5>
-        <canvas baseChart [data]="pieChartData" [type]="pieChartType" [options]="pieChartOptions"></canvas>
+    <div class="bo-info" *ngIf="!d.totals.partnerNoCommission && d.totals.partnerBookings > 0">
+      <i class="bi bi-info-circle"></i>
+      {{ d.totals.ownBookings | number }} with your own cars (full fare) · {{ d.totals.partnerBookings | number }} with partners
+      ({{ d.totals.partnerCommission | indianCurrency }} commission on {{ d.totals.partnerGross | indianCurrency }})
+    </div>
+
+    <!-- KPI tiles -->
+    <div class="bo-kpis">
+      <div class="kpi">
+        <div class="k-icon green"><i class="bi bi-check2-circle"></i></div>
+        <div><span class="k-val">{{ d.totals.completed | number }}</span><span class="k-label">Completed</span></div>
       </div>
+      <div class="kpi">
+        <div class="k-icon blue"><i class="bi bi-hourglass-split"></i></div>
+        <div><span class="k-val">{{ d.totals.upcoming | number }}</span><span class="k-label">Still to run</span></div>
+      </div>
+      <div class="kpi">
+        <div class="k-icon red"><i class="bi bi-x-octagon"></i></div>
+        <div><span class="k-val">{{ d.totals.cancelled | number }} <small>· {{ d.totals.cancelRate }}%</small></span><span class="k-label">Cancelled</span></div>
+      </div>
+      <div class="kpi">
+        <div class="k-icon purple"><i class="bi bi-arrow-repeat"></i></div>
+        <div><span class="k-val">{{ d.totals.returningPct }}%</span><span class="k-label">Returning customers</span></div>
+      </div>
+      <div class="kpi">
+        <div class="k-icon amber"><i class="bi bi-cash-coin"></i></div>
+        <div><span class="k-val">{{ d.totals.avgFare | indianCurrency }}</span><span class="k-label">Average fare</span></div>
+      </div>
+      <div class="kpi">
+        <div class="k-icon pink"><i class="bi bi-fire"></i></div>
+        <div><span class="k-val">{{ d.busiestDay || '—' }}</span><span class="k-label">Busiest day</span></div>
+      </div>
+    </div>
+
+    <!-- The week ahead -->
+    <section class="bo-card">
+      <div class="sec-head">
+        <h2><i class="bi bi-calendar-week"></i> Next 7 days <span class="count">{{ weekCount }}</span></h2>
+        <a *ngIf="openThisWeek" routerLink="/assign" class="need"><i class="bi bi-exclamation-circle-fill"></i> {{ openThisWeek }} to assign</a>
+      </div>
+      <div class="week">
+        <div class="wd" *ngFor="let day of d.nextDays; let first = first" [class.today]="first">
+          <span class="wd-count">{{ day.count }}</span>
+          <div class="wd-bar">
+            <div class="wd-fill" [style.height.%]="day.count ? 12 + (day.count / maxDay) * 88 : 0">
+              <div class="wd-open-part" *ngIf="day.open" [style.height.%]="(day.open / day.count) * 100"></div>
+            </div>
+          </div>
+          <span class="wd-name">{{ first ? 'Today' : (day.date | date: 'EEE') }}</span>
+          <span class="wd-date">{{ day.date | date: 'd MMM' }}</span>
+          <span class="wd-open" *ngIf="day.open" title="Needs a car / driver">{{ day.open }} open</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12-month trend -->
+    <section class="bo-card">
+      <h2><i class="bi bi-graph-up"></i> Last 12 months</h2>
+      <div class="chart-box">
+        <canvas baseChart [data]="trendData" type="bar" [options]="trendOptions"></canvas>
+      </div>
+    </section>
+
+    <div class="bo-two">
+      <!-- Types -->
+      <section class="bo-card">
+        <h2><i class="bi bi-tags"></i> Booking types</h2>
+        <div class="row-bar" *ngFor="let t of d.byType">
+          <div class="rb-line">
+            <span class="rb-name">{{ typeLabel(t.type) }}</span>
+            <span class="rb-num"><strong>{{ t.count }}</strong> · {{ share(t.count) }}%</span>
+          </div>
+          <div class="rb-bar"><div [style.width.%]="(t.count / maxType) * 100"></div></div>
+          <span class="rb-sub">{{ t.amount | indianCurrency }}</span>
+        </div>
+        <div class="empty" *ngIf="!d.byType.length">No bookings in this period.</div>
+      </section>
+
+      <!-- Sources -->
+      <section class="bo-card">
+        <h2><i class="bi bi-diagram-3"></i> Where bookings come from</h2>
+        <div class="src" *ngFor="let s of d.bySource; let i = index">
+          <span class="src-dot" [ngClass]="'c' + (i % 6)"></span>
+          <span class="src-name">{{ s.source }}</span>
+          <span class="src-count">{{ s.count }}</span>
+          <span class="src-amt">{{ s.amount | indianCurrency }}</span>
+        </div>
+        <div class="empty" *ngIf="!d.bySource.length">No bookings in this period.</div>
+        <div class="src-extra" *ngIf="d.totals.partnerBookings || d.totals.transferredIn">
+          <span *ngIf="d.totals.partnerBookings"><i class="bi bi-briefcase"></i> {{ d.totals.partnerBookings }} given to partners</span>
+          <span *ngIf="d.totals.transferredIn"><i class="bi bi-arrow-left-right"></i> {{ d.totals.transferredIn }} from linked organisations</span>
+        </div>
+      </section>
     </div>
   </div>
-
 </div>

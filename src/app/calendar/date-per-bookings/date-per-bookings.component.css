@@ -423,3 +423,22 @@
 /* Booking saved without driver / vehicle yet */
 .info-item.not-assigned { color: #c2410c; font-weight: 600; }
 .info-item.not-assigned a { color: inherit; text-decoration: underline; }
+
+/* Trip / hotel / book again */
+.trip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+.trip-chip {
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hotel-line { color: #166534; font-size: 13px; font-weight: 600; text-decoration: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+
+/* Name and the action icons share the first row; wrap on narrow phones instead of squeezing */
+.card-top { flex-wrap: wrap; }
+.customer-name { min-width: 0; }

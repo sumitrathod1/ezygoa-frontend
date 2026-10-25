@@ -1,0 +1,82 @@
+<div class="td-wrap">
+  <div class="td-head">
+    <div>
+      <div class="td-title"><i class="bi bi-suitcase2-fill"></i> Trip <span *ngIf="trip">· {{ range() }}</span></div>
+      <div class="td-sub" *ngIf="trip?.customer">
+        {{ trip!.customer!.customerName }} · <a [href]="'tel:' + trip!.customer!.customerNumber">{{ trip!.customer!.customerNumber }}</a>
+        <span *ngIf="trip!.pax"> · {{ trip!.pax }} pax</span>
+      </div>
+    </div>
+    <button type="button" class="td-x" (click)="close()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="td-loading" *ngIf="loading && !trip">Loading…</div>
+  <div class="td-error" *ngIf="error">{{ error }}</div>
+
+  <ng-container *ngIf="trip">
+    <!-- Hotel -->
+    <div class="td-hotel">
+      <i class="bi bi-building"></i>
+      <div class="td-hotel-name">
+        <ng-container *ngIf="trip.stayName; else noHotel">{{ trip.stayName }}</ng-container>
+        <ng-template #noHotel><span class="muted">No hotel saved</span></ng-template>
+      </div>
+      <a *ngIf="trip.stayMapsLink" class="td-icon-btn" [href]="trip.stayMapsLink" target="_blank" rel="noopener" title="Open in Google Maps"><i class="bi bi-map"></i></a>
+      <button type="button" class="td-link" (click)="changeHotel()">{{ trip.stayName ? 'Change' : 'Add hotel' }}</button>
+    </div>
+
+    <!-- Totals -->
+    <div class="td-totals">
+      <div><span>Total</span><strong>₹{{ trip.total | number: '1.0-0' }}</strong></div>
+      <div><span>Advance</span><strong class="adv">₹{{ trip.advance | number: '1.0-0' }}</strong></div>
+      <div><span>Balance</span><strong class="bal" [class.zero]="trip.balance <= 0">₹{{ trip.balance | number: '1.0-0' }}</strong></div>
+    </div>
+
+    <!-- Days -->
+    <div class="td-days">
+      <div class="td-day" *ngFor="let b of trip.bookings; let i = index" [class.cancelled]="b.status === 'Canceled'">
+        <div class="td-day-top">
+          <span class="td-num">Day {{ i + 1 }}</span>
+          <strong>{{ dayLabel(b.travelDate) }}</strong>
+          <span class="td-time" *ngIf="b.travelTime">{{ time(b.travelTime) }}</span>
+          <span class="td-type">{{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
+          <span class="td-status" [ngClass]="b.status.toLowerCase()">{{ b.status === 'Canceled' ? 'Cancelled' : b.status }}</span>
+          <span class="td-amt">₹{{ b.amount | number: '1.0-0' }}</span>
+        </div>
+        <div class="td-route">{{ b.from || '—' }} <i class="bi bi-arrow-right"></i> {{ b.to || '—' }}</div>
+        <div class="td-assign">
+          <ng-container *ngIf="b.externalEmployeeId; else own">
+            <i class="bi bi-person-badge"></i> Partner: {{ b.partnerName || '—' }}
+          </ng-container>
+          <ng-template #own>
+            <span [class.missing]="!b.vehicleName"><i class="bi bi-car-front-fill"></i> {{ b.vehicleName || 'Vehicle not assigned' }}</span>
+            <span *ngIf="b.bookingType !== 'SelfDriveRental'" [class.missing]="!b.driverName"><i class="bi bi-person-fill"></i> {{ b.driverName || 'Driver not assigned' }}</span>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Same driver & car for all days -->
+    <div class="td-all" *ngIf="openOwnDays > 0">
+      <div class="td-all-title">Same driver &amp; car for all {{ openOwnDays }} upcoming day{{ openOwnDays === 1 ? '' : 's' }}</div>
+      <div class="td-all-row">
+        <select [(ngModel)]="allDriver" aria-label="Driver">
+          <option [ngValue]="null">Driver — keep as is</option>
+          <option *ngFor="let d of drivers" [ngValue]="d.userId">{{ d.name }}</option>
+        </select>
+        <select [(ngModel)]="allVehicle" aria-label="Vehicle">
+          <option [ngValue]="null">Vehicle — keep as is</option>
+          <option *ngFor="let v of vehicles" [ngValue]="v.vehicleId">{{ v.vehicleName }} {{ v.vehicleNumber ? '· ' + v.vehicleNumber : '' }}</option>
+        </select>
+        <button type="button" class="td-btn primary" [disabled]="assigning || (!allDriver && !allVehicle)" (click)="assignAll()">
+          {{ assigning ? 'Saving…' : 'Apply to all days' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="td-actions">
+      <button type="button" class="td-btn outline" (click)="close()">Close</button>
+      <button type="button" class="td-btn primary" (click)="addBooking()"><i class="bi bi-plus-lg"></i> Add booking to this trip</button>
+    </div>
+  </ng-container>
+</div>

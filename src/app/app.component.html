@@ -21,6 +21,9 @@
           <a class="ds-item" routerLink="/assign" routerLinkActive="ds-active">
             <i class="bi bi-diagram-3-fill"></i><span>Assign</span>
           </a>
+          <a class="ds-item" routerLink="/rentals" routerLinkActive="ds-active">
+            <i class="bi bi-key-fill"></i><span>Rent a Car</span>
+          </a>
           <a class="ds-item" routerLink="/vehicle" routerLinkActive="ds-active">
             <i class="bi bi-car-front-fill"></i><span>Vehicles</span>
           </a>
@@ -63,7 +66,8 @@
             <i class="bi bi-box-arrow-right"></i><span>Logout</span>
           </button>
         </nav>
-        <div class="content">
+        <!-- cdkScrollable: lets drag-and-drop auto-scroll this area (it scrolls, not the window) -->
+        <div class="content" cdkScrollable>
           <router-outlet></router-outlet>
         </div>
       </div>

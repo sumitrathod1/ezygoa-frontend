@@ -65,7 +65,7 @@
             · {{ b.customer?.customerNumber || b.customerNumber }}
           </span>
         </div>
-        <span class="ad-bk-type">{{ b.bookingType }}</span>
+        <span class="ad-bk-type">{{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
       </div>
 
       <div class="ad-bk-divider"></div>

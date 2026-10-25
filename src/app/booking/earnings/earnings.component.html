@@ -1,116 +1,134 @@
-<div class="container py-3">
+<div class="ea-page">
 
-  <!-- Period Filter Bar -->
-  <div class="filter-bar mb-3">
-    <div class="period-chips">
-      <button class="chip" [class.active]="selectedPeriod === 'week'    && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('week')">This Week</button>
-      <button class="chip" [class.active]="selectedPeriod === 'month'   && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('month')">This Month</button>
-      <button class="chip" [class.active]="selectedPeriod === 'quarter' && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('quarter')">This Quarter</button>
-      <button class="chip" [class.active]="selectedPeriod === 'year'    && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('year')">This Year</button>
-      <button class="chip" [class.active]="selectedPeriod === 'custom'  && selectedMonth === 'all'" [disabled]="selectedMonth !== 'all'" (click)="selectPeriod('custom')">Custom</button>
+  <div class="ea-head">
+    <div>
+      <h1>Earnings</h1>
+      <p *ngIf="cur">{{ periodLabel }}</p>
     </div>
-    <button *ngIf="selectedPeriod !== 'month' || selectedMonth !== 'all'" class="btn btn-outline-secondary btn-sm ms-auto mt-1 mt-sm-0" (click)="clearFilter()">
-      <i class="bi bi-x-circle me-1"></i>Clear
-    </button>
+    <a routerLink="/expenses" class="ea-link">Expenses <i class="bi bi-chevron-right"></i></a>
   </div>
 
-  <!-- Month Filter Dropdown -->
-  <div class="month-filter-bar mb-3" *ngIf="availableMonths.length > 0">
-    <label class="month-filter-label"><i class="bi bi-calendar3 me-1"></i>Filter by Month:</label>
-    <select class="month-filter-select" [(ngModel)]="selectedMonth" (ngModelChange)="selectMonth($event)">
-      <option value="all">All Months</option>
-      <option *ngFor="let m of availableMonths" [value]="m.value">{{ m.label }}</option>
-    </select>
-  </div>
+  <app-period-chips [key]="periodKey" (changed)="onPeriod($event)"></app-period-chips>
 
-  <!-- Custom Date Range -->
-  <div *ngIf="showCustom" class="custom-range mb-3">
-    <div class="d-flex flex-wrap gap-2 align-items-end">
-      <div>
-        <label class="form-label small mb-1">From Date</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="customFrom" />
-      </div>
-      <div>
-        <label class="form-label small mb-1">To Date</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="customTo" />
-      </div>
-      <button class="btn btn-primary btn-sm" (click)="applyCustomRange()">Apply Filter</button>
-      <button class="btn btn-outline-secondary btn-sm" (click)="clearFilter()">Clear</button>
-    </div>
-  </div>
+  <div class="ea-error" *ngIf="error">{{ error }} <button (click)="load()">Try again</button></div>
+  <div class="ea-loading" *ngIf="loading && !cur">Loading…</div>
 
-  <!-- KPI Cards -->
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-md-3">
-      <div class="kpi-card revenue">
-        <i class="bi bi-cash-stack kpi-icon"></i>
-        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
-        <div class="kpi-label">Total Revenue</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card expenses">
-        <i class="bi bi-receipt kpi-icon"></i>
-        <div class="kpi-value">{{ totalExpenses | indianCurrency }}</div>
-        <div class="kpi-label">Total Expenses</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card" [class.profit]="netProfit >= 0" [class.loss]="netProfit < 0">
-        <i class="bi bi-graph-up-arrow kpi-icon"></i>
-        <div class="kpi-value">{{ netProfit | indianCurrency }}</div>
-        <div class="kpi-label">Net Profit</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card growth" [class.positive]="growth >= 0" [class.negative]="growth < 0">
-        <i class="bi kpi-icon" [class.bi-trending-up]="growth >= 0" [class.bi-trending-down]="growth < 0"></i>
-        <div class="kpi-value">
-          {{ growth >= 0 ? '+' : '' }}{{ growth }}%
+  <div class="ea-body" *ngIf="cur as c" [class.dim]="loading">
+
+    <!-- Net earnings -->
+    <div class="ea-hero" [class.neg]="net < 0">
+      <span class="h-label">{{ net >= 0 ? 'Net earnings' : 'Net loss' }}</span>
+      <span class="h-val">{{ (net < 0 ? -net : net) | indianCurrency }}</span>
+      <span class="h-foot" *ngIf="prev && (prev.earnedRevenue || prev.expenses?.total)">
+        <span class="chg" [ngClass]="trend(change(net, prev.netEarnings)).cls">
+          <i class="bi" [ngClass]="trend(change(net, prev.netEarnings)).icon"></i> {{ trend(change(net, prev.netEarnings)).text }}
+        </span>
+        vs the same number of days before
+      </span>
+      <div class="h-split">
+        <div>
+          <span><i class="bi bi-arrow-down-circle"></i> Earned</span>
+          <strong>{{ c.earnedRevenue | indianCurrency }}</strong>
+          <small *ngIf="prev?.earnedRevenue" [ngClass]="trend(change(c.earnedRevenue, prev.earnedRevenue)).cls">
+            <i class="bi" [ngClass]="trend(change(c.earnedRevenue, prev.earnedRevenue)).icon"></i>{{ trend(change(c.earnedRevenue, prev.earnedRevenue)).text }}
+          </small>
         </div>
-        <div class="kpi-label">vs Previous Period</div>
+        <div>
+          <span><i class="bi bi-arrow-up-circle"></i> Spent</span>
+          <strong>{{ c.expenses.total | indianCurrency }}</strong>
+          <small *ngIf="prev?.expenses?.total" [ngClass]="trend(change(c.expenses.total, prev.expenses.total), false).cls">
+            <i class="bi" [ngClass]="trend(change(c.expenses.total, prev.expenses.total), false).icon"></i>{{ trend(change(c.expenses.total, prev.expenses.total), false).text }}
+          </small>
+        </div>
+        <div>
+          <span><i class="bi bi-percent"></i> Margin</span>
+          <strong>{{ margin }}%</strong>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Average Stats -->
-  <div class="card p-3 mb-3 shadow-sm" *ngIf="bookingsAvgStats && bookingsAvgStats['dailyAvg']">
-    <div class="text-muted mb-2 fw-semibold"><i class="bi bi-calculator me-1"></i>Average Booking Amount</div>
-    <div class="row text-center">
-      <div class="col-6 col-md-3 mb-2">
-        <div class="fw-bold">{{ bookingsAvgStats['dailyAvg'] || 0 | indianCurrency }}</div>
-        <div class="text-muted small">Daily Avg</div>
+    <!-- KPIs -->
+    <div class="ea-kpis">
+      <div class="kpi">
+        <div class="k-icon purple"><i class="bi bi-receipt-cutoff"></i></div>
+        <div><span class="k-val">{{ c.grossBookingValue | indianCurrency }}</span><span class="k-label">Total booking value</span></div>
       </div>
-      <div class="col-6 col-md-3 mb-2">
-        <div class="fw-bold">{{ bookingsAvgStats['weeklyAvg'] || 0 | indianCurrency }}</div>
-        <div class="text-muted small">Weekly Avg</div>
+      <div class="kpi">
+        <div class="k-icon blue"><i class="bi bi-calendar2-check"></i></div>
+        <div><span class="k-val">{{ c.ownBookings + c.partnerBookings }}</span><span class="k-label">Bookings</span></div>
       </div>
-      <div class="col-6 col-md-3 mb-2">
-        <div class="fw-bold">{{ bookingsAvgStats['monthlyAvg'] || 0 | indianCurrency }}</div>
-        <div class="text-muted small">Monthly Avg</div>
+      <div class="kpi">
+        <div class="k-icon amber"><i class="bi bi-hourglass-split"></i></div>
+        <div><span class="k-val">{{ c.commissionOutstanding | indianCurrency }}</span><span class="k-label">Commission to collect</span></div>
       </div>
-      <div class="col-6 col-md-3 mb-2">
-        <div class="fw-bold">{{ bookingsAvgStats['yearlyAvg'] || 0 | indianCurrency }}</div>
-        <div class="text-muted small">Yearly Avg</div>
+      <div class="kpi">
+        <div class="k-icon red"><i class="bi bi-box-arrow-up-right"></i></div>
+        <div><span class="k-val">{{ c.payableToPartners | indianCurrency }}</span><span class="k-label">You owe partners</span></div>
       </div>
     </div>
-  </div>
 
-  <!-- Earnings Trend Chart -->
-  <div class="card p-3 mb-3 shadow-sm">
-    <div class="fw-semibold mb-2 text-muted"><i class="bi bi-graph-up me-1"></i> Earnings Trend</div>
-    <canvas baseChart [data]="lineChartData" [type]="lineChartType" [options]="lineChartOptions"></canvas>
-  </div>
+    <div class="ea-two">
+      <!-- How it was earned -->
+      <section class="ea-card">
+        <h2><i class="bi bi-wallet2"></i> How you earned it</h2>
+        <div class="split-bar" *ngIf="c.earnedRevenue > 0">
+          <div class="own" [style.width.%]="ownShare"></div>
+          <div class="com" [style.width.%]="100 - ownShare"></div>
+        </div>
+        <div class="earn-row">
+          <span class="dot own"></span>
+          <div class="er-main"><strong>Your own cars</strong><span>{{ c.ownBookings }} booking{{ c.ownBookings === 1 ? '' : 's' }} · full fare</span></div>
+          <span class="er-amt">{{ c.ownBookingRevenue | indianCurrency }}</span>
+        </div>
+        <div class="earn-row">
+          <span class="dot com"></span>
+          <div class="er-main"><strong>Partner commission</strong><span>{{ c.partnerBookings }} booking{{ c.partnerBookings === 1 ? '' : 's' }} · {{ c.commissionCollected | indianCurrency }} collected</span></div>
+          <span class="er-amt">{{ c.commissionEarned | indianCurrency }}</span>
+        </div>
+        <p class="hint" *ngIf="c.partnerBookings">For partner bookings only your commission counts as earnings; the rest of the fare is the partner's.</p>
+      </section>
 
-  <!-- Booking Distribution -->
-  <div class="card p-3 mb-3 shadow-sm">
-    <div class="fw-semibold mb-2 text-muted"><i class="bi bi-pie-chart me-1"></i> Booking Distribution by Vehicle</div>
-    <canvas baseChart [data]="pieChartData" [type]="pieChartType" [options]="pieChartOptions"></canvas>
-  </div>
+      <!-- Where it went -->
+      <section class="ea-card">
+        <h2><i class="bi bi-pie-chart"></i> Where the money went</h2>
+        <div class="cost" *ngFor="let k of costs">
+          <div class="cost-icon"><i class="bi" [ngClass]="k.icon"></i></div>
+          <div class="cost-main">
+            <div class="cost-line"><span>{{ k.label }}</span><strong>{{ k.amount | indianCurrency }}</strong></div>
+            <div class="cost-bar"><div [style.width.%]="costShare(k.amount)"></div></div>
+          </div>
+          <span class="cost-pct">{{ costShare(k.amount) }}%</span>
+        </div>
+        <div class="empty" *ngIf="!costs.length">Nothing spent in this period.</div>
+        <div class="ads" *ngIf="c.advertising?.earnedPerRupeeSpent">
+          <i class="bi bi-lightning-charge-fill"></i>
+          Every ₹1 on ads came with <strong>₹{{ c.advertising.earnedPerRupeeSpent }}</strong> earned
+        </div>
+      </section>
+    </div>
 
-  <div *ngIf="totalRevenue === 0 && !showCustom" class="text-center text-muted py-4">
-    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-    No earnings data for the selected period.
-  </div>
+    <!-- Trend -->
+    <section class="ea-card">
+      <h2><i class="bi bi-graph-up"></i> Last 6 months</h2>
+      <div class="chart-box">
+        <canvas baseChart [data]="trendData" type="bar" [options]="trendOptions"></canvas>
+      </div>
+    </section>
 
+    <!-- Partners -->
+    <section class="ea-card" *ngIf="topPartners.length">
+      <div class="sec-head">
+        <h2><i class="bi bi-people"></i> Top partners</h2>
+        <a routerLink="/vendor-settlements" class="ea-link small">Settlements <i class="bi bi-chevron-right"></i></a>
+      </div>
+      <div class="partner" *ngFor="let p of topPartners; let i = index">
+        <span class="p-rank" [class.top]="i === 0">{{ i + 1 }}</span>
+        <div class="p-main">
+          <strong>{{ p.name }}</strong>
+          <span>{{ p.bookings }} booking{{ p.bookings === 1 ? '' : 's' }}<ng-container *ngIf="p.outstanding > 0"> · <em>{{ p.outstanding | indianCurrency }} to collect</em></ng-container></span>
+        </div>
+        <span class="p-amt">{{ p.commission | indianCurrency }}</span>
+      </div>
+    </section>
+  </div>
 </div>

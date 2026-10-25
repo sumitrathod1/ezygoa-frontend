@@ -76,6 +76,34 @@
   margin-bottom: 8px;
 }
 .inv-logo-icon { font-size: 1.4rem; color: #fff; }
+.inv-setup-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 12.5px;
+}
+.inv-setup-hint span { flex: 1; }
+.inv-setup-hint button {
+  border: none;
+  background: #4b2aad;
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+/* The organisation's own logo on a white tile */
+.inv-logo-wrap.has-logo { width: 64px; height: 64px; background: #fff; padding: 4px; }
+.inv-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .inv-company {
   font-size: 1.25rem;
   font-weight: 900;
@@ -210,3 +238,59 @@
   .inv-sep { display: none; }
   .inv-action-bar { flex-direction: column; }
 }
+
+/* Which bookings the invoice covers */
+.inv-scope { display: flex; gap: 6px; padding: 8px 12px; background: #fff; border-bottom: 1px solid #ede9fe; flex-wrap: wrap; }
+.inv-scope button {
+  flex: 1 1 auto;
+  border: 1px solid #c7d2fe;
+  background: #fff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.inv-scope button.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.inv-loading, .inv-error { padding: 24px; text-align: center; color: #6b7280; }
+.inv-error { color: #b91c1c; }
+.inv-dim { opacity: 0.6; transition: opacity 0.15s; }
+
+/* One row per booking */
+.inv-line { padding: 10px 16px; border-bottom: 1px solid #f3f4f6; }
+.inv-line:last-child { border-bottom: none; }
+.inv-line-top { display: flex; align-items: center; gap: 8px; }
+.inv-line-date { font-weight: 800; color: #1e1b4b; font-size: 13px; }
+.inv-line-type { background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+.inv-line-amt { margin-left: auto; font-weight: 800; color: #1e1b4b; }
+.inv-line-route { margin-top: 4px; font-size: 13px; color: #374151; }
+.inv-line-route i { color: #9ca3af; }
+.inv-line-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: 11.5px; color: #6b7280; }
+.inv-line-paid { color: #16a34a; font-weight: 600; }
+.inv-line-ok { color: #16a34a; font-weight: 700; }
+.inv-line-due { color: #dc2626; font-weight: 700; }
+.inv-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+/* Terms & conditions */
+.inv-terms-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #fff; border-bottom: 1px solid #ede9fe; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer; margin: 0; }
+.inv-terms-toggle input { width: 16px; height: 16px; accent-color: #4f46e5; }
+.inv-terms-toggle small { color: #6b7280; font-weight: 500; }
+.inv-terms-body { padding: 8px 16px 12px; font-size: 12.5px; color: #374151; }
+.inv-terms-title { font-weight: 800; color: #1e1b4b; margin: 8px 0 4px; }
+.inv-terms-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #e5e7eb; }
+.inv-terms-row.head, .inv-terms-row.three { display: grid; grid-template-columns: 1fr 80px 70px; }
+.inv-terms-row.head { color: #6b7280; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; }
+.inv-terms-row.head span:not(:first-child), .inv-terms-row.three strong { text-align: right; }
+.inv-terms-row small { color: #6b7280; }
+.inv-terms-other { margin-top: 4px; }
+
+.inv-terms-none { margin: 8px 16px; padding: 8px 10px; border-radius: 8px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #475569; font-size: 12px; }
+.inv-terms-none i { color: #6366f1; margin-right: 4px; }
+
+/* Organisation contact under the thank-you line */
+.inv-thanks i { color: #ec4899; margin-right: 4px; }
+.inv-contact { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 12px; margin: 8px 0 6px; font-size: 12.5px; }
+.inv-contact-q { width: 100%; text-align: center; color: #4b5563; font-weight: 700; }
+.inv-contact a { color: #4f46e5; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.inv-contact a .bi-whatsapp { color: #16a34a; }

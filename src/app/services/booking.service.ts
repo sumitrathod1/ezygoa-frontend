@@ -145,6 +145,19 @@ export class BookingService {
       commissionAmount: isExternalBooking
         ? Number(booking.commissionAmount) || 0
         : null,
+
+      // Tour / full day ending with a drop elsewhere ("+ drop at Mopa Airport")
+      endDrop: booking.endDrop || null,
+      startPickup: booking.startPickup || null,
+      fullDayHours: Number(booking.fullDayHours) || null,
+
+      // Self-drive rental: return time and refundable deposit
+      returnTime: booking.returnTime ? convertTo24Hour(booking.returnTime) : null,
+      securityDeposit: Number(booking.securityDeposit) || null,
+
+      // Trip (multi-day visit): join an existing one, and the hotel entered once for all days
+      tripId: Number(booking.tripId) || null,
+      stay: booking.stay?.name ? booking.stay : null,
     };
 
     // PACKAGE BOOKING
@@ -158,9 +171,13 @@ export class BookingService {
           travelDate: formatDateOnly(d.travelDate),
           from: d.from,
           to: d.to,
-          travelTime: convertTo24Hour(d.travelTime),
+          // An empty day time stays empty (it used to become midnight)
+          travelTime: d.travelTime ? convertTo24Hour(d.travelTime) : null,
           bookingType: d.bookingType,
           amount: Number(d.amount) || 0,
+          endDrop: d.endDrop || null,
+          startPickup: d.startPickup || null,
+          fullDayHours: Number(d.fullDayHours) || null,
         })),
         travelTime: null,
       };
@@ -244,9 +261,19 @@ export class BookingService {
   }
 
   /** Partner commission statement PDF (period by travel date, or one booking). */
+  /** Customer invoice contents: scope 'auto' | 'booking' | 'trip' | 'customer'. */
+  getInvoiceData(bookingId: number, scope: string = 'auto', includeTerms = true): Observable<any> {
+    return this._http.get<any>(`${this.baseUrl}${bookingId}/invoice-data`, { params: { scope, includeTerms: String(includeTerms) } });
+  }
+
+  /** Customer invoice PDF (built on the server with the organisation's own details). */
+  getInvoicePdf(bookingId: number, scope: string, includeTerms = false): Observable<Blob> {
+    return this._http.get(`${this.baseUrl}${bookingId}/invoice`, { params: { scope, includeTerms: String(includeTerms) }, responseType: 'blob' });
+  }
+
   getPartnerStatement(
     vendorId: number,
-    opts: { from?: string | null; to?: string | null; bookingId?: number | null; maskCustomer?: boolean; showFare?: boolean }
+    opts: { from?: string | null; to?: string | null; bookingId?: number | null; maskCustomer?: boolean; showFare?: boolean; onlyOpen?: boolean; customerId?: number | null }
   ): Observable<Blob> {
     const params: any = {
       maskCustomer: String(opts.maskCustomer ?? true),
@@ -255,6 +282,8 @@ export class BookingService {
     if (opts.from) params.from = opts.from;
     if (opts.to) params.to = opts.to;
     if (opts.bookingId) params.bookingId = opts.bookingId;
+    if (opts.onlyOpen) params.onlyOpen = 'true';
+    if (opts.customerId) params.customerId = opts.customerId;
     return this._http.get(`${this.baseUrl}vendors/${vendorId}/statement`, { params, responseType: 'blob' });
   }
 
@@ -281,6 +310,9 @@ export class BookingService {
         userId: filter.userId || '',
         bookingType: filter.bookingType || '',
         travelTime: filter.travelTime || '',
+        createdByUserId: filter.createdByUserId || '',
+        fromOrgId: filter.fromOrgId && filter.fromOrgId !== 'any' ? filter.fromOrgId : '',
+        transferredOnly: filter.fromOrgId === 'any' ? 'true' : '',
         pageNumber: pageNumber.toString(),
         pageSize: pageSize.toString(),
       },

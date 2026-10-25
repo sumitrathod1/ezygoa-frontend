@@ -57,9 +57,49 @@ export class SuperAdminComponent implements OnInit {
   linkB = 0;
   linkSaving = false;
 
+  // How long a sign-in lasts (everyone, from their next login)
+  sessionDays = 30;
+  maxSessionDays = 365;
+  sessionSaving = false;
+  readonly sessionPresets = [7, 30, 90, 180];
+
   ngOnInit(): void {
     this.loadOrgs();
     this.loadLinks();
+    this.loadSessionDays();
+  }
+
+  loadSessionDays(): void {
+    this.orgSvc.getSystemSettings().subscribe({
+      next: (res: any) => {
+        const s = res?.data ?? res;
+        this.sessionDays = s?.sessionDays ?? 30;
+        this.maxSessionDays = s?.maxSessionDays ?? 365;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  saveSessionDays(): void {
+    const days = Math.round(Number(this.sessionDays));
+    if (!days || days < 1 || days > this.maxSessionDays) {
+      this.toastr.warning(`Choose between 1 and ${this.maxSessionDays} days.`);
+      return;
+    }
+    this.sessionSaving = true;
+    this.orgSvc.saveSessionDays(days).subscribe({
+      next: () => {
+        this.sessionSaving = false;
+        this.sessionDays = days;
+        this.toastr.success(`Sign-ins now last ${days} day${days === 1 ? '' : 's'} (from the next login).`);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.sessionSaving = false;
+        this.toastr.error(err?.error?.message || 'Could not save.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   loadLinks(): void {

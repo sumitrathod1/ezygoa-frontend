@@ -93,6 +93,30 @@
           </button>
         </div>
       </section>
+
+      <!-- How long a sign-in lasts -->
+      <section class="links-card session-card" *ngIf="!loading">
+        <h3 class="section-title"><i class="bi bi-clock-history"></i> Stay signed in</h3>
+        <p class="links-help">
+          How long people stay logged in on the app before they have to log in again.
+          Applies to every organisation, from each person's next login.
+        </p>
+        <div class="session-row">
+          <div class="session-presets">
+            <button type="button" *ngFor="let d of sessionPresets" class="btn-outline btn-sm"
+                    [class.on]="sessionDays === d" (click)="sessionDays = d">
+              {{ d === 7 ? '1 week' : d === 30 ? '1 month' : d === 90 ? '3 months' : '6 months' }}
+            </button>
+          </div>
+          <label class="session-input">
+            <input type="number" min="1" [max]="maxSessionDays" [(ngModel)]="sessionDays" aria-label="Days" />
+            <span>days</span>
+          </label>
+          <button class="btn-primary" (click)="saveSessionDays()" [disabled]="sessionSaving">
+            <i class="bi bi-check-lg"></i> {{ sessionSaving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </section>
     </ng-container>
 
     <!-- ── ORG DETAIL ── -->

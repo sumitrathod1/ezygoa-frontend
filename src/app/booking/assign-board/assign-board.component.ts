@@ -15,7 +15,9 @@ import {
 } from '../../services/dispatch.service';
 import { BookingService } from '../../services/booking.service';
 import { TransferBookingDialogComponent } from '../transfer-booking-dialog/transfer-booking-dialog.component';
+import { TripDialogComponent } from '../trip-dialog/trip-dialog.component';
 
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 type Kind = 'driver' | 'vehicle';
 type Range = 'today' | 'tomorrow' | 'week' | 'custom';
 
@@ -29,7 +31,7 @@ interface ChipData { kind: Kind; id: number }
 @Component({
   selector: 'app-assign-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPreview],
+  imports: [BookingTypePipe, CommonModule, FormsModule, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPreview],
   templateUrl: './assign-board.component.html',
   styleUrl: './assign-board.component.css',
 })
@@ -197,6 +199,11 @@ export class AssignBoardComponent implements OnInit {
     return (this.board?.vehicles ?? []).filter((v) => this.matches(v.vehicleName) || this.matches(v.vehicleNumber));
   }
 
+  /** Drag panel: real cars only — rent-a-car placeholders are offered in the picker of self-drive rentals */
+  get panelVehicles(): BoardVehicle[] {
+    return this.vehicles.filter((v) => !v.rentalOnly);
+  }
+
   /** Open jobs in the period for this driver / vehicle */
   jobs(kind: Kind, id: number): number {
     const { from, to } = this.period;
@@ -323,6 +330,17 @@ export class AssignBoardComponent implements OnInit {
     });
   }
 
+  // ── Trip ─────────────────────────────────────────────────────────────
+
+  /** All days of the trip; "same driver & car for all days" lives there. Reload after. */
+  openTrip(b: BoardBooking) {
+    if (!b.tripId) return;
+    this._dialog
+      .open(TripDialogComponent, { width: '640px', maxWidth: '96vw', data: { tripId: b.tripId } })
+      .afterClosed()
+      .subscribe(() => this.load(true));
+  }
+
   // ── Transfer ─────────────────────────────────────────────────────────
 
   transfer(booking: BoardBooking) {
@@ -339,5 +357,11 @@ export class AssignBoardComponent implements OnInit {
     });
   }
 
+  // Stable identities, so the page is NOT rebuilt while a drag is in progress. Without them
+  // every refresh (e.g. when a drag starts) replaced all booking cards, and the drop slots
+  // the drag had registered no longer existed — dropping did nothing.
   trackBooking = (_: number, b: BoardBooking) => b.bookingId;
+  trackGroup = (_: number, g: { date: string }) => g.date;
+  trackDriver = (_: number, d: BoardDriver) => d.userId;
+  trackVehicle = (_: number, v: BoardVehicle) => v.vehicleId;
 }

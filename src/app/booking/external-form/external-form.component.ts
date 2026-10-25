@@ -85,6 +85,7 @@ export class ExternalFormComponent {
     this._bookingService.reassignToExternal(this.externalForm.value).subscribe({
       next: (res: any) => {
         this._toastr.success(res.message || 'Assigned successfully');
+        this._bookingService.notifyBookingUpdated();
         this._dialog.closeAll();
       },
       error: () => {

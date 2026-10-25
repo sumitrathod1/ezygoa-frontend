@@ -67,10 +67,178 @@ describe('BookingFormComponent — validation, edit pre-fill, errors', () => {
     expect(c.validationErrors().join(' ')).toContain('travel date');
   });
 
-  it('a package without a start date is reported (was booked in 1970)', async () => {
+  it('a package day without a date is reported (was booked in 1970)', async () => {
     const c = await make();
-    c.bookingForm.patchValue({ ...valid, isPackage: true, packageStartDate: null, packageDays: 3 });
-    expect(c.validationErrors().join(' ')).toContain('package start date');
+    c.bookingForm.patchValue({ ...valid, isPackage: true, packageStartDate: null });
+    expect(c.validationErrors().join(' ')).toContain('date of day 1');
+  });
+
+  describe('package days and trips', () => {
+    const iso = (offset: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      const p = (n: number) => (n < 10 ? '0' + n : String(n));
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    };
+
+    async function pkg() {
+      const c = await make();
+      c.bookingForm.patchValue({ ...valid, packageStartDate: new Date(iso(2) + 'T00:00:00') });
+      c.bookingForm.patchValue({ isPackage: true });
+      return c;
+    }
+
+    it('ticking Package starts with an airport pickup and an airport drop on consecutive days', async () => {
+      const c = await pkg();
+      expect(c.days.map((d) => d.type)).toEqual(['AirportPickup', 'AirportDrop']);
+      expect(c.days.map((d) => d.date)).toEqual([iso(2), iso(3)]);
+    });
+
+    it('a new day goes before the airport drop, which moves one day later', async () => {
+      const c = await pkg();
+      c.addPackageDay();
+      expect(c.days.map((d) => d.type)).toEqual(['AirportPickup', 'SightSeeing', 'AirportDrop']);
+      expect(c.days.map((d) => d.date)).toEqual([iso(2), iso(3), iso(4)]);
+      expect(c.bookingForm.value.packageDays).toBe(3);
+    });
+
+    it('split mode shares the total in whole rupees; the last day takes the remainder', async () => {
+      const c = await pkg();
+      c.addPackageDay();
+      c.bookingForm.patchValue({ amount: 10000 });
+      expect(c.days.map((d) => d.amount)).toEqual([3333, 3333, 3334]);
+    });
+
+    it('changing one day switches to "type each day" and the total becomes the sum', async () => {
+      const c = await pkg();
+      c.bookingForm.patchValue({ amount: 6000 });
+      c.onDayAmountChange(c.days[0], 2500);
+      expect(c.amountMode).toBe('each');
+      expect(c.days.map((d) => d.amount)).toEqual([2500, 3000]);
+      expect(c.bookingForm.value.amount).toBe(5500);
+    });
+
+    it('the hotel fills where it belongs: pickup goes TO the hotel, other days start FROM it', async () => {
+      const c = await pkg();
+      c.addPackageDay();
+      c.stay = { name: 'Taj Holiday Village' };
+      c.days.forEach((d) => c.onDayTypeChange(d));
+      expect(c.days[0].to).toBe('Taj Holiday Village');
+      expect(c.days[1].from).toBe('Taj Holiday Village');
+      expect(c.days[2].from).toBe('Taj Holiday Village');
+    });
+
+    it('saves each day with its own type, time and amount, in date order, with the trip and hotel', async () => {
+      const c = await pkg();
+      const http = TestBed.inject(HttpTestingController);
+      c.setAmountMode('each');
+      c.days[0] = { ...c.days[0], date: iso(5), time: '03:00 PM', amount: 2000, from: 'Hotel', to: 'Dabolim Airport', type: 'AirportDrop' };
+      c.days[1] = { ...c.days[1], date: iso(2), time: '11:45 AM', amount: 2500, from: 'Mopa Airport', to: 'Hotel', type: 'AirportPickup' };
+      c.tripId = 7;
+      c.stay = { name: 'Hotel', lat: 15.5, lng: 73.7, mapsLink: 'https://maps.google.com/?q=15.5,73.7' };
+      c.onFormSubmit();
+      const req = http.expectOne((r) => r.url.endsWith('/Booking/New-Booking'));
+      const body = req.request.body;
+      expect(body.dayWiseBookings.map((d: any) => [d.travelDate, d.bookingType, d.travelTime, d.amount])).toEqual([
+        [iso(2), 'AirportPickup', '11:45:00', 2500],
+        [iso(5), 'AirportDrop', '15:00:00', 2000],
+      ]);
+      expect(body.amount).toBe(4500);
+      expect(body.tripId).toBe(7);
+      expect(body.stay.name).toBe('Hotel');
+    });
+
+    it('a returning customer can be added to their current trip (hotel and pax come along)', async () => {
+      const c = await make();
+      c.returning = { customer: { customersId: 1, customerName: 'Ashothos', customerNumber: '9886624253' },
+        trips: [{ tripId: 9, startDate: iso(0), endDate: iso(3), stayName: 'Taj', stayLat: 1, stayLng: 2, stayMapsLink: null, pax: 14, bookings: 3 }] };
+      expect(c.showReturning).toBeTrue();
+      c.joinTrip(c.returning.trips[0]);
+      expect(c.tripId).toBe(9);
+      expect(c.stay?.name).toBe('Taj');
+      expect(c.bookingForm.value.pax).toBe(14);
+      expect(c.showReturning).toBeFalse();
+    });
+
+    it('a tour can end with a drop; it is sent for single bookings and for package days', async () => {
+      const c = await make();
+      const http = TestBed.inject(HttpTestingController);
+      c.bookingForm.patchValue({ ...valid, bookingType: 'NorthGoaSightseeing', endDrop: 'Mopa Airport' });
+      c.onFormSubmit();
+      const req = http.expectOne((r) => r.url.endsWith('/Booking/New-Booking'));
+      expect(req.request.body.bookingType).toBe('NorthGoaSightseeing');
+      expect(req.request.body.endDrop).toBe('Mopa Airport');
+    });
+
+    it('a drop left on a type that has none is not sent (e.g. changed to Airport Pickup)', async () => {
+      const c = await make();
+      const http = TestBed.inject(HttpTestingController);
+      c.bookingForm.patchValue({ ...valid, bookingType: 'AirportPickup', endDrop: 'Mopa Airport' });
+      c.onFormSubmit();
+      expect(http.expectOne((r) => r.url.endsWith('/Booking/New-Booking')).request.body.endDrop).toBeNull();
+    });
+
+    it('package day: South Goa Sightseeing + drop at Dabolim', async () => {
+      const c = await pkg();
+      const http = TestBed.inject(HttpTestingController);
+      c.days[1] = { ...c.days[1], type: 'SouthGoaSightseeing', endDrop: 'Dabolim Airport', date: iso(3) };
+      c.onFormSubmit();
+      const day = http.expectOne((r) => r.url.endsWith('/Booking/New-Booking')).request.body.dayWiseBookings[1];
+      expect(day.bookingType).toBe('SouthGoaSightseeing');
+      expect(day.endDrop).toBe('Dabolim Airport');
+    });
+
+    it('a pickup start fills From and goes to the hotel; it is sent with the booking', async () => {
+      const c = await make();
+      const http = TestBed.inject(HttpTestingController);
+      c.stay = { name: 'Taj Holiday Village' };
+      c.bookingForm.patchValue({ ...valid, bookingType: 'DudhsagarTour', from: '', to: '' });
+      c.setStartPickup('Mopa Airport');
+      expect(c.bookingForm.value.from).toBe('Mopa Airport');
+      expect(c.bookingForm.value.to).toBe('Taj Holiday Village');
+      c.onFormSubmit();
+      const body = http.expectOne((r) => r.url.endsWith('/Booking/New-Booking')).request.body;
+      expect(body.startPickup).toBe('Mopa Airport');
+      expect(body.bookingType).toBe('DudhsagarTour');
+    });
+
+    it('Full Day needs its package (8 hr / 80 km or 12 hr / 120 km), which is sent', async () => {
+      const c = await make();
+      const http = TestBed.inject(HttpTestingController);
+      c.bookingForm.patchValue({ ...valid, bookingType: 'FullDay', fullDayHours: null });
+      expect(c.validationErrors().join(' ')).toContain('8 hr / 80 km or 12 hr / 120 km');
+      c.bookingForm.patchValue({ fullDayHours: 12 });
+      expect(c.validationErrors()).toEqual([]);
+      c.onFormSubmit();
+      expect(http.expectOne((r) => r.url.endsWith('/Booking/New-Booking')).request.body.fullDayHours).toBe(12);
+    });
+
+    it('package day Full Day without a package is reported', async () => {
+      const c = await pkg();
+      c.days[1] = { ...c.days[1], type: 'FullDay', fullDayHours: null };
+      expect(c.validationErrors().join(' ')).toContain('Day 2: choose Full Day');
+    });
+
+    it('rent-a-car placeholders show in the vehicle list only for self-drive rentals', async () => {
+      const c = await make();
+      c.vehcilesType = [
+        { vehicleId: 1, vehicleName: 'Innova', vehicleNumber: 'GA-01-A-1111' },
+        { vehicleId: 2, vehicleName: 'Thar', vehicleNumber: 'RENTAL-001' },
+      ];
+      c.bookingForm.patchValue({ bookingType: 'AirportPickup' });
+      expect(c.vehicleOptions.map((v: any) => v.vehicleId)).toEqual([1]);
+      c.bookingForm.patchValue({ bookingType: 'SelfDriveRental' });
+      expect(c.vehicleOptions.map((v: any) => v.vehicleId)).toEqual([1, 2]);
+    });
+
+    it('"+ Booking for this customer" fills the form but is not an edit', async () => {
+      const c = await make({ prefill: { customerName: 'Meera', customerNumber: '9886600001', tripId: 4, stay: { name: 'Baga Resort' } } });
+      expect(c.isEditMode).toBeFalse();
+      expect(c.bookingForm.value.customerName).toBe('Meera');
+      expect(c.bookingForm.value.bookingId).toBeNull();
+      expect(c.tripId).toBe(4);
+      expect(c.stay?.name).toBe('Baga Resort');
+    });
   });
 
   it('partner bookings need name, a valid number and a commission within the amount', async () => {

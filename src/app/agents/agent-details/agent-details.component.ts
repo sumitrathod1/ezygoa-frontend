@@ -3,10 +3,11 @@ import { AgentService } from '../../services/agent.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 @Component({
   selector: 'app-agent-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [BookingTypePipe, CommonModule],
   templateUrl: './agent-details.component.html',
   styleUrl: './agent-details.component.css',
 })

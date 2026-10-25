@@ -5,10 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../services/employee.service';
 import { map } from 'rxjs';
 
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 @Component({
   selector: 'app-driver-bookings',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [BookingTypePipe, CommonModule, RouterModule, FormsModule],
   templateUrl: './driver-bookings.component.html',
   styleUrl: './driver-bookings.component.css',
 })

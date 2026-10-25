@@ -1,139 +1,174 @@
-<div class="container my-4">
-  <!-- KPI Cards -->
-  <div class="row g-3 mb-2">
-    <div class="col-6" routerLink="/vehicle-card" (click)="documentForm()" style="cursor:pointer">
-      <div class="v-kpi-card v-blue">
-        <i class="bi bi-car-front-fill v-kpi-icon"></i>
-        <div class="v-kpi-value">{{ totalVehicles }}</div>
-        <div class="v-kpi-label">Total Vehicles</div>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="v-kpi-card v-green">
-        <i class="bi bi-check-circle-fill v-kpi-icon"></i>
-        <div class="v-kpi-value">{{ activeVehicles }}</div>
-        <div class="v-kpi-label">Active</div>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="v-kpi-card v-orange">
-        <i class="bi bi-wrench-adjustable-circle-fill v-kpi-icon"></i>
-        <div class="v-kpi-value">{{ inMaintenanceCount }}</div>
-        <div class="v-kpi-label">Maintenance</div>
-      </div>
-    </div>
-    <div class="col-6" routerLink="/vehicle-statistics" [state]="{ expenses: allExpenses }" style="cursor:pointer">
-      <div class="v-kpi-card v-red">
-        <i class="bi bi-receipt-cutoff v-kpi-icon"></i>
-        <div class="v-kpi-value">₹{{ totalExpenseCost | number:'1.0-0' }}</div>
-        <div class="v-kpi-label">Total Expenses</div>
-      </div>
-    </div>
-  </div>
+<div class="fl-page">
 
-  <!-- Vehicle Expense Overview -->
-  <div class="perf-section" *ngIf="expensesByVehicle.length">
-    <div class="expenses-header mb-2">
-      <span class="title">Vehicle Expense Overview</span>
-    </div>
-    <div class="perf-list">
-      <div class="perf-row" *ngFor="let v of expensesByVehicle">
-        <div class="perf-name">{{ v.name }}</div>
-        <div class="perf-bar-wrap">
-          <div class="perf-bar" [style.width.%]="(v.amount / maxVehicleExpense) * 100"></div>
+  <div class="fl-loading" *ngIf="loading && !fleet">Loading your fleet…</div>
+  <div class="fl-error" *ngIf="error">{{ error }} <button (click)="load()">Try again</button></div>
+
+  <ng-container *ngIf="fleet as f">
+
+    <!-- This month at a glance -->
+    <a class="fl-hero" routerLink="/vehicle-statistics">
+      <div class="hero-top">
+        <span class="hero-period"><i class="bi bi-calendar3"></i> This month · {{ periodLabel }}</span>
+        <span class="hero-more">Details <i class="bi bi-chevron-right"></i></span>
+      </div>
+      <div class="hero-label">{{ f.totals.profit >= 0 ? 'Profit' : 'Loss' }} from your vehicles</div>
+      <div class="hero-value">{{ (f.totals.profit < 0 ? -f.totals.profit : f.totals.profit) | indianCurrency }}</div>
+      <div class="hero-change" *ngIf="f.totals.previous.revenue || f.totals.previous.expenses">
+        <span class="chg" [ngClass]="trend(f.totals.change.profit).cls">
+          <i class="bi" [ngClass]="trend(f.totals.change.profit).icon"></i> {{ trend(f.totals.change.profit).text }}
+        </span>
+        vs the {{ f.days }} days before
+      </div>
+      <div class="hero-split">
+        <div>
+          <span class="hs-label"><i class="bi bi-arrow-down-circle"></i> Earned</span>
+          <span class="hs-val">{{ f.totals.revenue | indianCurrency }}</span>
         </div>
-        <div class="perf-amt">₹{{ v.amount | number:'1.0-0' }}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="expenses-header">
-    <span class="title">Recent Expenses</span>
-    <a class="view-all" routerLink="/expense-table">View All</a>
-  </div>
-  <div class="expenses-list">
-    <div class="expenses-card" *ngFor="let exp of top4Expenses">
-      <div class="exp-icon" [ngClass]="getExpenseDisplay(exp).iconBg">
-        <i class="bi" [ngClass]="getExpenseDisplay(exp).icon"></i>
-      </div>
-      <div class="exp-info">
-        <div class="exp-title">
-          {{ exp.vehicle.vehicleName }}: {{ exp.vehicle.vehicleNumber }}
+        <div>
+          <span class="hs-label"><i class="bi bi-arrow-up-circle"></i> Spent</span>
+          <span class="hs-val">{{ f.totals.expenses | indianCurrency }}</span>
         </div>
-        <div class="exp-subtitle">{{ exp.categoryType }}</div>
+        <div>
+          <span class="hs-label"><i class="bi bi-percent"></i> Margin</span>
+          <span class="hs-val">{{ f.totals.margin }}%</span>
+        </div>
       </div>
-      <div class="exp-amount" [ngClass]="'text-danger'">
-        ₹{{ exp.amount | number }}
-      </div>
-    </div>
-  </div>
+    </a>
 
-  <div class="maintenance-header">
-    <span class="title">Maintenance Schedule</span>
-    <a class="view-all" routerLink="/maintenance-table">View All</a>
-  </div>
-  <div class="maintenance-list">
-    <div class="maintenance-card" *ngFor="let item of top4Maintenances">
-      <div class="maint-icon" [ngClass]="getMaintenanceDisplay(item).iconBg">
-        <i class="bi" [ngClass]="getMaintenanceDisplay(item).icon"></i>
+    <!-- Key numbers -->
+    <div class="fl-kpis">
+      <div class="kpi">
+        <div class="ring" [style.background]="'conic-gradient(#4b2aad ' + outTodayPct * 3.6 + 'deg, #e9e5fb 0)'">
+          <span>{{ f.today.out }}<small>/{{ f.totals.vehicles }}</small></span>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-label">Out today</span>
+          <span class="kpi-sub">{{ f.today.free }} free</span>
+        </div>
       </div>
-      <div class="maint-info">
-        <div class="maint-title">{{ item.maintenanceType }}</div>
-        <div class="maint-subtitle">
-          {{ item.vehicle.vehicleName }}: {{ item.vehicle.vehicleNumber }}
-          <span class="maint-date">{{
-            item.nextduedate | date : "dd MMM, yyyy"
-          }}</span>
-          <span class="text-muted">
-            ({{ getDaysLeft(item.nextduedate) }})
+      <div class="kpi">
+        <div class="kpi-icon purple"><i class="bi bi-speedometer2"></i></div>
+        <div class="kpi-text">
+          <span class="kpi-val">{{ f.totals.utilisation }}%</span>
+          <span class="kpi-label">Fleet busy</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon blue"><i class="bi bi-signpost-split"></i></div>
+        <div class="kpi-text">
+          <span class="kpi-val">{{ f.totals.trips }}
+            <small class="chg" *ngIf="f.totals.previous.trips" [ngClass]="trend(f.totals.change.trips).cls">
+              <i class="bi" [ngClass]="trend(f.totals.change.trips).icon"></i>{{ trend(f.totals.change.trips).text }}
+            </small>
           </span>
+          <span class="kpi-label">Trips</span>
         </div>
       </div>
-      <div class="maint-right">
-        <!-- <div class="maint-amount">₹{{ item.amount | number }}</div> -->
-        <!-- <div
-          *ngIf="item.status"
-          class="getMaintenanceDisplay(item)"
-          [ngClass]="getMaintenanceDisplay(item).statusClass"
-        >
-          {{ item.status }}
-        </div> -->
-        <div
-          class="doc-badge"
-          [ngClass]="getMaintenanceDisplay(item).statusClass"
-        >
-          {{ getMaintenanceDisplay(item).status }}
+      <div class="kpi">
+        <div class="kpi-icon green"><i class="bi bi-cash-coin"></i></div>
+        <div class="kpi-text">
+          <span class="kpi-val">{{ f.totals.perTrip | indianCurrency }}</span>
+          <span class="kpi-label">Per trip</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="doc-header">
-    <span class="title">Document Status</span>
-    <a class="manage-link" routerLink="/vehicle-documents">Manage</a>
-  </div>
-  <div class="doc-list">
-    <div class="doc-card" *ngFor="let doc of top4Documents">
-      <div class="doc-icon" [ngClass]="getDocumentStatus(doc).iconBg">
-        <i class="bi" [ngClass]="getDocumentStatus(doc).icon"></i>
+    <!-- Needs attention -->
+    <section class="fl-card" *ngIf="alertCount">
+      <div class="sec-head">
+        <h2><i class="bi bi-bell-fill text-warn"></i> Needs attention <span class="count">{{ alertCount }}</span></h2>
       </div>
-      <div class="doc-info">
-        <div class="doc-title">
-          {{ doc.title }}: <span>{{ doc.vehicle?.vehicleName }} </span>
+      <div class="alert-row" *ngFor="let d of f.alerts.documents" [class.late]="d.daysLeft < 0" routerLink="/vehicle-documents">
+        <div class="al-icon"><i class="bi bi-file-earmark-text"></i></div>
+        <div class="al-main">
+          <div class="al-title">{{ d.title }}</div>
+          <div class="al-sub">{{ d.vehicleName || d.driverName || 'Company' }}<span *ngIf="d.vehicleNumber"> · {{ d.vehicleNumber }}</span></div>
         </div>
-        <div class="doc-subtitle">{{ doc.vehicle?.vehicleNumber }}</div>
-        <div class="maint-subtitle">
-          <span class="maint-date">
-            {{ doc.expiryDate | date : "dd MMM, yyyy" }}
-            <span class="text-muted">
-              ({{ getDaysLeft(doc.expiryDate) }})
+        <span class="al-when">{{ d.daysLeft < 0 ? dueText(d.daysLeft, 'expired') : 'expires ' + dueText(d.daysLeft) }}</span>
+      </div>
+      <div class="alert-row" *ngFor="let s of f.alerts.services" [class.late]="s.daysLeft < 0" routerLink="/maintenance-table">
+        <div class="al-icon svc"><i class="bi bi-wrench-adjustable"></i></div>
+        <div class="al-main">
+          <div class="al-title">{{ prettyType(s.type) }} due</div>
+          <div class="al-sub">{{ s.vehicleName }}<span *ngIf="s.vehicleNumber"> · {{ s.vehicleNumber }}</span></div>
+        </div>
+        <span class="al-when">{{ dueText(s.daysLeft) }}</span>
+      </div>
+    </section>
+
+    <!-- Every car -->
+    <section>
+      <div class="sec-head">
+        <h2>Your vehicles <span class="count">{{ f.vehicles.length }}</span></h2>
+        <a routerLink="/vehicle-card" class="sec-link">Manage</a>
+      </div>
+      <div class="fl-vehicles">
+        <article class="veh" *ngFor="let v of f.vehicles; trackBy: trackVehicle" (click)="openVehicle(v)" [class.loss]="v.profit < 0">
+          <div class="veh-top">
+            <div class="veh-avatar"><i class="bi bi-car-front-fill"></i></div>
+            <div class="veh-name">
+              <strong>{{ v.vehicleName || 'Vehicle' }}</strong>
+              <span>{{ v.vehicleNumber }}<ng-container *ngIf="v.seats"> · {{ v.seats }} seats</ng-container></span>
+            </div>
+            <span class="pill" [class.out]="v.outToday">{{ v.outToday ? 'On trip today' : 'Free today' }}</span>
+          </div>
+
+          <div class="veh-badges" *ngIf="v.vehicleId === topEarnerId || v.profit < 0 || v.serviceDue && v.serviceDue.daysLeft <= 15 || v.docsDue">
+            <span class="badge gold" *ngIf="v.vehicleId === topEarnerId"><i class="bi bi-trophy-fill"></i> Top earner</span>
+            <span class="badge red" *ngIf="v.profit < 0"><i class="bi bi-graph-down-arrow"></i> Loss this month</span>
+            <span class="badge amber" *ngIf="v.serviceDue && v.serviceDue.daysLeft <= 15">
+              <i class="bi bi-wrench"></i> {{ prettyType(v.serviceDue.type) }} {{ dueText(v.serviceDue.daysLeft) }}
             </span>
-          </span>
+            <span class="badge amber" *ngIf="v.docsDue"><i class="bi bi-file-earmark-excel"></i> {{ v.docsDue }} paper{{ v.docsDue === 1 ? '' : 's' }} due</span>
+          </div>
+
+          <div class="veh-money">
+            <div><span>Earned</span><strong class="g">{{ v.revenue | indianCurrency }}</strong></div>
+            <div><span>Spent</span><strong class="r">{{ v.expenses | indianCurrency }}</strong></div>
+            <div><span>{{ v.profit >= 0 ? 'Profit' : 'Loss' }}</span><strong [class.g]="v.profit >= 0" [class.r]="v.profit < 0">{{ (v.profit < 0 ? -v.profit : v.profit) | indianCurrency }}</strong></div>
+          </div>
+
+          <div class="veh-util">
+            <div class="util-bar"><div [style.width.%]="v.utilisation"></div></div>
+            <span>Out {{ v.busyDays }} of {{ f.daysSoFar }} days · {{ v.trips }} trip{{ v.trips === 1 ? '' : 's' }}</span>
+          </div>
+
+          <div class="veh-next">
+            <i class="bi bi-clock-history"></i>
+            <ng-container *ngIf="v.nextTrip as n; else noNext">
+              Next: <strong>{{ n.travelDate | date: 'EEE d MMM' }}</strong>&nbsp;· {{ n.from || '—' }} → {{ n.to || '—' }}
+            </ng-container>
+            <ng-template #noNext><span class="muted">No upcoming trips</span></ng-template>
+          </div>
+        </article>
+      </div>
+      <div class="fl-note" *ngIf="f.totals.unlinked > 0">
+        <i class="bi bi-info-circle"></i> {{ f.totals.unlinked | indianCurrency }} of this month's spending isn't linked to a vehicle.
+      </div>
+    </section>
+
+    <!-- Shortcuts -->
+    <section class="fl-actions">
+      <button type="button" class="act" (click)="addExpense()"><i class="bi bi-plus-circle-fill"></i><span>Add expense</span></button>
+      <a class="act" routerLink="/expense-table"><i class="bi bi-receipt"></i><span>Expenses</span></a>
+      <a class="act" routerLink="/maintenance-table"><i class="bi bi-wrench-adjustable-circle"></i><span>Services</span></a>
+      <a class="act" routerLink="/vehicle-documents"><i class="bi bi-folder2-open"></i><span>Papers</span></a>
+    </section>
+
+    <!-- Latest spending -->
+    <section class="fl-card" *ngIf="recentExpenses.length">
+      <div class="sec-head">
+        <h2>Latest expenses</h2>
+        <a routerLink="/expense-table" class="sec-link">View all</a>
+      </div>
+      <div class="exp-row" *ngFor="let e of recentExpenses">
+        <div class="exp-icon"><i class="bi" [ngClass]="categoryIcon(e.categoryType)"></i></div>
+        <div class="exp-main">
+          <div class="exp-title">{{ prettyType(e.categoryType) }}</div>
+          <div class="exp-sub">{{ e.vehicle?.vehicleName || 'No vehicle' }}<span *ngIf="e.vehicle?.vehicleNumber"> · {{ e.vehicle.vehicleNumber }}</span> · {{ e.expenseDate | date: 'd MMM' }}</div>
         </div>
+        <div class="exp-amt">{{ e.amount | indianCurrency }}</div>
       </div>
-      <div class="doc-badge" [ngClass]="getDocumentStatus(doc).statusClass">
-        {{ getDocumentStatus(doc).status }}
-      </div>
-    </div>
-  </div>
+    </section>
+  </ng-container>
 </div>

@@ -1,113 +1,137 @@
-<div class="container py-3">
+<div class="st-page">
 
-  <!-- Period Filter + Vehicle Dropdown -->
-  <div class="filter-bar mb-3">
-    <div class="period-chips">
-      <button class="chip" [class.active]="selectedPeriod === 'week'"    (click)="selectPeriod('week')">This Week</button>
-      <button class="chip" [class.active]="selectedPeriod === 'month'"   (click)="selectPeriod('month')">This Month</button>
-      <button class="chip" [class.active]="selectedPeriod === 'quarter'" (click)="selectPeriod('quarter')">This Quarter</button>
-      <button class="chip" [class.active]="selectedPeriod === 'year'"    (click)="selectPeriod('year')">This Year</button>
-      <button class="chip" [class.active]="selectedPeriod === 'custom'"  (click)="selectPeriod('custom')">Custom</button>
-    </div>
-    <div class="mt-2 mt-sm-0">
-      <select class="form-select form-select-sm" style="min-width:150px"
-              [(ngModel)]="selectedVehicleId" (change)="onVehicleChange()">
-        <option [ngValue]="null">All Vehicles</option>
-        <option *ngFor="let v of allVehicles" [ngValue]="v.vehicleId">{{ v.vehicleName }}</option>
-      </select>
-    </div>
+  <div class="st-head">
+    <a routerLink="/vehicle" class="st-back"><i class="bi bi-arrow-left"></i> Vehicles</a>
+    <h1>
+      {{ selectedVehicleId ? selectedVehicleName : 'Fleet performance' }}
+      <button type="button" class="st-all" *ngIf="selectedVehicleId" (click)="showAll()">All vehicles</button>
+    </h1>
+    <p *ngIf="fleet">{{ periodLabel }} · {{ fleet.days }} day{{ fleet.days === 1 ? '' : 's' }}</p>
   </div>
 
-  <!-- Custom Date Range -->
-  <div *ngIf="showCustom" class="custom-range mb-3">
-    <div class="d-flex flex-wrap gap-2 align-items-end">
-      <div>
-        <label class="form-label small mb-1">From Date</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="customFrom" />
-      </div>
-      <div>
-        <label class="form-label small mb-1">To Date</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="customTo" />
-      </div>
-      <button class="btn btn-primary btn-sm" (click)="applyCustomRange()">Apply Filter</button>
-      <button class="btn btn-outline-secondary btn-sm" (click)="clearFilter()">Clear Filter</button>
+  <!-- Period + vehicle -->
+  <div class="st-filters">
+    <div class="st-chips">
+      <button *ngFor="let p of periods" class="chip" [class.active]="selectedPeriod === p.key" (click)="selectPeriod(p.key)">{{ p.label }}</button>
     </div>
+    <select [(ngModel)]="selectedVehicleId" (change)="onVehicleChange()" aria-label="Vehicle">
+      <option [ngValue]="null">All vehicles</option>
+      <option *ngFor="let v of allVehicles" [ngValue]="v.vehicleId">{{ v.vehicleName }} {{ v.vehicleNumber ? '· ' + v.vehicleNumber : '' }}</option>
+    </select>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-md-3">
-      <div class="kpi-card revenue">
-        <i class="bi bi-cash-stack kpi-icon"></i>
-        <div class="kpi-value">{{ totalRevenue | indianCurrency }}</div>
-        <div class="kpi-label">Total Revenue</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card expenses">
-        <i class="bi bi-receipt kpi-icon"></i>
-        <div class="kpi-value">{{ totalExpenses | indianCurrency }}</div>
-        <div class="kpi-label">Total Expenses</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card" [class.profit]="netProfit >= 0" [class.loss]="netProfit < 0">
-        <i class="bi bi-graph-up-arrow kpi-icon"></i>
-        <div class="kpi-value">{{ netProfit | indianCurrency }}</div>
-        <div class="kpi-label">Net Profit</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="kpi-card best">
-        <i class="bi bi-trophy kpi-icon"></i>
-        <div class="kpi-value kpi-name">{{ bestVehicle }}</div>
-        <div class="kpi-label">Best Vehicle</div>
-      </div>
-    </div>
+  <div *ngIf="showCustom" class="st-custom">
+    <label>From <input type="date" [(ngModel)]="customFrom" /></label>
+    <label>To <input type="date" [(ngModel)]="customTo" /></label>
+    <button class="st-btn" (click)="applyCustomRange()">Apply</button>
   </div>
 
-  <!-- Monthly Earnings Chart -->
-  <div class="card p-3 mb-3 shadow-sm">
-    <h6 class="mb-3">
-      <i class="bi bi-bar-chart-line me-1 text-primary"></i> Monthly Earnings per Vehicle
-    </h6>
-    <canvas baseChart [data]="barChartData" [type]="barChartType" [options]="barChartOptions"></canvas>
-  </div>
+  <div class="st-error" *ngIf="error">{{ error }}</div>
 
-  <!-- Per-Vehicle Breakdown Table -->
-  <div class="card p-3 mb-3 shadow-sm" *ngIf="vehicleStats.length > 0">
-    <h6 class="mb-3">
-      <i class="bi bi-car-front me-1 text-primary"></i> Per Vehicle Breakdown
-    </h6>
-    <div class="table-responsive">
-      <table class="rtable table table-sm table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Vehicle</th>
-            <th class="text-end">Revenue</th>
-            <th class="text-end">Expenses</th>
-            <th class="text-end">Profit / Loss</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let v of vehicleStats">
-            <td class="fw-semibold" data-label="Vehicle">{{ v.name }}</td>
-            <td class="text-end text-success fw-semibold" data-label="Revenue">{{ v.revenue | indianCurrency }}</td>
-            <td class="text-end text-danger fw-semibold" data-label="Expenses">{{ v.expenses | indianCurrency }}</td>
-            <td class="text-end fw-bold" data-label="Profit / Loss"
-                [class.text-success]="v.profit >= 0"
-                [class.text-danger]="v.profit < 0">
-              {{ v.profit | indianCurrency }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <ng-container *ngIf="fleet as f">
+    <div class="st-body" [class.dim]="loading">
+
+      <!-- Headline KPIs -->
+      <div class="st-kpis">
+        <div class="kpi hero" [class.neg]="f.totals.profit < 0">
+          <span class="k-label">{{ f.totals.profit >= 0 ? 'Profit' : 'Loss' }}</span>
+          <span class="k-val">{{ (f.totals.profit < 0 ? -f.totals.profit : f.totals.profit) | indianCurrency }}</span>
+          <span class="k-foot">
+            <span class="chg" [ngClass]="trend(f.totals.change.profit).cls"><i class="bi" [ngClass]="trend(f.totals.change.profit).icon"></i> {{ trend(f.totals.change.profit).text }}</span>
+            margin {{ f.totals.margin }}%
+          </span>
+        </div>
+        <div class="kpi">
+          <span class="k-label"><i class="bi bi-arrow-down-circle g"></i> Earned</span>
+          <span class="k-val">{{ f.totals.revenue | indianCurrency }}</span>
+          <span class="k-foot"><span class="chg" [ngClass]="trend(f.totals.change.revenue).cls"><i class="bi" [ngClass]="trend(f.totals.change.revenue).icon"></i> {{ trend(f.totals.change.revenue).text }}</span> vs before</span>
+        </div>
+        <div class="kpi">
+          <span class="k-label"><i class="bi bi-arrow-up-circle r"></i> Spent</span>
+          <span class="k-val">{{ f.totals.expenses | indianCurrency }}</span>
+          <span class="k-foot"><span class="chg" [ngClass]="trend(f.totals.change.expenses, false).cls"><i class="bi" [ngClass]="trend(f.totals.change.expenses, false).icon"></i> {{ trend(f.totals.change.expenses, false).text }}</span> vs before</span>
+        </div>
+        <div class="kpi">
+          <span class="k-label"><i class="bi bi-signpost-split b"></i> Trips</span>
+          <span class="k-val">{{ f.totals.trips }}</span>
+          <span class="k-foot"><span class="chg" [ngClass]="trend(f.totals.change.trips).cls"><i class="bi" [ngClass]="trend(f.totals.change.trips).icon"></i> {{ trend(f.totals.change.trips).text }}</span> vs before</span>
+        </div>
+        <div class="kpi">
+          <span class="k-label"><i class="bi bi-speedometer2 p"></i> Busy</span>
+          <span class="k-val">{{ f.totals.utilisation }}%</span>
+          <span class="k-foot">of days cars were out</span>
+        </div>
+        <div class="kpi">
+          <span class="k-label"><i class="bi bi-cash-coin g"></i> Per trip</span>
+          <span class="k-val">{{ f.totals.perTrip | indianCurrency }}</span>
+          <span class="k-foot">average fare</span>
+        </div>
+      </div>
+
+      <!-- Six-month trend -->
+      <section class="st-card">
+        <h2><i class="bi bi-graph-up"></i> Last 6 months</h2>
+        <div class="chart-box">
+          <canvas baseChart [data]="trendData" type="bar" [options]="trendOptions"></canvas>
+        </div>
+      </section>
+
+      <div class="st-two">
+        <!-- Where the money goes -->
+        <section class="st-card">
+          <h2><i class="bi bi-pie-chart"></i> Where the money goes</h2>
+          <div class="cat" *ngFor="let c of f.byCategory">
+            <div class="cat-icon"><i class="bi" [ngClass]="categoryIcon(c.category)"></i></div>
+            <div class="cat-main">
+              <div class="cat-line"><span>{{ prettyType(c.category) }}</span><strong>{{ c.amount | indianCurrency }}</strong></div>
+              <div class="cat-bar"><div [style.width.%]="(c.amount / maxCategory) * 100"></div></div>
+            </div>
+            <span class="cat-pct">{{ categoryShare(c.amount) }}%</span>
+          </div>
+          <div class="empty" *ngIf="!f.byCategory.length">No expenses in this period.</div>
+          <div class="note" *ngIf="f.totals.unlinked > 0"><i class="bi bi-info-circle"></i> {{ f.totals.unlinked | indianCurrency }} isn't linked to a vehicle.</div>
+        </section>
+
+        <!-- One car: its details -->
+        <section class="st-card" *ngIf="selectedVehicleId && f.vehicles[0] as v">
+          <h2><i class="bi bi-car-front"></i> {{ v.vehicleName }}</h2>
+          <div class="facts">
+            <div><span>Out on trips</span><strong>{{ v.busyDays }} of {{ f.daysSoFar }} days</strong></div>
+            <div><span>Fuel</span><strong>{{ v.fuel | indianCurrency }}</strong></div>
+            <div><span>EMI</span><strong>{{ v.emi | indianCurrency }}</strong></div>
+            <div><span>Repairs &amp; service</span><strong>{{ v.repairs | indianCurrency }}</strong></div>
+            <div><span>Today</span><strong>{{ v.outToday ? 'On a trip' : 'Free' }}</strong></div>
+            <div *ngIf="v.serviceDue"><span>{{ prettyType(v.serviceDue.type) }} due</span><strong>{{ v.serviceDue.due | date: 'd MMM y' }}</strong></div>
+            <div *ngIf="v.nextTrip as n" class="wide"><span>Next trip</span><strong>{{ n.travelDate | date: 'EEE d MMM' }} · {{ n.from || '—' }} → {{ n.to || '—' }}</strong></div>
+          </div>
+        </section>
+
+        <!-- Fleet: every car ranked -->
+        <section class="st-card" *ngIf="!selectedVehicleId">
+          <h2><i class="bi bi-bar-chart-steps"></i> Vehicles ranked by profit</h2>
+          <div class="rank" *ngFor="let v of ranking; let i = index; trackBy: trackVehicle" (click)="pick(v)">
+            <span class="rank-no" [class.top]="i === 0 && v.profit > 0">{{ i + 1 }}</span>
+            <div class="rank-main">
+              <div class="rank-line">
+                <strong>{{ v.vehicleName }}</strong>
+                <span [class.g]="v.profit >= 0" [class.r]="v.profit < 0">{{ v.profit < 0 ? '−' : '' }}{{ (v.profit < 0 ? -v.profit : v.profit) | indianCurrency }}</span>
+              </div>
+              <div class="rank-bars">
+                <div class="bar earn" [style.width.%]="(v.revenue / maxRevenue) * 100"></div>
+                <div class="bar spend" [style.width.%]="(v.expenses / maxRevenue) * 100"></div>
+              </div>
+              <div class="rank-sub">
+                {{ v.trips }} trip{{ v.trips === 1 ? '' : 's' }} · busy {{ v.utilisation }}%
+                <span class="tag gold" *ngIf="v.vehicleId === topEarnerId"><i class="bi bi-trophy-fill"></i> Top earner</span>
+                <span class="tag blue" *ngIf="v.vehicleId === mostUsedId"><i class="bi bi-lightning-fill"></i> Most used</span>
+                <span class="tag red" *ngIf="v.profit < 0">Loss</span>
+              </div>
+            </div>
+            <i class="bi bi-chevron-right rank-go"></i>
+          </div>
+          <div class="legend"><span><i class="dot earn"></i> Earned</span><span><i class="dot spend"></i> Spent</span></div>
+        </section>
+      </div>
     </div>
-  </div>
-
-  <div *ngIf="vehicleStats.length === 0" class="text-center text-muted py-4">
-    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-    No data for the selected period.
-  </div>
-
+  </ng-container>
 </div>

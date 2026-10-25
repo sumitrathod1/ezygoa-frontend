@@ -50,7 +50,7 @@
         <div class="customer-avatar">{{ b.customer?.customerName?.[0] | uppercase }}</div>
         <div class="customer-info">
           <span class="customer-name">{{ b.customer?.customerName }}</span>
-          <span class="customer-meta">{{ b.pax }} pax &bull; {{ b.bookingType }}</span>
+          <span class="customer-meta">{{ b.pax }} pax &bull; {{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
         </div>
         <div class="amount-pill">₹{{ b.amount }}</div>
       </div>

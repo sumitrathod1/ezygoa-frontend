@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { skip } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BookingService } from '../services/booking.service';
@@ -55,6 +56,8 @@ export class HomeComponent {
   today = new Date();
 
   private cache = new Map<string, CacheEntry>();
+  /** The all-time / today KPIs have been loaded once (they don't depend on the month shown) */
+  private kpiLoaded = false;
   private calMonth = new Date().getMonth() + 1;
   private calYear  = new Date().getFullYear();
 
@@ -71,7 +74,9 @@ export class HomeComponent {
 
   ngOnInit() {
     this._bookingService.bookingUpdated$
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      // bookingUpdated$ replays its last value on subscribe — skip it, or every visit to the
+      // home page loaded the full summary twice
+      .pipe(skip(1), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.cache.clear();
         this.loadCalendarSummary(this.calMonth, this.calYear, true);
@@ -125,10 +130,13 @@ export class HomeComponent {
       }
     }
 
-    this.isLoadingKpi = true;
+    // KPIs (all-time / today) are the same for every month: after the first load, other
+    // months only need their calendar — 1 quick query instead of the full summary
+    const calendarOnly = this.kpiLoaded && !forceRefresh;
+    if (!calendarOnly) this.isLoadingKpi = true;
     this.cdr.markForCheck();
 
-    this._dashboardService.getCalendarSummary(month, year).subscribe({
+    this._dashboardService.getCalendarSummary(month, year, calendarOnly).subscribe({
       next: (data) => {
         this.cache.set(key, { data, ts: Date.now() });
         this.applyCalendarData(data);
@@ -143,11 +151,17 @@ export class HomeComponent {
   }
 
   private applyCalendarData(data: any) {
+    this.calendarSummary = data.calendarData ?? [];
+    // A calendar-only response (other months / prefetch) carries no KPIs — keep the ones shown
+    if (data.totalBookings === undefined) {
+      this.cdr.markForCheck();
+      return;
+    }
+    this.kpiLoaded         = true;
     this.totalBookings     = data.totalBookings   ?? 0;
     this.todayBookings     = data.todayBookings   ?? 0;
     this.todayEarning      = data.todayEarning    ?? 0;
     this.totalRevenue      = data.totalRevenue    ?? 0;
-    this.calendarSummary   = data.calendarData    ?? [];
     this.availableDrivers  = data.availableDrivers  ?? [];
     this.availableVehicles = data.availableVehicles ?? [];
     this.isLoadingKpi      = false;
@@ -157,7 +171,7 @@ export class HomeComponent {
   private prefetch(month: number, year: number) {
     const key = `${year}-${month}`;
     if (this.cache.has(key) && Date.now() - this.cache.get(key)!.ts < CACHE_TTL_MS) return;
-    this._dashboardService.getCalendarSummary(month, year).subscribe({
+    this._dashboardService.getCalendarSummary(month, year, true).subscribe({
       next: (data) => this.cache.set(key, { data, ts: Date.now() })
     });
   }

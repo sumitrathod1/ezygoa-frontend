@@ -13,7 +13,7 @@
       </div>
       <div class="toggle-row" *ngIf="!isExternalBooking">
         <mat-checkbox formControlName="isPackage">
-          Package (Day Wise)
+          Package / multi-day trip
         </mat-checkbox>
       </div>
       <div class="toggle-row">
@@ -23,10 +23,10 @@
       </div>
     </div>
 
-    <!-- Package Booking (Simplified) -->
+    <!-- Package: each day has its own date, type, time, route and amount -->
     <div class="form-section day-section" *ngIf="isPackage">
       <div class="section-title">
-        <i class="bi bi-calendar-range"></i> Package Details
+        <i class="bi bi-calendar-range"></i> Package days
       </div>
       <div class="row g-2">
         <div class="col-12 col-sm-6">
@@ -37,74 +37,134 @@
               <mat-datepicker-toggle matSuffix [for]="pkgStartPicker"></mat-datepicker-toggle>
               <mat-datepicker #pkgStartPicker></mat-datepicker>
             </mat-form-field>
+            <small class="pkg-hint">Days follow one after another — change any day's date for a gap.</small>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="field-wrap">
             <label class="field-label"><i class="bi bi-calendar-week"></i> Number of Days</label>
             <div class="days-stepper">
-              <button type="button" class="days-btn" (click)="decDays()">−</button>
-              <span class="days-value">{{ bookingForm.get('packageDays')?.value || 2 }}</span>
-              <button type="button" class="days-btn" (click)="incDays()">+</button>
-            </div>
-            <div class="pkg-end-date" *ngIf="packageEndDate">
-              <i class="bi bi-arrow-right-short"></i> Ends {{ packageEndDate | date:'d MMM yyyy' }}
+              <button type="button" class="days-btn" (click)="decDays()" [disabled]="days.length <= 2" aria-label="Remove last day">−</button>
+              <span class="days-value">{{ days.length }}</span>
+              <button type="button" class="days-btn" (click)="incDays()" aria-label="Add a day">+</button>
             </div>
           </div>
         </div>
-        <!-- Per-day routes -->
+
         <div class="col-12">
-          <label class="field-label"><i class="bi bi-map"></i> Routes (per day)</label>
-          <div class="day-routes-list">
-            <div class="day-route-card" *ngFor="let r of dayRoutes; let i = index">
-              <div class="day-route-header">
-                <span class="day-route-num">Day {{ i + 1 }}</span>
-                <span class="day-route-date" *ngIf="getDayDate(i)">{{ getDayDate(i) | date:'EEE, d MMM' }}</span>
+          <div class="amount-mode" role="radiogroup" aria-label="Day amounts">
+            <span class="field-label mb-0"><i class="bi bi-cash-coin"></i> Day amounts</span>
+            <button type="button" class="am-btn" role="radio" [attr.aria-checked]="amountMode === 'split'" [class.active]="amountMode === 'split'" (click)="setAmountMode('split')">
+              Split total evenly
+            </button>
+            <button type="button" class="am-btn" role="radio" [attr.aria-checked]="amountMode === 'each'" [class.active]="amountMode === 'each'" (click)="setAmountMode('each')">
+              Type each day
+            </button>
+          </div>
+          <small class="pkg-hint" *ngIf="amountMode === 'split'">Enter the total under Financials — it is shared evenly. Change any day and it switches to "Type each day".</small>
+          <small class="pkg-hint" *ngIf="amountMode === 'each'">The total under Financials is the sum of the days.</small>
+        </div>
+
+        <div class="col-12">
+          <div class="pkg-day" *ngFor="let d of days; let i = index; trackBy: trackDay">
+            <div class="pkg-day-head">
+              <span class="day-route-num">Day {{ i + 1 }}</span>
+              <input
+                type="date"
+                class="pkg-date"
+                [(ngModel)]="d.date"
+                [ngModelOptions]="{ standalone: true }"
+                [attr.aria-label]="'Date of day ' + (i + 1)"
+              />
+              <span class="day-route-date">{{ dayLabel(d) }}</span>
+              <button type="button" class="pkg-remove" *ngIf="days.length > 2" (click)="removePackageDay(i)" [attr.aria-label]="'Remove day ' + (i + 1)">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div class="pkg-row">
+              <select class="pkg-select" [(ngModel)]="d.type" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onDayTypeChange(d)" aria-label="Booking type">
+                <option *ngFor="let bt of BookingType" [value]="bt">{{ bt | bookingType }}</option>
+              </select>
+              <select class="pkg-select" [(ngModel)]="d.time" [ngModelOptions]="{ standalone: true }" aria-label="Time">
+                <option value="">Time not set</option>
+                <option *ngFor="let tt of times" [value]="tt">{{ tt }}</option>
+              </select>
+              <div class="pkg-amount">
+                <span>₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="d.amount"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="onDayAmountChange(d, $event)"
+                  [attr.aria-label]="'Amount for day ' + (i + 1)"
+                />
               </div>
-              <div class="day-route-fields">
+            </div>
+
+            <div class="pkg-route">
+              <div class="pkg-place">
                 <button type="button" class="loc-picker-btn" (click)="openDayLocationPicker('from', i)">
                   <i class="bi bi-geo-alt-fill loc-btn-icon"></i>
-                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!r.from">
-                    {{ r.from || 'From — tap to select' }}
-                  </span>
+                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!d.from">{{ d.from || 'From — tap to select' }}</span>
                   <i class="bi bi-chevron-right loc-btn-arrow"></i>
                 </button>
+                <div class="quick-places">
+                  <button type="button" class="qp hotel" *ngIf="stay?.name" (click)="setDayPlace(i, 'from', stay!.name)">🏨 Hotel</button>
+                  <button type="button" class="qp" *ngIf="prevDrop(i)" (click)="setDayPlace(i, 'from', prevDrop(i))">↩ Previous drop</button>
+                  <button type="button" class="qp" *ngFor="let q of quickPlaces" (click)="setDayPlace(i, 'from', q.value)" [title]="q.value">{{ q.label }}</button>
+                </div>
+              </div>
+              <div class="pkg-place">
                 <button type="button" class="loc-picker-btn" (click)="openDayLocationPicker('to', i)">
                   <i class="bi bi-geo-alt-fill loc-btn-icon loc-btn-icon--to"></i>
-                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!r.to">
-                    {{ r.to || 'To — tap to select' }}
-                  </span>
+                  <span class="loc-btn-text" [class.loc-btn-placeholder]="!d.to">{{ d.to || 'To — tap to select' }}</span>
                   <i class="bi bi-chevron-right loc-btn-arrow"></i>
                 </button>
+                <div class="quick-places">
+                  <button type="button" class="qp hotel" *ngIf="stay?.name" (click)="setDayPlace(i, 'to', stay!.name)">🏨 Hotel</button>
+                  <button type="button" class="qp" *ngFor="let q of quickPlaces" (click)="setDayPlace(i, 'to', q.value)" [title]="q.value">{{ q.label }}</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="fd-pkg" *ngIf="d.type === 'FullDay'">
+              <span class="fd-label"><i class="bi bi-speedometer2"></i> Full Day package</span>
+              <button type="button" class="fd-btn" *ngFor="let p of fullDayPackages" [class.on]="d.fullDayHours === p.hours" (click)="d.fullDayHours = p.hours">{{ p.label }}</button>
+            </div>
+
+            <div class="end-drop start-pickup" *ngIf="supportsEndDrop(d.type)">
+              <span class="end-drop-label"><i class="bi bi-airplane-fill"></i> Start with a pickup at</span>
+              <ng-container *ngIf="d.startPickup; else dayNoPickup">
+                <span class="end-drop-value">{{ d.startPickup }}</span>
+                <button type="button" class="end-drop-clear" (click)="d.startPickup = null" aria-label="No pickup — starts from the hotel"><i class="bi bi-x-lg"></i></button>
+              </ng-container>
+              <ng-template #dayNoPickup><span class="end-drop-none">from the hotel</span></ng-template>
+              <div class="quick-places">
+                <button type="button" class="qp" *ngFor="let q of endDropPlaces" [class.on]="d.startPickup === q.value" (click)="setDayPickup(i, q.value)" [title]="q.value">{{ q.label }}</button>
+                <button type="button" class="qp" (click)="pickDayStartPickup(i)">🏨 Another hotel / place…</button>
+              </div>
+            </div>
+
+            <div class="end-drop" *ngIf="supportsEndDrop(d.type)">
+              <span class="end-drop-label"><i class="bi bi-flag-fill"></i> End with a drop at</span>
+              <ng-container *ngIf="d.endDrop; else dayNoDrop">
+                <span class="end-drop-value">{{ d.endDrop }}</span>
+                <button type="button" class="end-drop-clear" (click)="d.endDrop = null" aria-label="No drop — back to the hotel"><i class="bi bi-x-lg"></i></button>
+              </ng-container>
+              <ng-template #dayNoDrop>
+                <span class="end-drop-none">back to the hotel</span>
+              </ng-template>
+              <div class="quick-places">
+                <button type="button" class="qp" *ngFor="let q of endDropPlaces" [class.on]="d.endDrop === q.value" (click)="d.endDrop = q.value" [title]="q.value">{{ q.label }}</button>
+                <button type="button" class="qp" (click)="pickDayEndDrop(i)">🏨 Another hotel / place…</button>
               </div>
             </div>
           </div>
+          <button type="button" class="pkg-add" (click)="addPackageDay()"><i class="bi bi-plus-lg"></i> Add a day</button>
         </div>
-        <div class="col-12 col-sm-6">
-          <div class="field-wrap">
-            <label class="field-label"><i class="bi bi-tag"></i> Booking Type (all days)</label>
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-select formControlName="packageBookingType">
-                @for (bt of BookingType; track bt) {
-                  <mat-option [value]="bt">{{ bt }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-        <div class="col-12 col-sm-6">
-          <div class="field-wrap">
-            <label class="field-label"><i class="bi bi-clock"></i> Time (all days)</label>
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-select formControlName="packageTime">
-                <mat-option>None</mat-option>
-                @for (tt of times; track tt) {
-                  <mat-option [value]="tt">{{ tt }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
+
         <div class="col-12 col-sm-6">
           <div class="field-wrap">
             <label class="field-label"><i class="bi bi-people"></i> No. of Pax</label>
@@ -144,6 +204,52 @@
             </mat-form-field>
           </div>
         </div>
+
+        <!-- Returning customer: offer to add this booking to their current trip -->
+        <div class="col-12" *ngIf="showReturning">
+          <div class="returning">
+            <div class="ret-head">
+              <i class="bi bi-person-check-fill"></i>
+              <span>Returning customer · <strong>{{ returning!.customer!.customerName }}</strong></span>
+              <button type="button" class="ret-x" (click)="returningDismissed = true" aria-label="Dismiss">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <div class="ret-trip" *ngFor="let t of returning!.trips">
+              <div class="ret-trip-info">
+                <strong>Trip {{ tripRange(t) }}</strong> · {{ t.bookings }} booking{{ t.bookings === 1 ? '' : 's' }}
+                <span *ngIf="t.stayName"> · 🏨 {{ t.stayName }}</span>
+              </div>
+              <button type="button" class="ret-btn" (click)="joinTrip(t)">Add to this trip</button>
+            </div>
+            <div class="ret-none" *ngIf="!returning!.trips.length">No current trip — this will be a new booking.</div>
+          </div>
+        </div>
+
+        <!-- Joining / part of a trip -->
+        <div class="col-12" *ngIf="tripId">
+          <div class="in-trip">
+            <i class="bi bi-suitcase2-fill"></i>
+            <span>{{ isEditMode ? 'Part of a trip' : 'Adding to the customer\'s trip' }} — hotel and pax come from the trip.</span>
+            <button type="button" class="link-btn" *ngIf="!isEditMode" (click)="leaveTrip()">Not part of the trip</button>
+          </div>
+        </div>
+
+        <!-- Hotel / stay: entered once for the whole trip -->
+        <div class="col-12">
+          <div class="field-wrap">
+            <label class="field-label"><i class="bi bi-building"></i> Hotel / stay <small class="text-muted">(optional — saved once for every day of the trip)</small></label>
+            <div class="stay-row">
+              <button type="button" class="loc-picker-btn" (click)="pickStay()">
+                <i class="bi bi-building loc-btn-icon"></i>
+                <span class="loc-btn-text" [class.loc-btn-placeholder]="!stay?.name">{{ stay?.name || 'Tap to pick the hotel on the map' }}</span>
+                <i class="bi bi-chevron-right loc-btn-arrow"></i>
+              </button>
+              <a *ngIf="stay?.mapsLink" class="stay-map" [href]="stay!.mapsLink" target="_blank" rel="noopener" title="Open in Google Maps"><i class="bi bi-map"></i></a>
+              <button type="button" class="stay-clear" *ngIf="stay?.name" (click)="clearStay()" aria-label="Remove hotel"><i class="bi bi-x-lg"></i></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -174,7 +280,7 @@
               <mat-form-field appearance="outline" class="w-100">
                 <mat-select formControlName="vehicle">
                   <mat-option>None</mat-option>
-                  @for (v of vehcilesType; track v) {
+                  @for (v of vehicleOptions; track v.vehicleId) {
                     <mat-option [value]="v.vehicleId">{{ v.vehicleName }}</mat-option>
                   }
                 </mat-select>
@@ -264,7 +370,7 @@
               <mat-select formControlName="bookingType">
                 <mat-option>None</mat-option>
                 @for (bt of BookingType; track bt) {
-                  <mat-option [value]="bt">{{ bt }}</mat-option>
+                  <mat-option [value]="bt">{{ bt | bookingType }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
@@ -342,6 +448,10 @@
               </span>
               <i class="bi bi-chevron-right loc-btn-arrow"></i>
             </button>
+            <div class="quick-places">
+              <button type="button" class="qp hotel" *ngIf="stay?.name" (click)="setPlace('from', stay!.name)">🏨 Hotel</button>
+              <button type="button" class="qp" *ngFor="let q of quickPlaces" (click)="setPlace('from', q.value)" [title]="q.value">{{ q.label }}</button>
+            </div>
           </div>
         </div>
         <div class="col-12 col-sm-6">
@@ -358,6 +468,46 @@
               </span>
               <i class="bi bi-chevron-right loc-btn-arrow"></i>
             </button>
+            <div class="quick-places">
+              <button type="button" class="qp hotel" *ngIf="stay?.name" (click)="setPlace('to', stay!.name)">🏨 Hotel</button>
+              <button type="button" class="qp" *ngFor="let q of quickPlaces" (click)="setPlace('to', q.value)" [title]="q.value">{{ q.label }}</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12" *ngIf="bookingForm.get('bookingType')?.value === 'FullDay'">
+          <div class="fd-pkg">
+            <span class="fd-label"><i class="bi bi-speedometer2"></i> Full Day package</span>
+            <button type="button" class="fd-btn" *ngFor="let p of fullDayPackages" [class.on]="bookingForm.get('fullDayHours')?.value === p.hours" (click)="bookingForm.patchValue({ fullDayHours: p.hours })">{{ p.label }}</button>
+          </div>
+        </div>
+
+        <div class="col-12" *ngIf="supportsEndDrop(bookingForm.get('bookingType')?.value)">
+          <div class="end-drop start-pickup">
+            <span class="end-drop-label"><i class="bi bi-airplane-fill"></i> Start with a pickup at</span>
+            <ng-container *ngIf="bookingForm.get('startPickup')?.value; else singleNoPickup">
+              <span class="end-drop-value">{{ bookingForm.get('startPickup')?.value }}</span>
+              <button type="button" class="end-drop-clear" (click)="bookingForm.patchValue({ startPickup: null })" aria-label="No pickup — starts from the hotel"><i class="bi bi-x-lg"></i></button>
+            </ng-container>
+            <ng-template #singleNoPickup><span class="end-drop-none">from the hotel / pickup point</span></ng-template>
+            <div class="quick-places">
+              <button type="button" class="qp" *ngFor="let q of endDropPlaces" [class.on]="bookingForm.get('startPickup')?.value === q.value" (click)="setStartPickup(q.value)" [title]="q.value">{{ q.label }}</button>
+              <button type="button" class="qp" (click)="pickStartPickup()">🏨 Another hotel / place…</button>
+            </div>
+          </div>
+          <div class="end-drop">
+            <span class="end-drop-label"><i class="bi bi-flag-fill"></i> End with a drop at</span>
+            <ng-container *ngIf="bookingForm.get('endDrop')?.value; else singleNoDrop">
+              <span class="end-drop-value">{{ bookingForm.get('endDrop')?.value }}</span>
+              <button type="button" class="end-drop-clear" (click)="bookingForm.patchValue({ endDrop: null })" aria-label="No drop — back to the hotel"><i class="bi bi-x-lg"></i></button>
+            </ng-container>
+            <ng-template #singleNoDrop>
+              <span class="end-drop-none">back to the hotel / pickup point</span>
+            </ng-template>
+            <div class="quick-places">
+              <button type="button" class="qp" *ngFor="let q of endDropPlaces" [class.on]="bookingForm.get('endDrop')?.value === q.value" (click)="bookingForm.patchValue({ endDrop: q.value })" [title]="q.value">{{ q.label }}</button>
+              <button type="button" class="qp" (click)="pickEndDrop()">🏨 Another hotel / place…</button>
+            </div>
           </div>
         </div>
         <div class="col-12 col-sm-6" [ngClass]="{ 'hide-field': isPackage }">

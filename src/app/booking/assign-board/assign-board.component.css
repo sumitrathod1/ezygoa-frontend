@@ -158,6 +158,16 @@
   font-size: 12px;
   font-weight: 600;
 }
+.bk-trip {
+  border: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
 .bk-transfer {
   margin-left: auto;
   border: 1px solid #c7d2fe;
@@ -208,7 +218,25 @@
 .slot-empty { color: #9a3412; font-size: 13px; font-weight: 600; }
 .slot-na .slot-empty { color: #64748b; font-weight: 500; }
 .slot-saving { color: #4338ca; font-size: 13px; }
-.slot-warn { flex-basis: 100%; color: #b45309; font-weight: 600; }
+/* Floats over the slot border: a "busy" note must not change the card height mid-drag,
+   or the drag library's remembered drop positions stop matching what is on screen */
+.slot-warn {
+  position: absolute;
+  top: -10px;
+  right: 8px;
+  max-width: calc(100% - 16px);
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
 .slot-x {
   position: absolute;
   top: 50%;

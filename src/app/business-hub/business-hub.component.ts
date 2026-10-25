@@ -25,6 +25,20 @@ export class BusinessHubComponent {
 
   tiles: HubTile[] = [
     {
+      icon: 'bi-building',
+      label: 'My organisation',
+      desc: 'Your logo in the app header, and the phone / email on invoices',
+      route: '/business-hub/my-organization',
+      color: 'tile-teal',
+    },
+    {
+      icon: 'bi-card-checklist',
+      label: 'Invoice terms',
+      desc: 'Night charges and extra hour / km rates printed on invoices',
+      route: '/business-hub/invoice-terms',
+      color: 'tile-teal',
+    },
+    {
       icon: 'bi-file-earmark-bar-graph-fill',
       label: 'Rate Charts',
       desc: 'Create & manage B2B transport rate charts for agents & hotels',

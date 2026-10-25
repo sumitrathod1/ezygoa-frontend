@@ -126,6 +126,37 @@ export class ExpensesComponent implements OnInit {
     return found?.amount ?? 0;
   }
 
+  get monthName(): string {
+    return this.months.find((m) => m.value === +this.selectedMonth)?.label ?? '';
+  }
+
+  /** Categories that have spending this month, biggest first, with their share of the total */
+  get spendCards(): { key: string; label: string; icon: string; cls: string; link?: string; amount: number; share: number }[] {
+    const total = this.summary?.totalExpenses || 0;
+    return this.kpiCards
+      .map((c) => ({ ...c, amount: this.getCategoryAmount(c.key) }))
+      .filter((c) => c.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .map((c) => ({ ...c, share: total ? Math.round((100 * c.amount) / total) : 0 }));
+  }
+
+  /** Last month's spending, from the 6-month trend (0 = nothing to compare with) */
+  get lastMonthExpenses(): number {
+    const t = this.summary?.monthlyTrend as any[] | undefined;
+    return t && t.length > 1 ? t[t.length - 2].expenses || 0 : 0;
+  }
+
+  get spendChange(): number {
+    const before = this.lastMonthExpenses;
+    return before ? Math.round((100 * ((this.summary?.totalExpenses || 0) - before)) / before) : 0;
+  }
+
+  /** How much of what came in went out again */
+  get spendRatio(): number {
+    const rev = this.summary?.revenue || 0;
+    return rev ? Math.round((100 * (this.summary?.totalExpenses || 0)) / rev) : 0;
+  }
+
   vehicleBarPct(total: number): number {
     if (!this.summary?.vehicleBreakdown?.length) return 0;
     const max = Math.max(...(this.summary.vehicleBreakdown as any[]).map(v => v.total));

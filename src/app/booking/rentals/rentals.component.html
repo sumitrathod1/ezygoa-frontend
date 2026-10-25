@@ -1,0 +1,82 @@
+<div class="rn-page">
+  <div class="rn-head">
+    <div>
+      <h1 class="rn-title"><i class="bi bi-key-fill"></i> Rent a Car</h1>
+      <p class="rn-sub">Self-drive rentals — our cars and partners' cars.</p>
+    </div>
+    <button type="button" class="rn-new" (click)="newRental()"><i class="bi bi-plus-lg"></i> New rental</button>
+  </div>
+
+  <div class="rn-overdue" *ngIf="overdueCount > 0">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ overdueCount }} car{{ overdueCount === 1 ? ' is' : 's are' }} past the return date and not marked as returned.
+  </div>
+
+  <div class="rn-bar">
+    <div class="rn-tabs" role="tablist">
+      <button type="button" role="tab" [class.active]="tab === 'out'" (click)="tab = 'out'">Out now <span>{{ count('out') }}</span></button>
+      <button type="button" role="tab" [class.active]="tab === 'upcoming'" (click)="tab = 'upcoming'">Upcoming <span>{{ count('upcoming') }}</span></button>
+      <button type="button" role="tab" [class.active]="tab === 'returned'" (click)="tab = 'returned'">Returned <span>{{ count('returned') }}</span></button>
+    </div>
+    <input class="rn-search" type="search" placeholder="Search customer, car, partner or #" [(ngModel)]="search" aria-label="Search" />
+  </div>
+
+  <div class="rn-msg" *ngIf="loading">Loading rentals…</div>
+  <div class="rn-msg rn-err" *ngIf="error">{{ error }} <button type="button" class="rn-link" (click)="load()">Try again</button></div>
+  <div class="rn-msg" *ngIf="!loading && !error && !visible.length">
+    <i class="bi bi-car-front"></i>
+    <div>No rentals here.</div>
+    <button type="button" class="rn-link" (click)="newRental()">Add a rental</button>
+  </div>
+
+  <div class="rn-grid">
+    <article class="rn-card" *ngFor="let r of visible; trackBy: trackRental" [ngClass]="r.state">
+      <div class="rn-card-top">
+        <span class="rn-state" [ngClass]="r.state">{{ stateLabel(r) }}</span>
+        <span class="rn-id">#{{ r.bookingId }}</span>
+        <span class="rn-days">{{ r.days }} day{{ r.days === 1 ? '' : 's' }}</span>
+      </div>
+
+      <div class="rn-customer">
+        <strong>{{ r.customerName || 'Customer' }}</strong>
+        <button type="button" class="rn-call" *ngIf="r.customerNumber" (click)="call(r.customerNumber)"><i class="bi bi-telephone-fill"></i> {{ r.customerNumber }}</button>
+      </div>
+
+      <div class="rn-car">
+        <ng-container *ngIf="r.externalEmployeeId; else ownCar">
+          <i class="bi bi-person-badge-fill"></i> Partner's car: <strong>{{ r.partnerName }}</strong>
+          <span class="rn-muted" *ngIf="r.commission != null"> · commission ₹{{ r.commission | number }}</span>
+        </ng-container>
+        <ng-template #ownCar>
+          <i class="bi bi-car-front-fill"></i>
+          <ng-container *ngIf="r.vehicleName; else noCar"><strong>{{ r.vehicleName }}</strong> <span class="rn-muted">{{ r.vehicleNumber }}</span></ng-container>
+          <ng-template #noCar><span class="rn-missing">Car not chosen yet</span></ng-template>
+        </ng-template>
+      </div>
+
+      <div class="rn-dates">
+        <div><span>Pickup</span><strong>{{ dateLabel(r.pickupDate) }}</strong> {{ time(r.pickupTime) }}</div>
+        <i class="bi bi-arrow-right"></i>
+        <div><span>Return</span><strong>{{ dateLabel(r.returnDate) }}</strong> {{ time(r.returnTime) }}</div>
+      </div>
+      <div class="rn-where" *ngIf="r.pickupLocation || r.returnLocation">
+        <i class="bi bi-geo-alt"></i> {{ r.pickupLocation || '—' }} <i class="bi bi-arrow-right"></i> {{ r.returnLocation || '—' }}
+      </div>
+
+      <div class="rn-money">
+        <div><span>Total</span><strong>₹{{ r.amount | number }}</strong></div>
+        <div><span>Paid</span><strong class="ok">₹{{ r.paid | number }}</strong></div>
+        <div><span>Balance</span><strong [class.due]="r.balance > 0" [class.ok]="r.balance <= 0">₹{{ r.balance | number }}</strong></div>
+        <div *ngIf="r.securityDeposit"><span>Deposit</span><strong>₹{{ r.securityDeposit | number }}</strong></div>
+      </div>
+
+      <div class="rn-actions">
+        <button type="button" class="rn-btn" (click)="edit(r)"><i class="bi bi-pencil"></i> Edit</button>
+        <button type="button" class="rn-btn" (click)="invoice(r)"><i class="bi bi-receipt"></i> Invoice</button>
+        <button type="button" class="rn-btn primary" *ngIf="r.state !== 'returned'" [disabled]="busyId === r.bookingId" (click)="markReturned(r)">
+          <i class="bi bi-check2-circle"></i> {{ busyId === r.bookingId ? 'Saving…' : 'Car returned' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</div>

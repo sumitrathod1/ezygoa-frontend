@@ -1,0 +1,55 @@
+<div class="mo-page">
+  <a routerLink="/business-hub" class="mo-back"><i class="bi bi-arrow-left"></i> Business Hub</a>
+  <h1 class="mo-title"><i class="bi bi-building"></i> {{ name || 'My organisation' }}</h1>
+  <p class="mo-sub">Your logo appears in the app header. Your phone, email and address appear on invoices and statements.</p>
+
+  <!-- Logo -->
+  <section class="mo-card">
+    <h2>Logo</h2>
+    <div class="mo-logo-row">
+      <div class="mo-logo-box">
+        <img *ngIf="newLogo || logo; else noLogo" [src]="newLogo || logo" alt="Logo" />
+        <ng-template #noLogo><i class="bi bi-image"></i><span>No logo</span></ng-template>
+      </div>
+      <div class="mo-logo-actions">
+        <label class="mo-btn outline">
+          <i class="bi bi-upload"></i> {{ logo ? 'Choose a new logo' : 'Choose logo' }}
+          <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onFile($event)" hidden />
+        </label>
+        <button type="button" class="mo-btn primary" *ngIf="newLogo" [disabled]="savingLogo" (click)="saveLogo()">
+          <i class="bi bi-check-circle"></i> {{ savingLogo ? 'Saving…' : 'Save logo' }}
+        </button>
+        <button type="button" class="mo-btn" *ngIf="newLogo" (click)="newLogo = null">Cancel</button>
+        <button type="button" class="mo-btn danger" *ngIf="logo && !newLogo" [disabled]="savingLogo" (click)="removeLogo()">
+          <i class="bi bi-trash"></i> Remove
+        </button>
+        <small>PNG, JPG or WebP. A square image works best; it is shrunk automatically.</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="mo-card">
+    <h2>Contact details (on invoices)</h2>
+    <div class="mo-grid">
+      <label class="mo-field">
+        <span>Phone / WhatsApp</span>
+        <input type="tel" [(ngModel)]="phone" placeholder="+91 XXXXXXXXXX" />
+      </label>
+      <label class="mo-field">
+        <span>Email</span>
+        <input type="email" [(ngModel)]="email" placeholder="you@example.com" />
+      </label>
+      <label class="mo-field mo-wide">
+        <span>Address</span>
+        <input type="text" [(ngModel)]="address" placeholder="Office address" />
+      </label>
+    </div>
+    <div class="mo-error" *ngIf="error">{{ error }}</div>
+    <div class="mo-save">
+      <button type="button" class="mo-btn primary" [disabled]="saving" (click)="saveDetails()">
+        <i class="bi bi-check-circle"></i> {{ saving ? 'Saving…' : 'Save details' }}
+      </button>
+    </div>
+  </section>
+</div>

@@ -37,7 +37,7 @@ export class RentalRatesComponent implements OnInit {
 
   ngOnInit() {
     this.isAdmin = this._empSvc.getRoleFromToken() === 'Admin';
-    this._vSvc.getAllVehicles().subscribe({ next: (v: any) => this.vehicles = v });
+    this._vSvc.getAllVehicles(true).subscribe({ next: (v: any) => this.vehicles = v });
     this.load();
   }
 

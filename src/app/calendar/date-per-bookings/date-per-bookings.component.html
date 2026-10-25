@@ -54,7 +54,10 @@
               class="type-badge"
               [style.background]="getBookingTypeColor(b.bookingType) + '22'"
               [style.color]="getBookingTypeColor(b.bookingType)"
-            >{{ b.bookingType }}</span>
+            >{{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
+            <button class="invoice-btn" (click)="addForCustomer(b)" title="New booking for this customer" aria-label="New booking for this customer">
+              <i class="bi bi-calendar-plus"></i>
+            </button>
             <button class="invoice-btn" (click)="openInvoice(b)" title="Generate invoice">
               <i class="bi bi-receipt"></i>
             </button>
@@ -71,6 +74,16 @@
               <i class="bi bi-x-circle-fill"></i>
             </button>
           </div>
+        </div>
+
+        <!-- Trip / hotel, and a quick way to book again for this customer -->
+        <div class="trip-row" *ngIf="b.tripId || b.tripStayName">
+          <button type="button" class="trip-chip" *ngIf="b.tripId" (click)="openTrip(b)" title="See all days of this trip">
+            <i class="bi bi-suitcase2-fill"></i> Trip
+          </button>
+          <a class="hotel-line" *ngIf="b.tripStayName" [href]="b.tripStayMapsLink || mapsUrl(b.tripStayName)" target="_blank" rel="noopener">
+            <i class="bi bi-building"></i> {{ b.tripStayName }}
+          </a>
         </div>
 
         <!-- Route: From → To (tap to open Google Maps navigation) -->

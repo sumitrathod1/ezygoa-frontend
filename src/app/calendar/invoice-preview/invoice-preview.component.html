@@ -5,145 +5,183 @@
       <i class="bi bi-file-earmark-text-fill inv-title-icon"></i>
       Invoice Preview
     </div>
-    <button class="inv-close" (click)="close()">
+    <button class="inv-close" (click)="close()" aria-label="Close">
       <i class="bi bi-x-lg"></i>
     </button>
   </div>
 
+  <!-- Which bookings go on the invoice -->
+  <div class="inv-scope" *ngIf="inv && (inv.tripBookings > 1 || inv.customerBookings > 1)" role="radiogroup" aria-label="Invoice covers">
+    <button type="button" role="radio" [attr.aria-checked]="scope === 'booking'" [class.active]="scope === 'booking'" (click)="setScope('booking')">
+      This booking
+    </button>
+    <button type="button" role="radio" *ngIf="inv.tripBookings > 1" [attr.aria-checked]="scope === 'trip'" [class.active]="scope === 'trip'" (click)="setScope('trip')">
+      Whole trip ({{ inv.tripBookings }})
+    </button>
+    <button type="button" role="radio" *ngIf="inv.customerBookings > 1" [attr.aria-checked]="scope === 'customer'" [class.active]="scope === 'customer'" (click)="setScope('customer')">
+      All bookings ({{ inv.customerBookings }})
+    </button>
+  </div>
+
+  <label class="inv-terms-toggle" *ngIf="inv">
+    <input type="checkbox" [checked]="includeTerms" (change)="toggleTerms($any($event.target).checked)" />
+    <span>Include terms &amp; conditions <small>(night charges, extra hours / km)</small></span>
+  </label>
+
+  <!-- Nudge: the organisation's logo / phone are not set up yet, so the invoice prints without them -->
+  <div class="inv-setup-hint" *ngIf="inv && missingOrgDetails.length">
+    <i class="bi bi-info-circle-fill"></i>
+    <span>No {{ missingOrgDetails.join(' or ') }} on {{ inv.orgName }} invoices yet.</span>
+    <button type="button" (click)="openMyOrganization()">Add now</button>
+  </div>
+
   <!-- Scrollable invoice body -->
   <div class="inv-scroll">
-    <div class="inv-paper">
-      <!-- Company Header -->
+    <div class="inv-loading" *ngIf="loading && !inv">Preparing invoice…</div>
+    <div class="inv-error" *ngIf="error">{{ error }}</div>
+
+    <div class="inv-paper" *ngIf="inv" [class.inv-dim]="loading">
+      <!-- Organisation (from the booking's own organisation) -->
       <div class="inv-header">
-        <div class="inv-logo-wrap">
-          <i class="bi bi-car-front-fill inv-logo-icon"></i>
+        <div class="inv-logo-wrap" [class.has-logo]="inv.orgLogo">
+          <img *ngIf="inv.orgLogo; else noLogo" [src]="inv.orgLogo" alt="" class="inv-logo-img" />
+          <ng-template #noLogo><i class="bi bi-car-front-fill inv-logo-icon"></i></ng-template>
         </div>
-        <h1 class="inv-company">EZY GOA TRAVELS</h1>
-        <p class="inv-tagline">Your Trusted Travel Partner</p>
+        <h1 class="inv-company">{{ inv.orgName }}</h1>
         <div class="inv-contacts">
-          <span><i class="bi bi-telephone-fill"></i>&nbsp;+91 7406008393</span>
-          <span class="inv-sep">|</span>
-          <span
-            ><i class="bi bi-envelope-fill"></i
-            >&nbsp;contact&#64;ezygoataxiservices.in</span
-          >
+          <span *ngIf="inv.orgPhone"><i class="bi bi-telephone-fill"></i>&nbsp;{{ inv.orgPhone }}</span>
+          <span class="inv-sep" *ngIf="inv.orgPhone && inv.orgEmail">|</span>
+          <span *ngIf="inv.orgEmail"><i class="bi bi-envelope-fill"></i>&nbsp;{{ inv.orgEmail }}</span>
         </div>
+        <div class="inv-contacts" *ngIf="inv.orgAddress"><span>{{ inv.orgAddress }}</span></div>
       </div>
 
       <!-- Invoice meta row -->
       <div class="inv-meta-bar">
         <div class="inv-badge-label">INVOICE</div>
         <div class="inv-meta-right">
-          <div class="inv-no">{{ invoiceNo }}</div>
-          <div class="inv-date">{{ today | date : "dd MMM yyyy" }}</div>
+          <div class="inv-no">{{ inv.invoiceNo }}</div>
+          <div class="inv-date">{{ dateLabel(inv.invoiceDate) }}</div>
         </div>
       </div>
 
-      <!-- Customer Details -->
+      <!-- Customer -->
       <div class="inv-section">
-        <div class="inv-sec-hdr">
-          <i class="bi bi-person-fill"></i>&nbsp;CUSTOMER DETAILS
-        </div>
+        <div class="inv-sec-hdr"><i class="bi bi-person-fill"></i>&nbsp;CUSTOMER DETAILS</div>
         <div class="inv-row">
           <span class="inv-k">Name</span>
-          <span class="inv-v">{{
-            booking?.customer?.customerName || "—"
-          }}</span>
+          <span class="inv-v">{{ inv.customerName || '—' }}</span>
         </div>
         <div class="inv-row">
           <span class="inv-k">Phone</span>
-          <span class="inv-v">{{
-            booking?.customer?.customerNumber || "—"
-          }}</span>
+          <span class="inv-v">{{ inv.customerNumber || '—' }}</span>
+        </div>
+        <div class="inv-row" *ngIf="inv.stayName">
+          <span class="inv-k">Stay</span>
+          <span class="inv-v">{{ inv.stayName }}</span>
         </div>
       </div>
 
-      <!-- Trip Details -->
+      <!-- Bookings -->
       <div class="inv-section">
         <div class="inv-sec-hdr">
-          <i class="bi bi-geo-alt-fill"></i>&nbsp;TRIP DETAILS
+          <i class="bi bi-geo-alt-fill"></i>&nbsp;{{ inv.lines.length > 1 ? 'BOOKINGS (' + inv.lines.length + ')' : 'TRIP DETAILS' }}
         </div>
-        <div class="inv-row">
-          <span class="inv-k">From</span>
-          <span class="inv-v">{{ booking?.from || "—" }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">To</span>
-          <span class="inv-v">{{ booking?.to || "—" }}</span>
-        </div>
-        <div class="inv-row" *ngIf="booking?.travelDate">
-          <span class="inv-k">Date</span>
-          <span class="inv-v">{{
-            booking.travelDate | date : "dd MMM yyyy"
-          }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">Time</span>
-          <span class="inv-v">{{ formatTime(booking?.traveltime) }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">Type</span>
-          <span class="inv-v">{{ booking?.bookingType || "—" }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">Vehicle</span>
-          <span class="inv-v">{{
-            booking?.vehicle?.vehicleName || "External"
-          }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">Driver</span>
-          <span class="inv-v">{{ booking?.user?.employeeName || "TBD" }}</span>
-        </div>
-        <div class="inv-row">
-          <span class="inv-k">Passengers</span>
-          <span class="inv-v">{{ booking?.pax || 1 }}</span>
+        <div class="inv-line" *ngFor="let l of inv.lines">
+          <div class="inv-line-top">
+            <span class="inv-line-date">{{ dateLabel(l.travelDate) }}<ng-container *ngIf="l.travelTime"> · {{ formatTime(l.travelTime) }}</ng-container></span>
+            <span class="inv-line-type">{{ l.typeLabel || (l.bookingType | bookingType: l.endDrop : l.startPickup : l.fullDayHours) }}</span>
+            <span class="inv-line-amt">&#8377;{{ l.amount | number }}</span>
+          </div>
+          <div class="inv-line-route">{{ l.from || '—' }} <i class="bi bi-arrow-right"></i> {{ l.to || '—' }}</div>
+          <div class="inv-line-meta">
+            <span>#{{ l.bookingId }}</span>
+            <span *ngIf="l.pax">{{ l.pax }} pax</span>
+            <span *ngIf="l.vehicle">{{ l.vehicle }}</span>
+            <span *ngIf="l.driver">Driver: {{ l.driver }}</span>
+            <span class="inv-line-paid" *ngIf="l.paid > 0">Paid &#8377;{{ l.paid | number }}</span>
+            <span [class]="l.balance <= 0 ? 'inv-line-ok' : 'inv-line-due'">
+              {{ l.balance <= 0 ? 'Paid' : 'Due ₹' + (l.balance | number) }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Payment Details -->
+      <!-- Totals -->
       <div class="inv-section inv-pay-section">
-        <div class="inv-sec-hdr">
-          <i class="bi bi-cash-coin"></i>&nbsp;PAYMENT DETAILS
-        </div>
+        <div class="inv-sec-hdr"><i class="bi bi-cash-coin"></i>&nbsp;PAYMENT DETAILS</div>
         <div class="inv-pay-row">
-          <span class="inv-pay-k">Total Amount</span>
-          <span class="inv-total-amt"
-            >&#8377;{{ booking?.amount || 0 | number }}</span
-          >
+          <span class="inv-pay-k">{{ inv.lines.length > 1 ? 'Total (all bookings)' : 'Total Amount' }}</span>
+          <span class="inv-total-amt">&#8377;{{ inv.total | number }}</span>
         </div>
         <div class="inv-pay-row">
           <span class="inv-pay-k">Advance Paid</span>
-          <span class="inv-advance-amt"
-            >&#8377;{{ booking?.advancePaid || 0 | number }}</span
-          >
+          <span class="inv-advance-amt">&#8377;{{ inv.paid | number }}</span>
         </div>
         <div class="inv-pay-row inv-bal-row">
           <span class="inv-pay-k"><strong>Balance Due</strong></span>
-          <span [class]="balance <= 0 ? 'inv-bal-zero' : 'inv-bal-due'">
-            &#8377;{{ balance | number }}
+          <span [class]="inv.balance <= 0 ? 'inv-bal-zero' : 'inv-bal-due'">
+            {{ inv.balance <= 0 ? 'Fully paid' : '₹' + (inv.balance | number) }}
           </span>
         </div>
       </div>
 
-      <!-- Paper footer -->
-      <div class="inv-paper-footer">
-        <div class="inv-thanks">Thank you for choosing Ezy Goa! &#128591;</div>
-        <div class="inv-sub">Have a safe and wonderful journey.</div>
-        <div class="inv-note">
-          * Computer generated invoice. No signature required.
+      <!-- Terms & conditions (only what applies to these bookings) -->
+      <div class="inv-section inv-terms" *ngIf="includeTerms && hasTerms">
+        <div class="inv-sec-hdr"><i class="bi bi-card-checklist"></i>&nbsp;TERMS &amp; CONDITIONS</div>
+        <div class="inv-terms-body">
+          <ng-container *ngIf="inv.terms.nightCharges?.length">
+            <div class="inv-terms-title">Driver night charges</div>
+            <div class="inv-terms-row" *ngFor="let n of inv.terms.nightCharges">
+              <span>{{ n.label }} <small *ngIf="appliesLabel(n.appliesTo, n.label)">({{ appliesLabel(n.appliesTo, n.label) }})</small></span>
+              <strong>&#8377;{{ n.amount | number }}</strong>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="inv.terms.extraRates?.length">
+            <div class="inv-terms-title">
+              Extra time and distance after {{ inv.terms.packages?.length ? inv.terms.packages.join(' / ') : 'the Full Day package' }}
+            </div>
+            <div class="inv-terms-row head">
+              <span>{{ inv.terms.extraRatesForVehicle ? 'Your vehicle' : 'Vehicle' }}</span><span>Per hour</span><span>Per km</span>
+            </div>
+            <div class="inv-terms-row three" *ngFor="let x of inv.terms.extraRates">
+              <span>{{ x.category }}</span><strong>&#8377;{{ x.perHour | number }}</strong><strong>&#8377;{{ x.perKm | number }}</strong>
+            </div>
+          </ng-container>
+          <div class="inv-terms-other" *ngFor="let line of inv.terms.otherTerms">• {{ line }}</div>
         </div>
+      </div>
+
+      <!-- Ticked, but nothing in the terms applies to these bookings: say why instead of showing nothing -->
+      <div class="inv-terms-none" *ngIf="includeTerms && !hasTerms && !loading">
+        <i class="bi bi-info-circle"></i>
+        No terms apply to {{ inv.lines.length > 1 ? 'these bookings' : 'this booking' }}: night charges print only for Full Day and for
+        pickups / drops inside the night window (e.g. 7 pm – 8 am), extra hour / km only for Full Day.
+        Lines under <em>Business Hub → Invoice terms → Other terms</em> print on every invoice.
+      </div>
+
+      <div class="inv-paper-footer">
+        <div class="inv-thanks"><i class="bi bi-heart-fill"></i> Thank you for travelling with {{ inv.orgName }}!</div>
+        <div class="inv-sub">Have a safe and wonderful journey.</div>
+        <!-- Who to call: the organisation's own phone / WhatsApp / email -->
+        <div class="inv-contact" *ngIf="inv.orgPhone || inv.orgEmail">
+          <span class="inv-contact-q">Need help? Contact us</span>
+          <a *ngIf="inv.orgPhone" [href]="'tel:' + inv.orgPhone"><i class="bi bi-telephone-fill"></i> {{ inv.orgPhone }}</a>
+          <a *ngIf="waLink(inv.orgPhone) as wa" [href]="wa" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+          <a *ngIf="inv.orgEmail" [href]="'mailto:' + inv.orgEmail"><i class="bi bi-envelope-fill"></i> {{ inv.orgEmail }}</a>
+        </div>
+        <div class="inv-note">* Computer generated invoice. No signature required.</div>
       </div>
     </div>
   </div>
 
   <!-- Action buttons -->
   <div class="inv-action-bar">
-    <button class="inv-btn inv-btn-dl" (click)="downloadPDF()">
-      <i class="bi bi-download"></i> Download PDF
+    <button class="inv-btn inv-btn-dl" (click)="run('download')" [disabled]="!inv || !!busy">
+      <i class="bi bi-download"></i> {{ busy === 'download' ? 'Preparing…' : 'Download PDF' }}
     </button>
-    <button class="inv-btn inv-btn-wa" (click)="sendWhatsApp()">
-      <i class="bi bi-whatsapp"></i> Send on WhatsApp
+    <button class="inv-btn inv-btn-wa" (click)="run('share')" [disabled]="!inv || !!busy">
+      <i class="bi bi-whatsapp"></i> {{ busy === 'share' ? 'Preparing…' : 'Share PDF on WhatsApp' }}
     </button>
   </div>
 </div>

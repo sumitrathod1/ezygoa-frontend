@@ -1,29 +1,32 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NgChartsModule } from 'ng2-charts';
-import { BookingService } from '../../services/booking.service';
 import { VehicleService } from '../../services/vehicle.service';
+import { DashboardService, FleetSummary, FleetVehicle } from '../../services/dashboard.service';
 import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
+import { categoryIcon, isoDate, prettyType, rangeLabel } from '../fleet-ui';
 
-type Period = 'week' | 'month' | 'quarter' | 'year' | 'custom';
+type Period = 'week' | 'month' | 'lastMonth' | 'quarter' | 'year' | 'custom';
 
+/**
+ * Vehicle statistics: earnings, spending and profit for the whole fleet or one car, compared
+ * with the period before, a six-month trend, where the money goes, and every car ranked.
+ * All figures come from GET /Dashboard/fleet.
+ */
 @Component({
   selector: 'app-vehicle-statistics',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgChartsModule, IndianCurrencyPipe],
+  imports: [CommonModule, FormsModule, RouterModule, NgChartsModule, IndianCurrencyPipe],
   templateUrl: './vehicle-statistics.component.html',
   styleUrl: './vehicle-statistics.component.css',
 })
 export class VehicleStatisticsComponent implements OnInit {
-  allBookings: any[] = [];
-  allExpenses: any[] = [];
+  fleet: FleetSummary | null = null;
+  loading = false;
+  error = '';
   allVehicles: any[] = [];
-
-  totalRevenue = 0;
-  totalExpenses = 0;
-  netProfit = 0;
-  bestVehicle = '-';
 
   selectedPeriod: Period = 'month';
   selectedVehicleId: number | null = null;
@@ -31,168 +34,189 @@ export class VehicleStatisticsComponent implements OnInit {
   customTo = '';
   showCustom = false;
 
-  vehicleStats: { name: string; revenue: number; expenses: number; profit: number }[] = [];
+  readonly periods: { key: Period; label: string }[] = [
+    { key: 'week', label: 'Last 7 days' },
+    { key: 'month', label: 'This month' },
+    { key: 'lastMonth', label: 'Last month' },
+    { key: 'quarter', label: 'This quarter' },
+    { key: 'year', label: 'This year' },
+    { key: 'custom', label: 'Custom' },
+  ];
+  readonly prettyType = prettyType;
+  readonly categoryIcon = categoryIcon;
 
-  barChartData: any = { labels: [], datasets: [] };
-  barChartType: any = 'bar';
-  barChartOptions: any = {
+  trendData: any = { labels: [], datasets: [] };
+  trendOptions: any = {
     responsive: true,
-    plugins: { legend: { display: true, position: 'bottom' } },
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+      tooltip: { callbacks: { label: (c: any) => `${c.dataset.label}: ₹${Number(c.raw).toLocaleString('en-IN')}` } },
+    },
     scales: {
+      x: { grid: { display: false } },
       y: {
         beginAtZero: true,
-        ticks: { callback: (v: any) => '₹' + Number(v).toLocaleString('en-IN') },
+        grid: { color: '#f1f5f9' },
+        ticks: { callback: (v: any) => '₹' + VehicleStatisticsComponent.short(Number(v)) },
       },
     },
   };
 
   constructor(
-    private bookingService: BookingService,
-    private vehicleService: VehicleService
+    private _dashboard: DashboardService,
+    private _vehicleService: VehicleService,
+    private _route: ActivatedRoute,
+    private _router: Router
   ) {}
 
   ngOnInit() {
-    this.loadAll();
+    const id = Number(this._route.snapshot.queryParamMap.get('vehicleId'));
+    this.selectedVehicleId = id > 0 ? id : null;
+    this._vehicleService.getAllVehicles().subscribe({
+      next: (data: any) => (this.allVehicles = Array.isArray(data) ? data : data?.vehicles || []),
+    });
+    this.load();
   }
 
-  loadAll() {
-    this.vehicleService.getAllVehicles().subscribe({
-      next: (data: any) => {
-        this.allVehicles = Array.isArray(data) ? data : data?.vehicles || [];
-      },
-    });
-
-    this.bookingService.loadBookings().subscribe({
-      next: (data) => {
-        this.allBookings = data.bookings || [];
-        this.vehicleService.getAllExpences().subscribe({
-          next: (exp: any) => {
-            this.allExpenses = Array.isArray(exp) ? exp : exp?.expenses || [];
-            this.applyFilters();
-          },
-        });
-      },
-    });
+  /** ₹1.2L / ₹45K for chart axes */
+  static short(v: number): string {
+    const a = Math.abs(v);
+    if (a >= 1e7) return (v / 1e7).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (a >= 1e5) return (v / 1e5).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (a >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+    return String(v);
   }
 
   selectPeriod(p: Period) {
     this.selectedPeriod = p;
     this.showCustom = p === 'custom';
-    if (p !== 'custom') this.applyFilters();
+    if (p !== 'custom') this.load();
   }
 
   applyCustomRange() {
-    this.applyFilters();
-  }
-
-  clearFilter() {
-    this.selectedPeriod = 'month';
-    this.selectedVehicleId = null;
-    this.customFrom = '';
-    this.customTo = '';
-    this.showCustom = false;
-    this.applyFilters();
+    if (this.customFrom && this.customTo && this.customFrom > this.customTo) {
+      this.error = "'From' date must be before 'To' date";
+      return;
+    }
+    this.load();
   }
 
   onVehicleChange() {
-    this.applyFilters();
+    // Keep the choice in the address so Back / refresh return to the same car
+    this._router.navigate([], { queryParams: { vehicleId: this.selectedVehicleId || null }, replaceUrl: true });
+    this.load();
   }
 
-  applyFilters() {
+  load() {
     const { from, to } = this.dateRange();
-    const vid = this.selectedVehicleId ? +this.selectedVehicleId : null;
-
-    const bookings = this.allBookings.filter((b) => {
-      if (!b.travelDate || b.travelDate === '0001-01-01') return false;
-      const d = new Date(b.travelDate);
-      const dateOk = (!from || d >= from) && (!to || d <= to);
-      const vehOk = !vid || b.vehicle?.vehicleId === vid || b.vehicleId === vid;
-      return dateOk && vehOk;
+    this.loading = true;
+    this.error = '';
+    this._dashboard.getFleet(from, to, this.selectedVehicleId).subscribe({
+      next: (f) => {
+        this.fleet = f;
+        this.loading = false;
+        this.buildChart(f);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err?.error?.message || 'Could not load the figures.';
+      },
     });
-
-    const expenses = this.allExpenses.filter((e) => {
-      const dateStr = e.expenseDate || e.date || e.createdAt;
-      const d = dateStr ? new Date(dateStr) : null;
-      const dateOk = !d || ((!from || d >= from) && (!to || d <= to));
-      const vehOk = !vid || e.vehicleId === vid;
-      return dateOk && vehOk;
-    });
-
-    this.totalRevenue = bookings.reduce((s, b) => s + (b.amount || 0), 0);
-    this.totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
-    this.netProfit = this.totalRevenue - this.totalExpenses;
-
-    const map: Record<string, { name: string; revenue: number; expenses: number }> = {};
-    bookings.forEach((b) => {
-      const name = b.vehicle?.vehicleName || b.vehicleName || 'Unknown';
-      if (!map[name]) map[name] = { name, revenue: 0, expenses: 0 };
-      map[name].revenue += b.amount || 0;
-    });
-    expenses.forEach((e) => {
-      const name = e.vehicle?.vehicleName || e.vehicleName || 'Unknown';
-      if (!map[name]) map[name] = { name, revenue: 0, expenses: 0 };
-      map[name].expenses += e.amount || 0;
-    });
-
-    this.vehicleStats = Object.values(map)
-      .map((v) => ({ ...v, profit: v.revenue - v.expenses }))
-      .sort((a, b) => b.revenue - a.revenue);
-
-    this.bestVehicle = this.vehicleStats[0]?.name || '-';
-    this.updateChart(bookings);
   }
 
-  updateChart(bookings: any[]) {
-    const monthMap: Record<string, Record<string, number>> = {};
-    const vehicleSet = new Set<string>();
-
-    bookings.forEach((b) => {
-      if (!b.travelDate || b.travelDate === '0001-01-01') return;
-      const d = new Date(b.travelDate);
-      const key = d.toLocaleString('default', { month: 'short', year: '2-digit' });
-      const name = b.vehicle?.vehicleName || b.vehicleName || 'Unknown';
-      vehicleSet.add(name);
-      if (!monthMap[key]) monthMap[key] = {};
-      monthMap[key][name] = (monthMap[key][name] || 0) + (b.amount || 0);
-    });
-
-    const labels = Object.keys(monthMap);
-    const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7'];
-    const datasets = Array.from(vehicleSet).map((name, i) => ({
-      label: name,
-      data: labels.map((l) => monthMap[l]?.[name] || 0),
-      backgroundColor: colors[i % colors.length],
-    }));
-
-    this.barChartData = { labels, datasets };
-  }
-
-  dateRange(): { from: Date | null; to: Date | null } {
+  dateRange(): { from: string; to: string } {
     const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
     switch (this.selectedPeriod) {
       case 'week': {
         const from = new Date(now);
         from.setDate(now.getDate() - 6);
-        from.setHours(0, 0, 0, 0);
-        return { from, to: now };
+        return { from: isoDate(from), to: isoDate(now) };
       }
-      case 'month':
-        return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
-      case 'quarter': {
-        const q = Math.floor(now.getMonth() / 3);
-        return { from: new Date(now.getFullYear(), q * 3, 1), to: now };
-      }
+      case 'lastMonth':
+        return { from: isoDate(new Date(y, m - 1, 1)), to: isoDate(new Date(y, m, 0)) };
+      case 'quarter':
+        return { from: isoDate(new Date(y, Math.floor(m / 3) * 3, 1)), to: isoDate(now) };
       case 'year':
-        return { from: new Date(now.getFullYear(), 0, 1), to: now };
-      case 'custom': {
-        const from = this.customFrom ? new Date(this.customFrom) : null;
-        let to: Date | null = null;
-        if (this.customTo) {
-          to = new Date(this.customTo);
-          to.setHours(23, 59, 59, 999);
-        }
-        return { from, to };
-      }
+        return { from: isoDate(new Date(y, 0, 1)), to: isoDate(now) };
+      case 'custom':
+        return { from: this.customFrom || isoDate(new Date(y, m, 1)), to: this.customTo || isoDate(now) };
+      default:
+        return { from: isoDate(new Date(y, m, 1)), to: isoDate(now) };
     }
   }
+
+  buildChart(f: FleetSummary) {
+    this.trendData = {
+      labels: f.trend.map((t) => t.label),
+      datasets: [
+        { type: 'bar', label: 'Earned', data: f.trend.map((t) => t.revenue), backgroundColor: '#22c55e', borderRadius: 6, maxBarThickness: 26, order: 2 },
+        { type: 'bar', label: 'Spent', data: f.trend.map((t) => t.expenses), backgroundColor: '#f87171', borderRadius: 6, maxBarThickness: 26, order: 2 },
+        {
+          type: 'line', label: 'Profit', data: f.trend.map((t) => t.profit), borderColor: '#4b2aad', backgroundColor: '#4b2aad',
+          pointBackgroundColor: '#4b2aad', pointBorderColor: '#fff', pointBorderWidth: 2,
+          tension: 0.35, pointRadius: 4, borderWidth: 2.5, order: 1,
+        },
+      ],
+    };
+  }
+
+  get periodLabel(): string {
+    return this.fleet ? rangeLabel(this.fleet.from, this.fleet.to) : '';
+  }
+
+  get selectedVehicleName(): string {
+    return this.allVehicles.find((v) => v.vehicleId === this.selectedVehicleId)?.vehicleName ?? 'This vehicle';
+  }
+
+  /** Every car ranked by profit, best first */
+  get ranking(): FleetVehicle[] {
+    return [...(this.fleet?.vehicles ?? [])].sort((a, b) => b.profit - a.profit);
+  }
+
+  get topEarnerId(): number | null {
+    const best = [...this.ranking].sort((a, b) => b.revenue - a.revenue)[0];
+    return best && best.revenue > 0 ? best.vehicleId : null;
+  }
+
+  get mostUsedId(): number | null {
+    const best = [...this.ranking].sort((a, b) => b.busyDays - a.busyDays)[0];
+    return best && best.busyDays > 0 ? best.vehicleId : null;
+  }
+
+  get maxRevenue(): number {
+    return Math.max(1, ...this.ranking.map((v) => Math.max(v.revenue, v.expenses)));
+  }
+
+  get maxCategory(): number {
+    return Math.max(1, ...(this.fleet?.byCategory ?? []).map((c) => c.amount));
+  }
+
+  categoryShare(amount: number): number {
+    const total = this.fleet?.totals.expenses || 0;
+    return total ? Math.round((100 * amount) / total) : 0;
+  }
+
+  /** Arrow + colour for a % change; for spending, going up is bad */
+  trend(pct: number, upIsGood = true): { icon: string; cls: string; text: string } {
+    if (!pct) return { icon: 'bi-dash', cls: 'flat', text: '0%' };
+    const good = pct > 0 === upIsGood;
+    return { icon: pct > 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right', cls: good ? 'good' : 'bad', text: `${Math.abs(pct)}%` };
+  }
+
+  pick(v: FleetVehicle) {
+    this.selectedVehicleId = v.vehicleId;
+    this.onVehicleChange();
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  showAll() {
+    this.selectedVehicleId = null;
+    this.onVehicleChange();
+  }
+
+  trackVehicle = (_: number, v: FleetVehicle) => v.vehicleId;
 }

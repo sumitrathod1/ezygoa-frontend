@@ -117,6 +117,9 @@
   <!-- Footer -->
   <div class="detail-footer">
     <button class="outline-btn" type="button" (click)="closeDialog()">Close</button>
+    <button class="outline-btn" type="button" (click)="openInvoice()" title="Invoice for the customer (shows your company, not the partner)">
+      <i class="bi bi-receipt"></i> Customer invoice
+    </button>
     <button class="outline-btn" type="button" *ngIf="booking.vendorId" (click)="openStatement()">
       <i class="bi bi-file-earmark-pdf"></i> Statement
     </button>

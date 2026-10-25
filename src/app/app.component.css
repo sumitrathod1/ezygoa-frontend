@@ -7,8 +7,19 @@ body {
 
 .app-container {
   height: 100vh;
+  /* The visible screen on phones (100vh also counts the area under browser bars / the
+     Android navigation strip, which pushed the bottom of every page off-screen) */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/* Footer sits in the layout, below the scrolling area — page content can never end up
+   underneath it (it used to float over the last part of every page) */
+app-footer {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
 
 app-header {
@@ -30,6 +41,7 @@ app-header {
 .app-body {
   display: flex;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -42,7 +54,8 @@ app-header {
 .content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: calc(var(--footer-height) + var(--safe-area-inset-bottom, 0px));
+  /* Room for the round "+" button, which rises above the footer bar */
+  padding-bottom: 36px;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
 }
@@ -67,7 +80,7 @@ app-header {
 /* ── Tablet (768px+) ── */
 @media (min-width: 768px) {
   .content {
-    padding-bottom: calc(var(--footer-height) + 8px);
+    padding-bottom: 36px;
   }
 }
 

@@ -29,12 +29,39 @@ import {
   MatAutocompleteModule,
   MatAutocompleteTrigger,
 } from '@angular/material/autocomplete';
-import { map, Observable, startWith } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { ReturningCustomer, TripService, TripStay, TripSummary } from '../../services/trip.service';
+import { BOOKING_TYPES, END_DROP_PLACES, FULL_DAY_PACKAGES, supportsEndDrop } from '../../shared/booking-types';
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   LocationPickerComponent,
   PickedLocation,
 } from '../../shared/location-picker/location-picker.component';
+
+/** One day of a package: its own date, type, time, route and amount. */
+export interface PackageDay {
+  date: string;         // yyyy-mm-dd
+  type: string;
+  time: string;         // "09:00 AM" or '' for not set
+  from: string;
+  to: string;
+  amount: number | null;
+  /** Tour / full day ending with a drop elsewhere (airport, station, another hotel) */
+  endDrop?: string | null;
+  /** Tour starting with a pickup (airport, station, another hotel) */
+  startPickup?: string | null;
+  /** Full Day package: 8 (8 hr / 80 km) or 12 (12 hr / 120 km) */
+  fullDayHours?: number | null;
+}
+
+/** Places offered as one-tap buttons next to every From / To. */
+export const QUICK_PLACES = [
+  { label: '✈ Mopa', value: 'Mopa Airport' },
+  { label: '✈ Dabolim', value: 'Dabolim Airport' },
+  { label: '🚉 Thivim', value: 'Thivim Railway Station' },
+  { label: '🚉 Madgaon', value: 'Madgaon Railway Station' },
+];
 
 @Component({
   selector: 'app-booking-form',
@@ -54,22 +81,17 @@ import {
     MatButtonModule,
     MatGridListModule,
     MatCheckboxModule,
+    BookingTypePipe,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './booking-form.component.html',
   styleUrl: './booking-form.component.css',
 })
 export class BookingFormComponent implements OnInit {
-  BookingType = [
-    'AirportPickup',
-    'AirportDrop',
-    'RailwayStation',
-    'FullDay',
-    'SightSeeing',
-    'Shuttle',
-    'SelfDriveRental',
-    'Notspecified',
-  ];
+  readonly BookingType = BOOKING_TYPES;
+  readonly endDropPlaces = END_DROP_PLACES;
+  readonly supportsEndDrop = supportsEndDrop;
+  readonly fullDayPackages = FULL_DAY_PACKAGES;
 
   isSubmitting = false;
   bookingForm!: FormGroup;
@@ -79,7 +101,19 @@ export class BookingFormComponent implements OnInit {
   agentTypes: any = [];
   times: string[] = [];
   isEditMode = false;
-  dayRoutes: { from: string; to: string }[] = [{ from: '', to: '' }, { from: '', to: '' }];
+  /** Package days (replaces the old same-type / same-time / equal-amount days). */
+  days: PackageDay[] = [];
+  /** 'split': total is spread evenly (any day can still be changed); 'each': type every day's amount. */
+  amountMode: 'split' | 'each' = 'split';
+  readonly quickPlaces = QUICK_PLACES;
+
+  /** Hotel / stay of the trip — entered once, reused by every day and by later bookings. */
+  stay: TripStay | null = null;
+  /** Trip this booking joins (or already belongs to when editing). */
+  tripId: number | null = null;
+  /** Returning-customer lookup result for the typed phone number. */
+  returning: ReturningCustomer | null = null;
+  returningDismissed = false;
 
   // Custom time picker state
   timeHour = 12;
@@ -110,6 +144,7 @@ export class BookingFormComponent implements OnInit {
     private _toastr: ToastrService,
     private _dilog: Dialog,
     private _matDialog: MatDialog,
+    private _tripService: TripService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.bookingForm = _fb.group({
@@ -151,6 +186,9 @@ export class BookingFormComponent implements OnInit {
       ],
       commissionAmount: [data?.commissionAmount ?? null],
       returnDate: [data?.returnDate ?? null],
+      endDrop: [data?.endDrop ?? null],
+      startPickup: [data?.startPickup ?? null],
+      fullDayHours: [data?.fullDayHours ?? null],
       packageStartDate: [null],
       packageDays: [2],
       packageFrom: [''],
@@ -172,13 +210,36 @@ export class BookingFormComponent implements OnInit {
         packageBookingType: first.bookingType || 'FullDay',
         amount: totalAmt,
       });
-      this.dayRoutes = data.dayWiseBookings.map((d: any) => ({
+      this.days = data.dayWiseBookings.map((d: any) => ({
+        date: d.travelDate ? this.localDate(new Date(d.travelDate)) : '',
+        type: d.bookingType || 'FullDay',
+        time: d.travelTime || '',
         from: d.from || '',
         to: d.to || '',
+        amount: d.amount ?? null,
+        endDrop: d.endDrop ?? null,
+        startPickup: d.startPickup ?? null,
+        fullDayHours: d.fullDayHours ?? null,
       }));
     }
 
-    if (data) {
+    // Trip of the booking being edited, or the trip a new booking is being added to
+    this.tripId = data?.tripId ?? data?.prefill?.tripId ?? null;
+    if (data?.tripStayName || data?.prefill?.stay?.name) {
+      this.stay = data.prefill?.stay ?? { name: data.tripStayName, mapsLink: data.tripStayMapsLink ?? null };
+    }
+
+    // "+ Add booking for this customer": only fills the form, it is not an edit
+    if (data?.prefill) {
+      this.bookingForm.patchValue({
+        bookingId: null,
+        customerName: data.prefill.customerName ?? '',
+        customerNumber: data.prefill.customerNumber ?? '',
+        pax: data.prefill.pax ?? '',
+        agent: data.prefill.travelAgentId ? Number(data.prefill.travelAgentId) : null,
+      });
+      this.returningDismissed = true;
+    } else if (data) {
       this.isEditMode = true;
       const patch: any = { ...data };
       if (data.vehicle && typeof data.vehicle === 'object') {
@@ -237,6 +298,69 @@ export class BookingFormComponent implements OnInit {
 
   get isPackage(): boolean {
     return this.bookingForm.get('isPackage')?.value === true;
+  }
+
+  /** Rent-a-car placeholders ("RENTAL-…") are offered only for self-drive rentals. */
+  get vehicleOptions(): any[] {
+    const all: any[] = Array.isArray(this.vehcilesType) ? this.vehcilesType : this.vehcilesType?.data ?? [];
+    if (this.isSelfDriveRental) return all;
+    const current = this.bookingForm.get('vehicle')?.value;
+    return all.filter((v) => !/^RENTAL-/i.test(v.vehicleNumber ?? '') || v.vehicleId === current);
+  }
+
+  pickEndDrop() {
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px', maxWidth: '100vw', height: '90vh', maxHeight: '90vh', panelClass: 'lp-dialog-panel',
+      data: { current: this.bookingForm.get('endDrop')?.value ?? '', label: 'End with a drop at' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (picked) this.bookingForm.patchValue({ endDrop: picked.name });
+    });
+  }
+
+  /** Pickup chosen: the trip starts there and (unless set) goes to the hotel. */
+  setStartPickup(value: string) {
+    const patch: any = { startPickup: value, from: value };
+    if (!this.bookingForm.get('to')?.value && this.stay?.name) patch.to = this.stay.name;
+    this.bookingForm.patchValue(patch);
+  }
+
+  setDayPickup(i: number, value: string) {
+    const d = this.days[i];
+    if (!d) return;
+    d.startPickup = value;
+    d.from = value;
+    if (!d.to && this.stay?.name) d.to = this.stay.name;
+  }
+
+  pickStartPickup() {
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px', maxWidth: '100vw', height: '90vh', maxHeight: '90vh', panelClass: 'lp-dialog-panel',
+      data: { current: this.bookingForm.get('startPickup')?.value ?? '', label: 'Start with a pickup at' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (picked) this.setStartPickup(picked.name);
+    });
+  }
+
+  pickDayStartPickup(i: number) {
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px', maxWidth: '100vw', height: '90vh', maxHeight: '90vh', panelClass: 'lp-dialog-panel',
+      data: { current: this.days[i]?.startPickup ?? '', label: 'Start with a pickup at' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (picked) this.setDayPickup(i, picked.name);
+    });
+  }
+
+  pickDayEndDrop(i: number) {
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px', maxWidth: '100vw', height: '90vh', maxHeight: '90vh', panelClass: 'lp-dialog-panel',
+      data: { current: this.days[i]?.endDrop ?? '', label: 'End with a drop at' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (picked && this.days[i]) this.days[i].endDrop = picked.name;
+    });
   }
 
   get isSelfDriveRental(): boolean {
@@ -305,14 +429,195 @@ export class BookingFormComponent implements OnInit {
   }
 
   incDays() {
-    const ctrl = this.bookingForm.get('packageDays')!;
-    ctrl.setValue((this.n(ctrl.value) || 2) + 1);
+    this.addPackageDay();
   }
 
   decDays() {
-    const ctrl = this.bookingForm.get('packageDays')!;
-    const current = this.n(ctrl.value) || 2;
-    if (current > 2) ctrl.setValue(current - 1);
+    if (this.days.length > 2) this.removePackageDay(this.days.length - 1);
+  }
+
+  private static shiftDate(iso: string, by: number): string {
+    if (!iso) return '';
+    const d = new Date(iso + 'T00:00:00');
+    d.setDate(d.getDate() + by);
+    const p = (n: number) => (n < 10 ? '0' + n : String(n));
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
+
+  /** "09:00 AM" → "09:00" for sorting days that share a date. */
+  private sortTime(t: string): string {
+    const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(t || '');
+    if (!m) return '99:99';
+    let h = parseInt(m[1], 10) % 12;
+    if ((m[3] || '').toUpperCase() === 'PM') h += 12;
+    return `${h < 10 ? '0' + h : h}:${m[2]}`;
+  }
+
+  /** Fresh package: airport pickup on day 1, airport drop on the last day. */
+  private initPackageDays() {
+    const start = this.bookingForm.get('packageStartDate')?.value;
+    const first = start ? this.localDate(new Date(start)) : '';
+    const h = this.stay?.name ?? '';
+    this.days = [
+      { date: first, type: 'AirportPickup', time: '', from: '', to: h, amount: null },
+      { date: BookingFormComponent.shiftDate(first, 1), type: 'AirportDrop', time: '', from: h, to: '', amount: null },
+    ];
+    this.syncPackageDays();
+  }
+
+  /** New days go before the airport drop (the drop moves one day later). */
+  addPackageDay() {
+    const last = this.days[this.days.length - 1];
+    const h = this.stay?.name ?? '';
+    const day: PackageDay = { date: last?.date ?? '', type: 'SightSeeing', time: '09:00 AM', from: h, to: '', amount: null };
+    if (last && last.type === 'AirportDrop') {
+      this.days.splice(this.days.length - 1, 0, day);
+      last.date = BookingFormComponent.shiftDate(last.date, 1);
+    } else {
+      day.date = BookingFormComponent.shiftDate(last?.date ?? '', 1);
+      this.days.push(day);
+    }
+    this.syncPackageDays();
+  }
+
+  removePackageDay(i: number) {
+    if (this.days.length <= 2) return;
+    this.days.splice(i, 1);
+    this.syncPackageDays();
+  }
+
+  /** Keeps the day-count stepper, the amounts and the total consistent with the rows. */
+  syncPackageDays() {
+    this.bookingForm.get('packageDays')!.setValue(this.days.length, { emitEvent: false });
+    this.recalcAmounts();
+  }
+
+  /** Start date changed: days follow one after another from it (any day can then be moved). */
+  onPackageStartChange(value: any) {
+    if (!value) return;
+    const first = this.localDate(new Date(value));
+    this.days.forEach((d, i) => (d.date = BookingFormComponent.shiftDate(first, i)));
+  }
+
+  setAmountMode(mode: 'split' | 'each') {
+    this.amountMode = mode;
+    this.recalcAmounts();
+  }
+
+  /** Split: spread the total in whole rupees (remainder on the last day). Each: total = sum of days. */
+  recalcAmounts() {
+    if (!this.days.length) return;
+    if (this.amountMode === 'split') {
+      const total = Math.max(0, Math.round(this.n(this.bookingForm.get('amount')?.value)));
+      const each = Math.floor(total / this.days.length);
+      this.days.forEach((d, i) => (d.amount = i === this.days.length - 1 ? total - each * (this.days.length - 1) : each));
+    } else {
+      const sum = this.days.reduce((s, d) => s + this.n(d.amount), 0);
+      this.bookingForm.get('amount')!.setValue(sum, { emitEvent: false });
+    }
+  }
+
+  /** Changing one day's amount in split mode switches to "each day" so the change is kept. */
+  onDayAmountChange(day: PackageDay, value: any) {
+    day.amount = value === '' || value === null ? null : this.n(value);
+    if (this.amountMode === 'split') this.amountMode = 'each';
+    this.recalcAmounts();
+  }
+
+  /** Sensible From / To for the chosen type, using the hotel (only fills empty fields). */
+  onDayTypeChange(day: PackageDay) {
+    const h = this.stay?.name;
+    if (!h) return;
+    if (day.type === 'AirportPickup' || day.type === 'RailwayStation') {
+      if (!day.to) day.to = h;
+    } else if (!day.from) {
+      day.from = h;
+    }
+  }
+
+  /** Previous day's drop point, offered as a quick button. */
+  prevDrop(i: number): string {
+    return i > 0 ? this.days[i - 1].to : '';
+  }
+
+  setDayPlace(i: number, field: 'from' | 'to', value: string) {
+    if (this.days[i]) this.days[i][field] = value;
+  }
+
+  setPlace(field: 'from' | 'to', value: string) {
+    this.bookingForm.patchValue({ [field]: value });
+  }
+
+  dayLabel(d: PackageDay): string {
+    if (!d.date) return '';
+    return new Date(d.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  trackDay = (i: number) => i;
+
+  // ── Hotel / stay ──────────────────────────────────────────────────────
+
+  pickStay() {
+    const ref = this._matDialog.open(LocationPickerComponent, {
+      width: '520px', maxWidth: '100vw', height: '90vh', maxHeight: '90vh', panelClass: 'lp-dialog-panel',
+      data: { current: this.stay?.name ?? '', label: 'Hotel / stay' },
+    });
+    ref.afterClosed().subscribe((picked: PickedLocation | null) => {
+      if (!picked) return;
+      const old = this.stay?.name;
+      this.stay = { name: picked.name, lat: picked.lat, lng: picked.lng, mapsLink: picked.mapsLink };
+      // Days that used the old hotel (or are empty where a hotel belongs) get the new one
+      for (const d of this.days) {
+        if (old && d.from === old) d.from = picked.name;
+        if (old && d.to === old) d.to = picked.name;
+        this.onDayTypeChange(d);
+      }
+    });
+  }
+
+  clearStay() {
+    this.stay = null;
+  }
+
+  // ── Returning customer ────────────────────────────────────────────────
+
+  private watchReturningCustomer() {
+    this.bookingForm.get('customerNumber')!.valueChanges
+      .pipe(
+        map((v) => String(v ?? '').replace(/\D/g, '').slice(-10)),
+        filter((digits) => digits.length === 10),
+        distinctUntilChanged(),
+        debounceTime(400),
+        switchMap((digits) => this._tripService.byCustomer(digits).pipe(catchError(() => of(null))))
+      )
+      .subscribe((res) => {
+        this.returning = res?.customer ? res : null;
+        // Fill the name when it is still empty
+        if (this.returning && !String(this.bookingForm.get('customerName')?.value ?? '').trim())
+          this.bookingForm.patchValue({ customerName: this.returning.customer!.customerName });
+      });
+  }
+
+  /** Banner only for a new booking that is not already joining a trip. */
+  get showReturning(): boolean {
+    return !!this.returning && !this.returningDismissed && !this.isEditMode && !this.tripId;
+  }
+
+  joinTrip(t: TripSummary) {
+    this.tripId = t.tripId;
+    if (t.stayName) this.stay = { name: t.stayName, lat: t.stayLat, lng: t.stayLng, mapsLink: t.stayMapsLink };
+    if (!this.n(this.bookingForm.get('pax')?.value) && t.pax) this.bookingForm.patchValue({ pax: t.pax });
+    for (const d of this.days) this.onDayTypeChange(d);
+  }
+
+  leaveTrip() {
+    this.tripId = null;
+    this.returningDismissed = false;
+  }
+
+  tripRange(t: { startDate: string; endDate: string }): string {
+    const f = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return t.startDate === t.endDate ? f(t.startDate) : `${f(t.startDate)} – ${f(t.endDate)}`;
   }
 
   private localDate(d: Date): string {
@@ -320,16 +625,8 @@ export class BookingFormComponent implements OnInit {
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
   }
 
-  getDayDate(i: number): Date | null {
-    const start = this.bookingForm.get('packageStartDate')?.value;
-    if (!start) return null;
-    const d = new Date(start);
-    d.setDate(d.getDate() + i);
-    return d;
-  }
-
   openDayLocationPicker(field: 'from' | 'to', index: number) {
-    const current = this.dayRoutes[index]?.[field] ?? '';
+    const current = this.days[index]?.[field] ?? '';
     const ref = this._matDialog.open(LocationPickerComponent, {
       width: '520px',
       maxWidth: '100vw',
@@ -339,8 +636,8 @@ export class BookingFormComponent implements OnInit {
       data: { current, label: field === 'from' ? 'From Location' : 'To Location' },
     });
     ref.afterClosed().subscribe((picked: PickedLocation | null) => {
-      if (!picked || !this.dayRoutes[index]) return;
-      this.dayRoutes[index][field] = picked.name;
+      if (!picked || !this.days[index]) return;
+      this.days[index][field] = picked.name;
     });
   }
 
@@ -364,11 +661,15 @@ export class BookingFormComponent implements OnInit {
     this.loadAgents();
     this.loadPartners();
 
-    this.bookingForm.get('packageDays')!.valueChanges.subscribe((days) => {
-      const n = Math.max(this.n(days), 1);
-      while (this.dayRoutes.length < n) this.dayRoutes.push({ from: '', to: '' });
-      if (this.dayRoutes.length > n) this.dayRoutes = this.dayRoutes.slice(0, n);
+    // Ticking "Package" starts with pickup + drop days; the start date lays the days out
+    this.bookingForm.get('isPackage')!.valueChanges.subscribe((on) => {
+      if (on && !this.days.length) this.initPackageDays();
     });
+    this.bookingForm.get('packageStartDate')!.valueChanges.subscribe((v) => this.onPackageStartChange(v));
+    this.bookingForm.get('amount')!.valueChanges.subscribe(() => {
+      if (this.amountMode === 'split') this.recalcAmounts();
+    });
+    this.watchReturningCustomer();
 
     this.bookingForm.get('isExternalBooking')?.valueChanges.subscribe((isExt) => {
       if (isExt) {
@@ -464,7 +765,7 @@ export class BookingFormComponent implements OnInit {
   }
 
   loadVehciles() {
-    this._vechileService.getAllVehicles().subscribe({
+    this._vechileService.getAllVehicles(true).subscribe({
       next: (data: any) => {
         this.vehcilesType = data;
         if (this.isEditMode) {
@@ -538,12 +839,17 @@ export class BookingFormComponent implements OnInit {
     if (amount > 0 && this.n(f.advancePaid) > amount) errs.push('Advance cannot be more than the amount.');
 
     if (f.isPackage) {
-      // An empty start date became 1 Jan 1970 for every day of the package
-      if (!f.packageStartDate) errs.push('Choose the package start date.');
-      if (this.n(f.packageDays) < 2) errs.push('A package needs at least 2 days.');
+      // An empty date became 1 Jan 1970 for that day of the package
+      if (this.days.length < 2) errs.push('A package needs at least 2 days.');
+      this.days.forEach((d, i) => {
+        if (!d.date) errs.push(`Choose the date of day ${i + 1}.`);
+        if (d.type === 'FullDay' && !d.fullDayHours) errs.push(`Day ${i + 1}: choose Full Day 8 hr / 80 km or 12 hr / 120 km.`);
+        if (this.n(d.amount) < 0) errs.push(`Day ${i + 1} amount cannot be negative.`);
+      });
     } else {
       // An empty date was silently saved as today
       if (!f.travelDate) errs.push('Choose the travel date.');
+      if (f.bookingType === 'FullDay' && !f.fullDayHours) errs.push('Choose Full Day 8 hr / 80 km or 12 hr / 120 km.');
       if (f.bookingType === 'SelfDriveRental') {
         if (!f.returnDate) errs.push('Choose the return date for the rental.');
         else if (f.travelDate && new Date(f.returnDate) < new Date(f.travelDate)) errs.push('Return date cannot be before the travel date.');
@@ -588,29 +894,28 @@ export class BookingFormComponent implements OnInit {
     let payload: any;
 
     if (f.isPackage) {
-      const start = f.packageStartDate instanceof Date
-        ? f.packageStartDate
-        : new Date(f.packageStartDate);
-      const days = Math.max(this.n(f.packageDays), 1);
-      const total = this.n(f.amount);
-      const amtPerDay = parseFloat((total / days).toFixed(2));
-      const dayWiseBookings = Array.from({ length: days }, (_, i) => {
-        const d = new Date(start);
-        d.setDate(d.getDate() + i);
-        return {
-          travelDate: this.localDate(d),
-          from: this.dayRoutes[i]?.from || '',
-          to: this.dayRoutes[i]?.to || '',
-          travelTime: f.packageTime || '',
-          bookingType: f.packageBookingType || 'FullDay',
-          amount: amtPerDay,
-        };
-      });
+      // Days in date order; each keeps its own type, time, route and amount
+      const ordered = [...this.days].sort((a, b) => (a.date + this.sortTime(a.time)).localeCompare(b.date + this.sortTime(b.time)));
+      const dayWiseBookings = ordered.map((d) => ({
+        travelDate: d.date,
+        from: d.from || '',
+        to: d.to || '',
+        travelTime: d.time || '',
+        bookingType: d.type || 'FullDay',
+        amount: this.n(d.amount),
+        endDrop: supportsEndDrop(d.type) ? d.endDrop || null : null,
+        startPickup: supportsEndDrop(d.type) ? d.startPickup || null : null,
+        fullDayHours: d.type === 'FullDay' ? d.fullDayHours ?? null : null,
+      }));
+      const total = dayWiseBookings.reduce((sum, d) => sum + d.amount, 0);
+      const start = new Date(ordered[0].date + 'T00:00:00');
       payload = {
         bookingId: f.bookingId || 0,
         customerName: f.customerName,
         customerNumber: f.customerNumber,
         dayWiseBookings,
+        tripId: this.tripId,
+        stay: this.stay,
         bookingDate: this.localDate(start),
         pax: this.n(f.pax),
         vehicleId: this.n(f.vehicle),
@@ -648,13 +953,23 @@ export class BookingFormComponent implements OnInit {
         returnDate: f.bookingType === 'SelfDriveRental' && f.returnDate
           ? this.fmtDate(f.returnDate)
           : null,
+        tripId: this.tripId,
+        stay: this.stay,
+        endDrop: supportsEndDrop(f.bookingType) ? f.endDrop || null : null,
+        startPickup: supportsEndDrop(f.bookingType) ? f.startPickup || null : null,
+        fullDayHours: f.bookingType === 'FullDay' ? f.fullDayHours ?? null : null,
       };
     }
 
     this._bookingService.newBooking(payload).subscribe({
       next: (res: any) => {
         this._bookingService.loadBookings().subscribe();
-        this._toastr.success(res.message || 'Booking saved');
+        // Refresh the calendar / lists now — don't rely only on the live SignalR message,
+        // which may not be connected (the new booking used to appear only after a page change)
+        this._bookingService.notifyBookingUpdated();
+        this._toastr.success(
+          f.isExternalBooking ? 'Partner booking saved — you will find it under Extra (partner bookings are not on the calendar).' : res.message || 'Booking saved'
+        );
         this._dilog.closeAll();
         this.isSubmitting = false;
       },

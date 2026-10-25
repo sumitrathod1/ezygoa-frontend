@@ -1,4 +1,5 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SILENT_ERRORS } from './error.interceptor';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -27,6 +28,14 @@ export interface BoardBooking {
   /** Travel date has passed and it still has no driver / vehicle */
   isMissed: boolean;
   transferredFrom: string | null;
+  /** Trip (multi-day package) this booking is part of: "day 2 of 4" */
+  tripId?: number | null;
+  /** Tour / full day ending with a drop elsewhere */
+  endDrop?: string | null;
+  startPickup?: string | null;
+  fullDayHours?: number | null;
+  tripDay?: number | null;
+  tripDays?: number | null;
 }
 
 export interface BoardDriver { userId: number; name: string; number: string | null }
@@ -75,6 +84,10 @@ export class DispatchService {
 
   constructor(private _http: HttpClient) {}
 
+  private silent() {
+    return new HttpContext().set(SILENT_ERRORS, true);
+  }
+
   getBoard(from: string, to: string): Observable<AssignmentBoard> {
     return this._http
       .get<any>(`${this.baseUrl}assignment-board`, { params: { from, to } })
@@ -82,7 +95,7 @@ export class DispatchService {
   }
 
   refreshPending(): Observable<PendingAssignmentCount> {
-    return this._http.get<any>(`${this.baseUrl}pending-assignment-count`).pipe(
+    return this._http.get<any>(`${this.baseUrl}pending-assignment-count`, { context: this.silent() }).pipe(
       map((r) => unwrap<PendingAssignmentCount>(r)),
       tap((c) => this.pendingSubject.next(c))
     );
@@ -111,7 +124,7 @@ export class DispatchService {
   getTransferTargets(): Observable<TransferTarget[]> {
     const token = localStorage.getItem('token');
     if (!this.targetsCache || this.targetsCache.token !== token) {
-      const list$ = this._http.get<any>(`${this.baseUrl}transfer-targets`).pipe(
+      const list$ = this._http.get<any>(`${this.baseUrl}transfer-targets`, { context: this.silent() }).pipe(
         map((r) => unwrap<TransferTarget[]>(r) ?? []),
         catchError((err) => {
           this.targetsCache = undefined;   // retry next time instead of caching the failure

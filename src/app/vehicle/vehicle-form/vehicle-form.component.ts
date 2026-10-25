@@ -19,6 +19,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { Dialog } from '@angular/cdk/dialog';
 import { VehicleService } from '../../services/vehicle.service';
+import { InvoiceTermsService } from '../../services/invoice-terms.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -59,7 +60,8 @@ export class VehicleFormComponent {
     private _fb: FormBuilder,
     private _dilog: Dialog,
     private _vehicleService: VehicleService,
-    private _toaster: ToastrService
+    private _toaster: ToastrService,
+    private _terms: InvoiceTermsService
   ) {
     this.vehicleForm = _fb.group({
       VehicleName: '',
@@ -67,8 +69,17 @@ export class VehicleFormComponent {
       VehicleType: '',
       Seatingcapacity: '',
       RegistrationDate: '',
+      RateCategory: '',
+    });
+    // Rate rows from Business Hub → Invoice terms
+    this._terms.get().subscribe({
+      next: (t) => (this.rateCategories = (t.extraRates ?? []).map((r) => r.category).filter(Boolean)),
+      error: () => {},
     });
   }
+
+  /** Rows of the invoice "extra hour / km" table. */
+  rateCategories: string[] = [];
 
   toUppercase(controlName: string) {
   const ctrl = this.vehicleForm.get(controlName);
@@ -101,6 +112,7 @@ export class VehicleFormComponent {
         //   .toISOString()
         //   .split('T')[0],
         Seatingcapacity: this.vehicleForm.value.Seatingcapacity,
+        RateCategory: this.vehicleForm.value.RateCategory || null,
       };
       this._vehicleService.addVehicle(payload).subscribe({
         next: (res: any) => {

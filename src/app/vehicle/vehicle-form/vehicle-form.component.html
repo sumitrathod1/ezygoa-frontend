@@ -66,6 +66,17 @@
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
       </div>
+      <div class="col-sm-6">
+        <mat-form-field appearance="outline">
+          <mat-label>Rate category (invoice extra hour / km)</mat-label>
+          <mat-select formControlName="RateCategory">
+            <mat-option value="">Not set</mat-option>
+            @for (c of rateCategories; track c) {
+              <mat-option [value]="c">{{ c }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
   </div>
   <div mat-dialog-actions class="action">

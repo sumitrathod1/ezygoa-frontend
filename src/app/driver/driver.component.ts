@@ -5,16 +5,17 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, skip } from 'rxjs';
 import { EmployeeService } from '../services/employee.service';
 import { BookingService }  from '../services/booking.service';
 import { DriverExpenseComponent } from './driver-expense/driver-expense.component';
 
+import { BookingTypePipe } from '../pipes/booking-type.pipe';
 @Component({
   selector: 'app-driver',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, DriverExpenseComponent],
+  imports: [BookingTypePipe, CommonModule, RouterModule, DriverExpenseComponent],
   templateUrl: './driver.component.html',
   styleUrl: './driver.component.css',
 })
@@ -42,8 +43,9 @@ export class DriverComponent {
     this.initHeader();
     this.loadDriverData();
 
+    // Skip the value bookingUpdated$ replays on subscribe — the data was just loaded above
     this._bookingService.bookingUpdated$
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(skip(1), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadDriverData());
   }
 

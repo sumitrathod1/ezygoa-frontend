@@ -1,3 +1,4 @@
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,6 +33,7 @@ import { LoadingService } from './services/loading.service';
     CommonModule,
     FooterComponent,
     HeaderComponent,
+    CdkScrollable,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

@@ -1,276 +1,162 @@
-import { Component, OnInit } from '@angular/core';
-import { ChartType } from 'chart.js';
-import { NgChartsModule } from 'ng2-charts';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { BookingService } from '../../services/booking.service';
-import { VehicleService } from '../../services/vehicle.service';
+import { RouterModule } from '@angular/router';
+import { NgChartsModule } from 'ng2-charts';
+import { forkJoin } from 'rxjs';
+import { DashboardService } from '../../services/dashboard.service';
 import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
+import { PeriodChipsComponent, PeriodKey, PeriodRange, localIso } from '../../shared/period-chips/period-chips.component';
+import { rangeLabel } from '../../vehicle/fleet-ui';
+import { shortMoney } from '../booking.component';
 
-type Period = 'week' | 'month' | 'quarter' | 'year' | 'custom' | 'all';
+/** The same number of days just before a period */
+export function previousRange(from: string, to: string): { from: string; to: string } {
+  const a = new Date(from + 'T00:00:00');
+  const b = new Date(to + 'T00:00:00');
+  const days = Math.round((b.getTime() - a.getTime()) / 86400000) + 1;
+  const prevTo = new Date(a);
+  prevTo.setDate(a.getDate() - 1);
+  const prevFrom = new Date(prevTo);
+  prevFrom.setDate(prevTo.getDate() - (days - 1));
+  return { from: localIso(prevFrom), to: localIso(prevTo) };
+}
 
+/**
+ * Earnings: what the business earned (own trips + partner commission), what it spent
+ * (vehicles, salaries, ads, other), net earnings vs the period before, commission still to
+ * collect, money owed to partners, a 6-month trend and the best partners.
+ * Figures come from GET /Dashboard/earnings-summary (commission only on partner bookings).
+ */
 @Component({
   selector: 'app-earnings',
   standalone: true,
-  imports: [NgChartsModule, CommonModule, FormsModule, IndianCurrencyPipe],
+  imports: [CommonModule, RouterModule, NgChartsModule, IndianCurrencyPipe, PeriodChipsComponent],
   templateUrl: './earnings.component.html',
   styleUrl: './earnings.component.css',
 })
-export class EarningsComponent implements OnInit {
-  allBookings: any[] = [];
-  allExpenses: any[] = [];
-  bookingsAvgStats: any = {};
+export class EarningsComponent {
+  cur: any = null;
+  prev: any = null;
+  trendRows: { label: string; revenue: number; expenses: number }[] = [];
+  loading = false;
+  error = '';
+  period: PeriodRange | null = null;
+  periodKey: PeriodKey = 'month';
 
-  // KPIs
-  totalRevenue = 0;
-  totalExpenses = 0;
-  netProfit = 0;
-  growth = 0;
-
-  // Period filter
-  selectedPeriod: Period = 'month';
-  customFrom = '';
-  customTo = '';
-  showCustom = false;
-
-  // Month filter
-  selectedMonth = 'all';
-  availableMonths: { label: string; value: string }[] = [];
-
-  // Charts
-  lineChartType: ChartType = 'line';
-  lineChartData: any = { labels: [], datasets: [] };
-  lineChartOptions: any = {
+  trendData: any = { labels: [], datasets: [] };
+  trendOptions: any = {
     responsive: true,
-    plugins: { legend: { display: true } },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { callback: (v: any) => '₹' + Number(v).toLocaleString('en-IN') },
-      },
-    },
-  };
-
-  pieChartType: ChartType = 'pie';
-  pieChartData: any = { labels: [], datasets: [] };
-  pieChartOptions: any = {
-    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { position: 'bottom' },
-      tooltip: {
-        callbacks: {
-          label: (ctx: any) => `${ctx.label}: ${ctx.parsed} bookings`,
-        },
-      },
+      legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+      tooltip: { callbacks: { label: (c: any) => `${c.dataset.label}: ₹${Number(c.raw).toLocaleString('en-IN')}` } },
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#f1f5f9' }, ticks: { callback: (v: any) => '₹' + shortMoney(Number(v)) } },
     },
   };
 
-  constructor(
-    private bookingService: BookingService,
-    private vehicleService: VehicleService
-  ) {}
+  constructor(private _dashboard: DashboardService) {}
 
-  ngOnInit() {
-    this.loadAll();
+  onPeriod(p: PeriodRange) {
+    this.period = p;
+    this.periodKey = p.key;
+    this.load();
   }
 
-  loadAll() {
-    this.bookingService.loadBookings().subscribe({
-      next: (data) => {
-        this.allBookings = data.bookings || [];
-        this.bookingsAvgStats = data.averageStats || {};
-        this.buildAvailableMonths();
-        this.vehicleService.getCombinedExpenses().subscribe({
-          next: (exp: any) => {
-            this.allExpenses = Array.isArray(exp) ? exp : exp?.expenses || [];
-            this.applyPeriodFilter();
-          },
-          error: () => this.applyPeriodFilter(),
-        });
+  load() {
+    if (!this.period) return;
+    const { from, to } = this.period;
+    const before = previousRange(from, to);
+    const end = new Date(to + 'T00:00:00');
+    this.loading = true;
+    this.error = '';
+    forkJoin({
+      cur: this._dashboard.getEarningsSummary(from, to),
+      prev: this._dashboard.getEarningsSummary(before.from, before.to),
+      months: this._dashboard.getExpenseSummary(end.getMonth() + 1, end.getFullYear()),
+    }).subscribe({
+      next: ({ cur, prev, months }) => {
+        this.cur = cur;
+        this.prev = prev;
+        this.trendRows = months?.monthlyTrend ?? [];
+        this.loading = false;
+        this.buildChart();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err?.error?.message || 'Could not load the earnings.';
       },
     });
   }
 
-  selectPeriod(p: Period) {
-    this.selectedPeriod = p;
-    this.showCustom = p === 'custom';
-    if (p !== 'custom') this.applyPeriodFilter();
-  }
-
-  applyCustomRange() {
-    this.applyPeriodFilter();
-  }
-
-  clearFilter() {
-    this.selectedPeriod = 'month';
-    this.selectedMonth = 'all';
-    this.customFrom = '';
-    this.customTo = '';
-    this.showCustom = false;
-    this.applyPeriodFilter();
-  }
-
-  selectMonth(val: string) {
-    this.selectedMonth = val;
-    if (val !== 'all') {
-      this.selectedPeriod = 'all';
-      this.showCustom = false;
-    }
-    this.applyPeriodFilter();
-  }
-
-  buildAvailableMonths() {
-    const seen = new Set<string>();
-    this.allBookings.forEach(b => {
-      if (!b.travelDate || b.travelDate === '0001-01-01') return;
-      const d = new Date(b.travelDate);
-      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      seen.add(val);
-    });
-    this.availableMonths = Array.from(seen)
-      .sort((a, b) => b.localeCompare(a))
-      .map(val => {
-        const [y, m] = val.split('-');
-        const label = new Date(+y, +m - 1, 1).toLocaleString('default', { month: 'short', year: 'numeric' });
-        return { label, value: val };
-      });
-  }
-
-  /** 'yyyy-mm-dd' parsed as a LOCAL date (new Date('yyyy-mm-dd') is UTC midnight). */
-  private toLocalDate(v: any): Date | null {
-    if (!v || v === '0001-01-01') return null;
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));
-    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  /** What the business earns: commission only on partner bookings (from the API). */
-  private earned(b: any): number {
-    return Number(b.earnedAmount ?? b.amount) || 0;
-  }
-
-  applyPeriodFilter() {
-    const { from, to } = this.dateRange();
-
-    // Bookings and expenses must use the SAME period. Picking a month used to filter
-    // bookings to that month but leave expenses unfiltered, so net profit subtracted
-    // every expense ever recorded.
-    const inPeriod = (d: Date | null): boolean => {
-      if (!d) return false;
-      if (this.selectedMonth !== 'all') {
-        const [y, m] = this.selectedMonth.split('-');
-        return d.getFullYear() === +y && d.getMonth() + 1 === +m;
-      }
-      return (!from || d >= from) && (!to || d <= to);
-    };
-
-    const filtered = this.allBookings.filter((b) => inPeriod(this.toLocalDate(b.travelDate)));
-    const filteredExp = this.allExpenses.filter((e) =>
-      inPeriod(this.toLocalDate(e.expenseDate || e.date || e.createdAt))
-    );
-
-    this.totalRevenue = filtered.reduce((s, b) => s + this.earned(b), 0);
-    this.totalExpenses = filteredExp.reduce((s, e) => s + (e.amount || 0), 0);
-    this.netProfit = this.totalRevenue - this.totalExpenses;
-
-    // Growth vs previous same-length period
-    const prev = this.prevPeriodRange(from, to);
-    const prevRevenue = this.allBookings
-      .filter((b) => {
-        const d = this.toLocalDate(b.travelDate);
-        return !!d && (!prev.from || d >= prev.from) && (!prev.to || d <= prev.to);
-      })
-      .reduce((s, b) => s + this.earned(b), 0);
-
-    this.growth =
-      prevRevenue > 0
-        ? Math.round(((this.totalRevenue - prevRevenue) / prevRevenue) * 1000) / 10
-        : 0;
-
-    this.updateLineChart(filtered);
-    this.updatePieChart(filtered);
-  }
-
-  updateLineChart(bookings: any[]) {
-    const map: Record<string, number> = {};
-    bookings.forEach((b) => {
-      if (!b.travelDate || b.travelDate === '0001-01-01') return;
-      const d = new Date(b.travelDate);
-      const key = d.toLocaleString('default', { month: 'short', year: '2-digit' });
-      map[key] = (map[key] || 0) + this.earned(b);
-    });
-    this.lineChartData = {
-      labels: Object.keys(map),
+  buildChart() {
+    const rows = this.trendRows;
+    this.trendData = {
+      labels: rows.map((r) => r.label),
       datasets: [
+        { type: 'bar', label: 'Earned', data: rows.map((r) => r.revenue), backgroundColor: '#22c55e', borderRadius: 6, maxBarThickness: 26, order: 2 },
+        { type: 'bar', label: 'Spent', data: rows.map((r) => r.expenses), backgroundColor: '#f87171', borderRadius: 6, maxBarThickness: 26, order: 2 },
         {
-          label: 'Revenue',
-          data: Object.values(map),
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99,102,241,0.12)',
-          fill: true,
-          tension: 0.4,
+          type: 'line', label: 'Net', data: rows.map((r) => r.revenue - r.expenses), borderColor: '#4b2aad', backgroundColor: '#4b2aad',
+          pointBackgroundColor: '#4b2aad', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, tension: 0.35, borderWidth: 2.5, order: 1,
         },
       ],
     };
   }
 
-  updatePieChart(bookings: any[]) {
-    const map: Record<string, number> = {};
-    bookings.forEach((b) => {
-      const name = b.vehicle?.vehicleName || 'Unknown';
-      map[name] = (map[name] || 0) + 1;
-    });
-    this.pieChartData = {
-      labels: Object.keys(map),
-      datasets: [
-        {
-          data: Object.values(map),
-          backgroundColor: ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7'],
-        },
-      ],
-    };
+  get periodLabel(): string {
+    return this.cur ? rangeLabel(this.cur.from, this.cur.to) : '';
   }
 
-  dateRange(): { from: Date | null; to: Date | null } {
-    const now = new Date();
-    switch (this.selectedPeriod) {
-      case 'week': {
-        const from = new Date(now);
-        from.setDate(now.getDate() - 6);
-        from.setHours(0, 0, 0, 0);
-        return { from, to: now };
-      }
-      case 'month':
-        return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
-      case 'quarter': {
-        const q = Math.floor(now.getMonth() / 3);
-        return { from: new Date(now.getFullYear(), q * 3, 1), to: now };
-      }
-      case 'year':
-        return { from: new Date(now.getFullYear(), 0, 1), to: now };
-      case 'custom': {
-        const from = this.customFrom ? new Date(this.customFrom) : null;
-        let to: Date | null = null;
-        if (this.customTo) {
-          to = new Date(this.customTo);
-          to.setHours(23, 59, 59, 999);
-        }
-        return { from, to };
-      }
-      default:
-        return { from: null, to: null };
-    }
+  get net(): number {
+    return this.cur?.netEarnings ?? 0;
   }
 
-  prevPeriodRange(
-    from: Date | null,
-    to: Date | null
-  ): { from: Date | null; to: Date | null } {
-    if (!from || !to) return { from: null, to: null };
-    const diff = to.getTime() - from.getTime();
-    return {
-      from: new Date(from.getTime() - diff - 1),
-      to: new Date(from.getTime() - 1),
-    };
+  get margin(): number {
+    const e = this.cur?.earnedRevenue ?? 0;
+    return e ? Math.round((100 * this.net) / e) : 0;
+  }
+
+  /** % change against the period before (0 when there is nothing to compare with) */
+  change(now: number, before: number): number {
+    return before ? Math.round((100 * (now - before)) / Math.abs(before)) : 0;
+  }
+
+  trend(pct: number, upIsGood = true): { icon: string; cls: string; text: string } {
+    if (!pct) return { icon: 'bi-dash', cls: 'flat', text: '0%' };
+    const good = pct > 0 === upIsGood;
+    return { icon: pct > 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right', cls: good ? 'good' : 'bad', text: `${Math.abs(pct)}%` };
+  }
+
+  /** Own trips vs partner commission, as % of what was earned */
+  get ownShare(): number {
+    const e = this.cur?.earnedRevenue ?? 0;
+    return e ? Math.round((100 * (this.cur.ownBookingRevenue ?? 0)) / e) : 0;
+  }
+
+  /** Spending split, biggest first, zero rows left out */
+  get costs(): { key: string; label: string; icon: string; amount: number }[] {
+    const x = this.cur?.expenses;
+    if (!x) return [];
+    return [
+      { key: 'vehicle', label: 'Vehicles (fuel, EMI, repairs…)', icon: 'bi-car-front-fill', amount: x.vehicle },
+      { key: 'salaries', label: 'Salaries', icon: 'bi-person-badge-fill', amount: x.salaries },
+      { key: 'advertising', label: 'Advertising', icon: 'bi-megaphone-fill', amount: x.advertising },
+      { key: 'business', label: 'Other business costs', icon: 'bi-briefcase-fill', amount: x.business },
+    ]
+      .filter((c) => c.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+  }
+
+  costShare(amount: number): number {
+    const t = this.cur?.expenses?.total ?? 0;
+    return t ? Math.round((100 * amount) / t) : 0;
+  }
+
+  get topPartners(): any[] {
+    return (this.cur?.partners ?? []).slice(0, 5);
   }
 }

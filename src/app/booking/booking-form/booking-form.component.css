@@ -508,3 +508,191 @@ mat-form-field {
 /* Saved-partner picker */
 .partner-opt-name { font-weight: 600; margin-right: 8px; }
 .partner-opt-num { color: #64748b; }
+
+/* ── Package days (own date / type / time / route / amount) ── */
+.pkg-hint { display: block; margin-top: 2px; color: #64748b; font-size: 12px; }
+.amount-mode { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.am-btn {
+  border: 1px solid #c7d2fe;
+  background: #fff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.am-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+.pkg-day {
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 10px;
+  background: #fff;
+}
+.pkg-day-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.pkg-date {
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+.pkg-remove {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+}
+.pkg-remove:hover { background: #fee2e2; color: #b91c1c; }
+.pkg-row { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 8px; margin-bottom: 8px; }
+.pkg-select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 14px;
+  background: #fff;
+}
+.pkg-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 8px;
+  background: #fff;
+}
+.pkg-amount span { color: #64748b; }
+.pkg-amount input { width: 100%; min-width: 0; border: none; outline: none; padding: 8px 0; font-size: 14px; }
+.pkg-route { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pkg-place { min-width: 0; }
+.pkg-add {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: 2px dashed #c7d2fe;
+  border-radius: 12px;
+  background: #f8faff;
+  color: #4338ca;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pkg-add:hover { background: #eef2ff; }
+
+/* One-tap places under every From / To */
+.quick-places { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.qp {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.qp:hover { border-color: #a5b4fc; background: #eef2ff; }
+.qp.hotel { border-color: #bbf7d0; background: #f0fdf4; color: #166534; font-weight: 600; }
+
+/* Returning customer / trip */
+.returning {
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.ret-head { display: flex; align-items: center; gap: 8px; color: #075985; }
+.ret-x { margin-left: auto; border: none; background: transparent; color: #64748b; cursor: pointer; }
+.ret-trip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e0f2fe;
+}
+.ret-trip-info { font-size: 13px; color: #0f172a; min-width: 0; }
+.ret-btn {
+  flex-shrink: 0;
+  border: none;
+  background: #0284c7;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ret-none { margin-top: 6px; font-size: 13px; color: #475569; }
+.in-trip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 13px;
+}
+.link-btn { margin-left: auto; border: none; background: none; color: #4338ca; text-decoration: underline; cursor: pointer; font-size: 13px; }
+.stay-row { display: flex; align-items: center; gap: 8px; }
+.stay-row .loc-picker-btn { flex: 1; min-width: 0; }
+.stay-map, .stay-clear {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #4338ca;
+  cursor: pointer;
+}
+.stay-clear { color: #64748b; }
+
+@media (max-width: 640px) {
+  .pkg-row { grid-template-columns: 1fr 1fr; }
+  .pkg-amount { grid-column: 1 / -1; }
+  .pkg-route { grid-template-columns: 1fr; }
+  .ret-trip { flex-direction: column; align-items: stretch; }
+}
+
+/* "End with a drop at" for tours and full days */
+.end-drop {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px dashed #fdba74;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.end-drop-label { font-size: 12.5px; font-weight: 700; color: #9a3412; }
+.end-drop-value { font-weight: 700; color: #0f172a; font-size: 13px; }
+.end-drop-none { color: #64748b; font-size: 12.5px; font-style: italic; }
+.end-drop-clear { border: none; background: transparent; color: #64748b; cursor: pointer; }
+.end-drop .quick-places { flex-basis: 100%; margin-top: 2px; }
+.qp.on { border-color: #ea580c; background: #ffedd5; color: #9a3412; font-weight: 700; }
+
+/* "Start with a pickup at" — same look as the drop, blue instead of orange */
+.end-drop.start-pickup { background: #eff6ff; border-color: #93c5fd; }
+.end-drop.start-pickup .end-drop-label { color: #1d4ed8; }
+
+/* Full Day package: 8 hr / 80 km or 12 hr / 120 km */
+.fd-pkg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #f5f3ff; border: 1px dashed #c4b5fd; }
+.fd-label { font-size: 12.5px; font-weight: 700; color: #5b21b6; margin-right: 4px; }
+.fd-btn { border: 1px solid #c4b5fd; background: #fff; color: #5b21b6; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.fd-btn.on { background: #6d28d9; border-color: #6d28d9; color: #fff; }

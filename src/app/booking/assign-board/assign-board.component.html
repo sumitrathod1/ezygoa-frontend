@@ -53,7 +53,7 @@
         <div *ngIf="!onlyMissing">No bookings in this period.</div>
       </div>
 
-      <div class="ab-day" *ngFor="let g of groups" [class.missed]="isPast(g.date)">
+      <div class="ab-day" *ngFor="let g of groups; trackBy: trackGroup" [class.missed]="isPast(g.date)">
         <h2 class="ab-day-title">{{ dayLabel(g.date) }} <span>{{ g.items.length }}</span></h2>
         <p class="ab-missed-note" *ngIf="isPast(g.date)">
           The trip date has passed but no driver / vehicle was saved. Fill in who did it, or cancel the booking if it did not happen.
@@ -68,7 +68,10 @@
             <div class="bk-time">
               <i class="bi bi-clock"></i> {{ time(b.travelTime) || 'Time not set' }}
             </div>
-            <span class="bk-type">{{ b.bookingType }}</span>
+            <span class="bk-type">{{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
+            <button type="button" class="bk-trip" *ngIf="b.tripId" (click)="openTrip(b)" title="All days of this trip — assign the same driver and car to every day">
+              <i class="bi bi-suitcase2-fill"></i> Trip day {{ b.tripDay }}/{{ b.tripDays }}
+            </button>
             <span class="bk-from-org" *ngIf="b.transferredFrom" title="Transferred from {{ b.transferredFrom }}">
               <i class="bi bi-arrow-left-right"></i> from {{ b.transferredFrom }}
             </span>
@@ -175,7 +178,7 @@
           <i class="bi bi-person-badge"></i> Drivers <span>{{ board?.drivers?.length || 0 }}</span>
         </button>
         <button type="button" role="tab" [class.active]="panelTab === 'vehicle'" (click)="panelTab = 'vehicle'">
-          <i class="bi bi-car-front"></i> Vehicles <span>{{ board?.vehicles?.length || 0 }}</span>
+          <i class="bi bi-car-front"></i> Vehicles <span>{{ panelVehicles.length }}</span>
         </button>
       </div>
       <input class="panel-search" type="search" placeholder="Search name or number" [(ngModel)]="search" aria-label="Search" />
@@ -190,7 +193,7 @@
       >
         <div
           class="chip-card"
-          *ngFor="let d of drivers"
+          *ngFor="let d of drivers; trackBy: trackDriver"
           cdkDrag
           [cdkDragData]="{ kind: 'driver', id: d.userId }"
           (cdkDragStarted)="dragStarted($event)"
@@ -213,7 +216,7 @@
       >
         <div
           class="chip-card"
-          *ngFor="let v of vehicles"
+          *ngFor="let v of panelVehicles; trackBy: trackVehicle"
           cdkDrag
           [cdkDragData]="{ kind: 'vehicle', id: v.vehicleId }"
           (cdkDragStarted)="dragStarted($event)"
@@ -227,7 +230,7 @@
           <span class="cc-jobs" [class.free]="!jobs('vehicle', v.vehicleId)">{{ jobs('vehicle', v.vehicleId) || 'free' }}</span>
           <div class="chip-preview" *cdkDragPreview><i class="bi bi-car-front-fill"></i> {{ v.vehicleName }}</div>
         </div>
-        <div class="panel-empty" *ngIf="!vehicles.length">No vehicles found.</div>
+        <div class="panel-empty" *ngIf="!panelVehicles.length">No vehicles found.</div>
       </div>
     </aside>
   </div>

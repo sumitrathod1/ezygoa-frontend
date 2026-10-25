@@ -2,24 +2,63 @@
   <div class="ps-head">
     <div>
       <div class="ps-title">Partner statement</div>
-      <div class="ps-sub">{{ data.vendorName }}<span *ngIf="singleBooking"> · Booking #{{ data.bookingId }}</span></div>
+      <div class="ps-sub">{{ data.vendorName }}</div>
     </div>
     <button class="ps-x" type="button" (click)="close()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
   </div>
 
-  <ng-container *ngIf="!singleBooking">
+  <label class="ps-label">What should the statement show?</label>
+  <div class="ps-scope" role="radiogroup" aria-label="Statement contents">
+    <button type="button" role="radio" class="ps-scope-btn" [attr.aria-checked]="scope === 'customer'" [class.active]="scope === 'customer'" (click)="setScope('customer')">
+      <i class="bi bi-person"></i> One customer
+    </button>
+    <button type="button" role="radio" class="ps-scope-btn" [attr.aria-checked]="scope === 'dates'" [class.active]="scope === 'dates'" (click)="setScope('dates')">
+      <i class="bi bi-calendar-range"></i> Between dates
+    </button>
+    <button type="button" role="radio" class="ps-scope-btn" [attr.aria-checked]="scope === 'all'" [class.active]="scope === 'all'" (click)="setScope('all')">
+      <i class="bi bi-journal-text"></i> Whole report
+    </button>
+  </div>
+
+  <!-- One customer: every booking of that customer with this partner -->
+  <ng-container *ngIf="scope === 'customer'">
+    <input class="ps-input ps-search" type="search" placeholder="Search customer name or booking #" [(ngModel)]="search" aria-label="Search" />
+    <div class="ps-list" role="listbox" aria-label="Customer">
+      <div class="ps-empty" *ngIf="loadingRows">Loading…</div>
+      <div class="ps-empty" *ngIf="!loadingRows && !filteredCustomers.length">No customers with this partner.</div>
+      <ng-container *ngFor="let c of filteredCustomers">
+        <button
+          type="button"
+          class="ps-row"
+          role="option"
+          [attr.aria-selected]="selectedCustomerId === c.customerId"
+          [class.selected]="selectedCustomerId === c.customerId"
+          (click)="selectedCustomerId = c.customerId"
+        >
+          <span class="ps-row-main">
+            <strong>{{ c.customerName }}</strong>
+            <small>{{ c.bookings.length }} booking{{ c.bookings.length === 1 ? '' : 's' }} · {{ rangeLabel(c) }}</small>
+          </span>
+          <span class="ps-status" [ngClass]="c.status">{{ c.statusText }}</span>
+        </button>
+        <!-- The bookings that will be on the statement -->
+        <div class="ps-sub-list" *ngIf="selectedCustomerId === c.customerId">
+          <div class="ps-sub" *ngFor="let b of c.bookings">
+            <span>#{{ b.bookingId }} · {{ dateLabel(b.date) }}<ng-container *ngIf="b.route"> · {{ b.route }}</ng-container></span>
+            <span class="ps-status sm" [ngClass]="b.status">{{ b.statusText }}</span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <!-- Between dates -->
+  <ng-container *ngIf="scope === 'dates'">
     <label class="ps-label">Period (by travel date)</label>
     <div class="ps-presets">
-      <button
-        type="button"
-        *ngFor="let p of presets"
-        class="ps-chip"
-        [class.active]="preset === p.key"
-        (click)="applyPreset(p.key)"
-      >{{ p.label }}</button>
+      <button type="button" *ngFor="let p of presets" class="ps-chip" [class.active]="preset === p.key" (click)="applyPreset(p.key)">{{ p.label }}</button>
     </div>
-
-    <div class="ps-dates" *ngIf="preset === 'custom' || preset !== 'all'">
+    <div class="ps-dates">
       <div>
         <label class="ps-label">From</label>
         <input class="ps-input" type="date" [(ngModel)]="from" (ngModelChange)="preset = 'custom'" />
@@ -31,6 +70,12 @@
     </div>
   </ng-container>
 
+  <p class="ps-note ps-note-plain" *ngIf="scope === 'all'">Every booking with {{ data.vendorName }}, from the first one until today.</p>
+
+  <label class="ps-check" *ngIf="scope !== 'customer'">
+    <input type="checkbox" [(ngModel)]="onlyOpen" />
+    <span>Only bookings not fully paid <small>(leave out paid and cancelled ones)</small></span>
+  </label>
   <label class="ps-check">
     <input type="checkbox" [(ngModel)]="maskCustomer" />
     <span>Hide customer names <small>(shows "Aarav M." — phone numbers are never included)</small></span>

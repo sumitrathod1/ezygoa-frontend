@@ -1,7 +1,7 @@
-<div class="container-fluid py-3 px-2">
+<div class="bt-page">
 
-  <!-- Period Filter Chips -->
-  <div class="period-chips mb-2">
+  <!-- Period -->
+  <div class="bt-chips">
     <button class="chip" [class.active]="selectedPeriod === ''"        (click)="selectPeriod('')">All</button>
     <button class="chip" [class.active]="selectedPeriod === 'week'"    (click)="selectPeriod('week')">This Week</button>
     <button class="chip" [class.active]="selectedPeriod === 'month'"   (click)="selectPeriod('month')">This Month</button>
@@ -10,157 +10,182 @@
     <button class="chip" [class.active]="selectedPeriod === 'custom'"  (click)="selectPeriod('custom')">Custom</button>
   </div>
 
-  <!-- Filters -->
-  <div class="filter-panel mb-3">
-
-    <!-- Custom Date Range -->
-    <div *ngIf="showCustom" class="custom-range mb-2">
-      <div class="d-flex flex-wrap gap-2 align-items-end">
-        <div>
-          <label class="form-label small mb-1">From Date</label>
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="filter.startDate" />
-        </div>
-        <div>
-          <label class="form-label small mb-1">To Date</label>
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="filter.endDate" />
-        </div>
-        <button class="btn btn-primary btn-sm" (click)="applyCustomRange()">Apply</button>
-      </div>
-    </div>
-
-    <!-- Dropdowns Row -->
-    <div class="d-flex flex-wrap gap-2 align-items-end">
-      <div>
-        <label class="form-label small mb-1">Status</label>
-        <select class="form-select form-select-sm" [(ngModel)]="filter.status" (change)="applyFilter()">
-          <option value="">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="InProgress">In Progress</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label small mb-1">Vehicle</label>
-        <select class="form-select form-select-sm" [(ngModel)]="filter.vehicleId" (change)="applyFilter()">
-          <option value="">All Vehicles</option>
-          <option *ngFor="let v of vehicles" [value]="v.vehicleId">{{ v.vehicleName }}</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label small mb-1">Driver</label>
-        <select class="form-select form-select-sm" [(ngModel)]="filter.userId" (change)="applyFilter()">
-          <option value="">All Drivers</option>
-          <option *ngFor="let e of employees" [value]="e.userId || e.id">{{ e.name || e.userName }}</option>
-        </select>
-      </div>
-      <div class="ms-auto">
-        <button class="btn btn-outline-secondary btn-sm" (click)="clearFilter()">
-          <i class="bi bi-x-circle me-1"></i>Clear
-        </button>
-      </div>
-    </div>
+  <div *ngIf="showCustom" class="bt-custom">
+    <label>From <input type="date" [(ngModel)]="filter.startDate" /></label>
+    <label>To <input type="date" [(ngModel)]="filter.endDate" /></label>
+    <button class="bt-btn primary" (click)="applyCustomRange()">Apply</button>
   </div>
 
-  <!-- Summary KPI bar -->
-  <div class="summary-bar mb-3" *ngIf="bookings.length > 0">
-    <div class="summary-item">
-      <span class="summary-label">Showing</span>
-      <span class="summary-val">{{ pagination.totalCount || bookings.length }}</span>
+  <!-- Filters -->
+  <div class="bt-filter-bar">
+    <button class="bt-btn" [class.on]="showFilters" (click)="showFilters = !showFilters">
+      <i class="bi bi-funnel"></i> Filters
+      <span class="bt-count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+      <i class="bi" [ngClass]="showFilters ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+    </button>
+    <button class="bt-btn ghost" *ngIf="hasAnyFilter" (click)="clearFilter()">
+      <i class="bi bi-x-circle"></i> Clear all
+    </button>
+  </div>
+
+  <div class="bt-filters" *ngIf="showFilters">
+    <label>
+      <span>Status</span>
+      <select [(ngModel)]="filter.status" (change)="search()">
+        <option value="">All</option>
+        <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+      </select>
+    </label>
+    <label>
+      <span>Vehicle</span>
+      <select [(ngModel)]="filter.vehicleId" (change)="search()">
+        <option value="">All vehicles</option>
+        <option *ngFor="let v of vehicles" [value]="v.vehicleId">{{ v.vehicleName }}</option>
+      </select>
+    </label>
+    <label>
+      <span>Driver</span>
+      <select [(ngModel)]="filter.userId" (change)="search()">
+        <option value="">All drivers</option>
+        <option *ngFor="let e of employees" [value]="e.userId || e.id">{{ e.name || e.userName }}</option>
+      </select>
+    </label>
+    <label>
+      <span>Added by</span>
+      <select [(ngModel)]="filter.createdByUserId" (change)="search()">
+        <option value="">Anyone</option>
+        <option *ngFor="let a of addedByOptions" [value]="a.userId">{{ a.name }} ({{ a.count }})</option>
+      </select>
+    </label>
+    <label>
+      <span>Came from</span>
+      <select [(ngModel)]="filter.fromOrgId" (change)="search()">
+        <option value="">All bookings</option>
+        <option value="any">Transferred to us (any org)</option>
+        <option *ngFor="let o of fromOrgOptions" [value]="o.orgId">From {{ o.name }} ({{ o.count }})</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Totals over ALL matching bookings -->
+  <div class="bt-kpis">
+    <div class="kpi wide">
+      <span class="kpi-label">Bookings</span>
+      <span class="kpi-val">{{ summary.count | number }}</span>
     </div>
-    <div class="summary-item">
-      <span class="summary-label">Revenue</span>
-      <span class="summary-val text-success">{{ resultRevenue | indianCurrency }}</span>
+    <div class="kpi wide">
+      <span class="kpi-label">Revenue</span>
+      <span class="kpi-val green">{{ summary.revenue | indianCurrency }}</span>
+      <span class="kpi-note">excl. cancelled</span>
     </div>
-    <div class="summary-item">
-      <span class="summary-label">Pending</span>
-      <span class="summary-val text-warning">{{ resultPending }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">Completed</span>
-      <span class="summary-val text-success">{{ resultCompleted }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">Cancelled</span>
-      <span class="summary-val text-danger">{{ resultCancelled }}</span>
-    </div>
+    <button class="kpi" [class.sel]="filter.status === 'Pending'" (click)="toggleStatus('Pending')">
+      <span class="kpi-label">Pending</span>
+      <span class="kpi-val amber">{{ summary.pending | number }}</span>
+    </button>
+    <button class="kpi" [class.sel]="filter.status === 'Assigned'" (click)="toggleStatus('Assigned')">
+      <span class="kpi-label">Assigned</span>
+      <span class="kpi-val blue">{{ summary.assigned | number }}</span>
+    </button>
+    <button class="kpi" [class.sel]="filter.status === 'Completed'" (click)="toggleStatus('Completed')">
+      <span class="kpi-label">Completed</span>
+      <span class="kpi-val green">{{ summary.completed | number }}</span>
+    </button>
+    <button class="kpi" [class.sel]="filter.status === 'Canceled'" (click)="toggleStatus('Canceled')">
+      <span class="kpi-label">Cancelled</span>
+      <span class="kpi-val red">{{ summary.cancelled | number }}</span>
+    </button>
+  </div>
+
+  <!-- Booking cards -->
+  <div class="bt-list" [class.dim]="loading">
+    <article *ngFor="let b of bookings; trackBy: trackBooking" class="bk" [ngClass]="'st-' + (b.status || '').toLowerCase()">
+      <header class="bk-top">
+        <span class="bk-when">
+          <i class="bi bi-calendar3"></i> {{ b.travelDate | date: 'EEE, d MMM y' }}
+          <ng-container *ngIf="b.traveltime"> · {{ formatTime(b.traveltime) }}</ng-container>
+        </span>
+        <span class="bk-status" [ngClass]="(b.status || '').toLowerCase()">{{ statusLabel(b.status) }}</span>
+      </header>
+
+      <div class="bk-main">
+        <div class="bk-who">
+          <div class="bk-name">{{ b.customerName || 'Customer' }}</div>
+          <div class="bk-sub">
+            <a *ngIf="b.customerNumber" [href]="'tel:' + b.customerNumber" class="bk-phone">
+              <i class="bi bi-telephone"></i> {{ b.customerNumber }}
+            </a>
+            <span class="bk-pax"><i class="bi bi-people"></i> {{ b.pax }} pax</span>
+          </div>
+        </div>
+        <div class="bk-amount">{{ b.amount | indianCurrency }}</div>
+      </div>
+
+      <div class="bk-route">
+        <div class="pt"><span class="dot from"></span><span>{{ b.from || '—' }}</span></div>
+        <div class="pt"><span class="dot to"></span><span>{{ b.to || '—' }}</span></div>
+      </div>
+
+      <div class="bk-tags">
+        <span class="tag type">{{ b.bookingType | bookingType: b.endDrop : b.startPickup : b.fullDayHours }}</span>
+        <span class="tag org" *ngIf="b.transferredFromOrgId" title="Transferred from a linked organisation">
+          <i class="bi bi-arrow-left-right"></i> From {{ b.transferredFromOrgName || 'linked org' }}
+        </span>
+        <span class="tag partner" *ngIf="b.partnerName"><i class="bi bi-briefcase"></i> Partner</span>
+      </div>
+
+      <div class="bk-assign">
+        <span [class.missing]="!b.vehicleName && !b.partnerName">
+          <i class="bi bi-car-front"></i> {{ b.vehicleName || (b.partnerName ? "Partner's car" : 'No vehicle yet') }}
+        </span>
+        <span [class.missing]="!driverText(b)"><i class="bi bi-person"></i> {{ driverText(b) || 'No driver yet' }}</span>
+      </div>
+
+      <footer class="bk-foot">
+        <span class="bk-added" *ngIf="b.createdByName"><i class="bi bi-person-plus"></i> Added by {{ b.createdByName }}</span>
+        <div class="bk-actions">
+          <button class="act" (click)="invoice(b)" *ngIf="b.status !== 'Canceled'" title="Invoice">
+            <i class="bi bi-receipt"></i><span>Invoice</span>
+          </button>
+          <button
+            *ngIf="(canTransfer$ | async) && b.status !== 'Canceled' && b.status !== 'Completed'"
+            class="act"
+            (click)="transferBooking(b)"
+            title="Transfer to another organisation"
+          >
+            <i class="bi bi-send"></i><span>Transfer</span>
+          </button>
+          <button class="act primary" (click)="editBooking(b)">
+            <i class="bi bi-pencil"></i><span>Edit</span>
+          </button>
+        </div>
+      </footer>
+    </article>
+  </div>
+
+  <div *ngIf="!loading && bookings.length === 0" class="bt-empty">
+    <i class="bi bi-inbox"></i>
+    No bookings match these filters.
+    <button class="bt-btn" *ngIf="hasAnyFilter" (click)="clearFilter()">Clear filters</button>
   </div>
 
   <!-- Pagination -->
-  <nav *ngIf="pagination.totalPages > 1">
-    <ul class="pagination justify-content-center flex-wrap mb-2">
-      <li class="page-item" [class.disabled]="pagination.pageNumber === 1">
-        <a class="page-link" (click)="changePage(pagination.pageNumber - 1)">‹</a>
-      </li>
-      <li class="page-item" *ngIf="pagination.pageNumber > 3">
-        <a class="page-link" (click)="changePage(1)">1</a>
-      </li>
-      <li class="page-item disabled" *ngIf="showLeftDots()">
-        <span class="page-link">...</span>
-      </li>
-      <li class="page-item" *ngFor="let page of pages" [class.active]="pagination.pageNumber === page">
-        <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-      </li>
-      <li class="page-item disabled" *ngIf="showRightDots()">
-        <span class="page-link">...</span>
-      </li>
-      <li class="page-item" *ngIf="pagination.pageNumber < pagination.totalPages - 2">
-        <a class="page-link" (click)="changePage(pagination.totalPages)">{{ pagination.totalPages }}</a>
-      </li>
-      <li class="page-item" [class.disabled]="pagination.pageNumber === pagination.totalPages">
-        <a class="page-link" (click)="changePage(pagination.pageNumber + 1)">›</a>
-      </li>
-    </ul>
+  <nav class="bt-pager" *ngIf="pagination.totalCount > 0">
+    <button class="pg" [disabled]="pagination.pageNumber <= 1" (click)="changePage(1)" aria-label="First page">
+      <i class="bi bi-chevron-double-left"></i>
+    </button>
+    <button class="pg" [disabled]="pagination.pageNumber <= 1" (click)="changePage(pagination.pageNumber - 1)">
+      <i class="bi bi-chevron-left"></i><span class="pg-word">Prev</span>
+    </button>
+    <div class="pg-info">
+      <strong>Page {{ pagination.pageNumber }} of {{ pagination.totalPages || 1 }}</strong>
+      <small>{{ rangeText }}</small>
+    </div>
+    <button class="pg" [disabled]="pagination.pageNumber >= pagination.totalPages" (click)="changePage(pagination.pageNumber + 1)">
+      <span class="pg-word">Next</span><i class="bi bi-chevron-right"></i>
+    </button>
+    <button class="pg" [disabled]="pagination.pageNumber >= pagination.totalPages" (click)="changePage(pagination.totalPages)" aria-label="Last page">
+      <i class="bi bi-chevron-double-right"></i>
+    </button>
   </nav>
-
-  <!-- Booking Cards -->
-  <div *ngFor="let booking of bookings" class="booking-card">
-    <div class="booking-middle">
-      <div class="title">
-        {{ booking.customerName }}
-        <span class="pax">Pax {{ booking.pax }}</span>
-      </div>
-      <div class="location">{{ booking.customerNumber }}</div>
-      <div class="dates">
-        <div class="date-section">
-          <small>{{ booking.from }}</small>
-          <div>{{ booking.travelDate }}</div>
-        </div>
-        <div class="date-section">
-          <small>{{ booking.to }}</small>
-          <div>{{ formatTime(booking.traveltime) }}</div>
-        </div>
-      </div>
-      <div class="duration">
-        <div>{{ booking.bookingType }}</div>
-        <div>Driver: {{ booking.userName }}</div>
-        <div *ngIf="booking.createdByName" class="added-by">
-          <i class="bi bi-person-plus"></i> Added by: {{ booking.createdByName }}
-        </div>
-      </div>
-    </div>
-
-    <div class="booking-right">
-      <span class="status" [ngClass]="booking.status?.toLowerCase()">{{ booking.status }}</span>
-      <div class="price">₹{{ booking.amount }}</div>
-      <div class="small text-muted">{{ booking.vehicleName }}</div>
-      <div class="mt-2">
-        <button class="btn btn-sm btn-primary" (click)="editBooking(booking)">Edit</button>
-        <button
-          *ngIf="(canTransfer$ | async) && booking.status !== 'Canceled' && booking.status !== 'Completed'"
-          class="btn btn-sm btn-outline-primary ms-1"
-          (click)="transferBooking(booking)"
-          title="Transfer to another organisation"
-        >
-          <i class="bi bi-send"></i> Transfer
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div *ngIf="bookings.length === 0" class="text-center text-muted py-5">
-    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-    No bookings found for selected filters.
-  </div>
 
 </div>

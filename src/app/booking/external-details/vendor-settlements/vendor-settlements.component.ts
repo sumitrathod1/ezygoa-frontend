@@ -9,6 +9,7 @@ import { ConfirmDialogComponent } from '../../../confirm-dialog/confirm-dialog.c
 import { ToastrService } from 'ngx-toastr';
 import { RouterModule } from '@angular/router';
 import { PartnerStatementDialogComponent } from '../partner-statement/partner-statement-dialog.component';
+import { InvoicePreviewComponent } from '../../../calendar/invoice-preview/invoice-preview.component';
 
 @Component({
   selector: 'app-vendor-settlements',
@@ -163,6 +164,16 @@ export class VendorSettlementsComponent {
       width: '460px',
       maxWidth: '95vw',
       data: { vendorId: id, vendorName: this.selectedVendorName },
+    });
+  }
+
+  /** Customer invoice for a partner booking — your organisation's details, never the partner's. */
+  openInvoice(b: any) {
+    this._dialog.open(InvoicePreviewComponent, {
+      data: { booking: { bookingId: b.bookingId } },
+      maxWidth: '500px',
+      width: '95vw',
+      maxHeight: '92vh',
     });
   }
 

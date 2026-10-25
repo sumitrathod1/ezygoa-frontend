@@ -1,324 +1,107 @@
-import { Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
+import { Router, RouterModule } from '@angular/router';
 import { ExpenseFormComponent } from './expense-form/expense-form.component';
-import { MaintenanceFormComponent } from './maintenance-form/maintenance-form.component';
-import { RouterModule } from '@angular/router';
 import { VehicleService } from '../services/vehicle.service';
-import { ToastrService } from 'ngx-toastr';
+import { DashboardService, FleetSummary, FleetVehicle } from '../services/dashboard.service';
+import { IndianCurrencyPipe } from '../pipes/indian-currency.pipe';
+import { categoryIcon, dueText, prettyType, rangeLabel } from './fleet-ui';
 
+/**
+ * Vehicles home: how the fleet is doing this month (profit, earnings, expenses, how busy
+ * the cars are), what needs attention (papers expiring, services due) and every car at a glance.
+ * Figures come from the server (GET /Dashboard/fleet), not from adding up lists in the browser.
+ */
 @Component({
   selector: 'app-vehicle-form',
   standalone: true,
-  imports: [CommonModule, MatCardModule, RouterModule],
+  imports: [CommonModule, RouterModule, IndianCurrencyPipe],
   templateUrl: './vehicle.component.html',
   styleUrl: './vehicle.component.css',
 })
-export class VehicleComponent {
-  vehicleDocuments: any = [];
-  expenses: any = [];
-  vehicleMaintenances: any = [];
-  vehicles: any[] = [];
+export class VehicleComponent implements OnInit {
+  fleet: FleetSummary | null = null;
+  loading = true;
+  error = '';
+  recentExpenses: any[] = [];
 
-  totlalMaintenanceCost: number = 0;
-  totalExpenseCost: number = 0;
+  readonly dueText = dueText;
+  readonly prettyType = prettyType;
+  readonly categoryIcon = categoryIcon;
 
-  get allExpenses() {
-    return this.totalExpenseCost + this.totlalMaintenanceCost;
-  }
-
-  get totalVehicles() { return this.vehicles.length; }
-
-  get inMaintenanceCount() {
-    const vehicleIds = new Set(
-      this.vehicleMaintenances
-        .filter((m: any) => this.getDaysLeftNumber(m.nextduedate) <= 7)
-        .map((m: any) => m.vehicle?.vehicleId)
-    );
-    return vehicleIds.size;
-  }
-
-  get activeVehicles() {
-    return Math.max(0, this.totalVehicles - this.inMaintenanceCount);
-  }
-
-  get expensesByVehicle(): { name: string; amount: number }[] {
-    const map: Record<string, { name: string; amount: number }> = {};
-    this.expenses.forEach((e: any) => {
-      // The expense payload's vehicle has no vehicleId, so everything fell into one
-      // 'unknown' bucket labelled with the first vehicle's name.
-      const id = e.vehicleID ?? e.vehicleId ?? e.vehicle?.vehicleId ?? e.vehicle?.vehicleNumber ?? 'unknown';
-      const name = e.vehicle?.vehicleName || 'Unknown';
-      if (!map[id]) map[id] = { name, amount: 0 };
-      map[id].amount += e.amount || 0;
-    });
-    return Object.values(map).sort((a, b) => b.amount - a.amount);
-  }
-
-  get maxVehicleExpense(): number {
-    const vals = this.expensesByVehicle.map((v) => v.amount);
-    return vals.length ? Math.max(...vals) : 1;
-  }
   constructor(
-    private _dilog: MatDialog,
+    private _dialog: MatDialog,
     private _vehicleService: VehicleService,
-    private _toastr: ToastrService
+    private _dashboard: DashboardService,
+    private _router: Router
   ) {}
 
-  documentForm() {
-    //this._dilog.open(VehicleCardComponent);
-  }
-
-  expexnseForm() {
-    this._dilog.open(ExpenseFormComponent);
-  }
-  maintenanceForm() {
-    this._dilog.open(MaintenanceFormComponent);
-  }
-
   ngOnInit() {
-    this.loadVehicles();
-    this.loadAllDocuments();
-    this.loadExpenses();
-    this.loadMaintenance();
-  }
-
-  loadVehicles() {
-    this._vehicleService.getAllVehicles().subscribe({
-      next: (data: any) => {
-        this.vehicles = Array.isArray(data) ? data : [];
-      },
-    });
-  }
-
-  loadAllDocuments() {
-    this._vehicleService.getAllDocuments().subscribe({
-      next: (data) => {
-        this.vehicleDocuments = Array.isArray(data) ? data : [];
-      },
-    });
-  }
-
-  loadExpenses() {
+    this.load();
     this._vehicleService.getAllExpences().subscribe({
-      next: (data) => {
-        this.expenses = Array.isArray(data) ? data : [];
-        this.totalExpenseCost = this.expenses.reduce(
-          (total: number, exp: any) => total + (exp.amount || 0),
-          0
-        );
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : [];
+        this.recentExpenses = [...list]
+          .sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime())
+          .slice(0, 4);
       },
     });
   }
 
-  loadMaintenance() {
-    this._vehicleService.getAllMaintenances().subscribe({
-      next: (data) => {
-        this.vehicleMaintenances = Array.isArray(data) ? data : [];
-        this.totlalMaintenanceCost = this.vehicleMaintenances.reduce(
-          (total: number, maintenance: any) => total + (maintenance.cost || 0),
-          0
-        );
+  load() {
+    this.loading = true;
+    this.error = '';
+    this._dashboard.getFleet().subscribe({
+      next: (f) => {
+        this.fleet = f;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Could not load the fleet figures.';
       },
     });
   }
 
-  getExpenseDisplay(exp: any) {
-    switch (exp.categoryType) {
-      case 'Accident':
-        return {
-          icon: 'bi-car-front-fill',
-          iconBg: 'bg-red-light',
-        };
-      case 'Repair':
-        return {
-          icon: 'bi-gear-fill',
-          iconBg: 'bg-blue-light',
-        };
-      case 'Fuel':
-        return {
-          icon: 'bi-droplet-half',
-          iconBg: 'bg-orange-light',
-        };
-      case 'DocumentRenew':
-        return {
-          icon: 'bi-file-earmark-text',
-          iconBg: 'bg-green-light',
-        };
-      default:
-        return {
-          icon: 'bi-cash-stack',
-          iconBg: 'bg-gray-200',
-        };
-    }
+  get periodLabel(): string {
+    return this.fleet ? rangeLabel(this.fleet.from, this.fleet.to) : '';
   }
 
-  getDocumentStatus(doc: any): {
-    status: string;
-    statusClass: string;
-    icon: string;
-    iconBg: string;
-  } {
-    const daysLeft = this.getDaysLeftNumber(doc.expiryDate);
-    if (daysLeft > 30) {
-      return {
-        status: 'Valid',
-        statusClass: 'badge-valid',
-        icon: 'bi-credit-card-2-front-fill',
-        iconBg: 'bg-green-light',
-      };
-    } else if (daysLeft > 0 && daysLeft < 20) {
-      return {
-        status: 'Soon',
-        statusClass: 'badge-warning',
-        icon: 'bi-shield-exclamation',
-        iconBg: 'bg-orange-light',
-      };
-    } else {
-      return {
-        status: 'Expired',
-        statusClass: 'badge-expired',
-        icon: 'bi-award-fill',
-        iconBg: 'bg-red-light',
-      };
-    }
+  /** Number of things to look at: papers expiring and services due */
+  get alertCount(): number {
+    return (this.fleet?.alerts.documents.length ?? 0) + (this.fleet?.alerts.services.length ?? 0);
   }
 
-  getStatusByDate(
-    obj: any,
-    dateField: string
-  ): {
-    status: string;
-    statusClass: string;
-    icon: string;
-    iconBg: string;
-  } {
-    const dateStr = obj[dateField];
-    const daysLeft = this.getDaysLeftNumber(dateStr);
-
-    if (isNaN(daysLeft)) {
-      return {
-        status: 'Unknown',
-        statusClass: 'badge-unknown',
-        icon: 'bi-question-circle',
-        iconBg: 'bg-gray-200',
-      };
-    }
-    if (daysLeft > 30) {
-      return {
-        status: 'Valid',
-        statusClass: 'badge-valid',
-        icon: 'bi-credit-card-2-front-fill',
-        iconBg: 'bg-green-light',
-      };
-    } else if (daysLeft < 20 && daysLeft >= 0) {
-      return {
-        status: 'Soon',
-        statusClass: 'badge-warning',
-        icon: 'bi-shield-exclamation',
-        iconBg: 'bg-orange-light',
-      };
-    } else {
-      return {
-        status: 'Expired',
-        statusClass: 'badge-expired',
-        icon: 'bi-award-fill',
-        iconBg: 'bg-red-light',
-      };
-    }
+  /** Highest earner this month (only when it actually made money) */
+  get topEarnerId(): number | null {
+    const best = [...(this.fleet?.vehicles ?? [])].sort((a, b) => b.revenue - a.revenue)[0];
+    return best && best.revenue > 0 ? best.vehicleId : null;
   }
 
-  getDaysLeftNumber(dateStr: string): number {
-    if (!dateStr) return NaN;
-    const today = new Date();
-    const target = new Date(dateStr);
-    today.setHours(0, 0, 0, 0);
-    target.setHours(0, 0, 0, 0);
-    return Math.ceil(
-      (target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
+  /** Width of the "out today" ring, 0–100 */
+  get outTodayPct(): number {
+    const f = this.fleet;
+    return f && f.totals.vehicles ? Math.round((100 * f.today.out) / f.totals.vehicles) : 0;
   }
 
-  getDaysLeft(expiryDate: string): string {
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-
-    today.setHours(0, 0, 0, 0);
-    expiry.setHours(0, 0, 0, 0);
-    const diff = Math.ceil(
-      (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diff > 0) {
-      return `${diff} days`;
-    } else if (diff === 0) {
-      return 'Today';
-    } else {
-      return `${Math.abs(diff)} Expired`;
-    }
-  }
-  getMaintenanceDisplay(exp: any): any {
-    let maintenanceDetails;
-    switch (exp.maintenanceType) {
-      case 'oilChange':
-        maintenanceDetails = { icon: 'bi-droplet-half', iconBg: 'bg-orange' };
-        break;
-      case 'TireChange':
-        maintenanceDetails = { icon: 'bi-circle-fill', iconBg: 'bg-blue' };
-        break;
-      case 'Fuel':
-        maintenanceDetails = {
-          icon: 'bi-fuel-pump',
-          iconBg: 'bg-yellow-light',
-        };
-        break;
-      case 'Service':
-        maintenanceDetails = { icon: 'bi-gear-fill', iconBg: 'bg-green' };
-        break;
-      default:
-        maintenanceDetails = { icon: 'bi-gear-fill', iconBg: 'bg-green' };
-        break;
-    }
-
-    const daysLeft = this.getDaysLeftNumber(exp.nextduedate);
-
-    let maintenanceStatus;
-    if (daysLeft < 0) {
-      maintenanceStatus = { status: 'ORdue', statusClass: 'badge-expired' };
-    } else if (daysLeft >= 0 && daysLeft <= 20) {
-      maintenanceStatus = { status: 'due', statusClass: 'bg-orange-light' };
-    } else if (daysLeft <= 30) {
-      maintenanceStatus = { status: 'Soon', statusClass: 'badge-warning' };
-    } else {
-      maintenanceStatus = { status: 'Valid', statusClass: 'badge-valid' };
-    }
-
-    return { ...maintenanceDetails, ...maintenanceStatus };
+  /** Arrow + colour for a % change; for expenses going up is bad */
+  trend(pct: number, upIsGood = true): { icon: string; cls: string; text: string } {
+    if (!pct) return { icon: 'bi-dash', cls: 'flat', text: 'same as before' };
+    const good = pct > 0 === upIsGood;
+    return { icon: pct > 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right', cls: good ? 'good' : 'bad', text: `${Math.abs(pct)}%` };
   }
 
-  get top4Documents() {
-    //return this.vehicleDocuments.slice(0, 4);
-
-    return [...this.vehicleDocuments]
-      .sort((a, b) => {
-        const daysLeftA = this.getDaysLeftNumber(a.expiryDate);
-        const daysLeftB = this.getDaysLeftNumber(b.expiryDate);
-        return daysLeftA - daysLeftB;
-      })
-      .slice(0, 4);
-  }
-  get top4Expenses() {
-    return this.expenses.slice(0, 4);
+  openVehicle(v: FleetVehicle) {
+    this._router.navigate(['/vehicle-statistics'], { queryParams: { vehicleId: v.vehicleId } });
   }
 
-  get top4Maintenances() {
-    //return this.vehicleMaintenances.slice(0, 4);
-    return [...this.vehicleMaintenances]
-      .sort((a, b) => {
-        const daysLeftA = this.getDaysLeftNumber(a.nextduedate);
-        const daysLeftB = this.getDaysLeftNumber(b.nextduedate);
-        return daysLeftA - daysLeftB;
-      })
-      .slice(0, 4);
+  addExpense() {
+    this._dialog
+      .open(ExpenseFormComponent, { maxWidth: '95vw' })
+      .afterClosed()
+      .subscribe(() => this.load());
   }
+
+  trackVehicle = (_: number, v: FleetVehicle) => v.vehicleId;
 }

@@ -7,6 +7,7 @@ import { BookingService } from '../../../services/booking.service';
 import { AuditLogRow, AuditLogService } from '../../../services/audit-log.service';
 import { ConfirmDialogComponent } from '../../../confirm-dialog/confirm-dialog.component';
 import { PartnerStatementDialogComponent } from '../partner-statement/partner-statement-dialog.component';
+import { InvoicePreviewComponent } from '../../../calendar/invoice-preview/invoice-preview.component';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -156,6 +157,16 @@ export class VendorDetailComponent implements OnInit {
       width: '460px',
       maxWidth: '95vw',
       data: { vendorId: this.booking.vendorId, vendorName: this.booking.vendorName, bookingId: this.booking.bookingId },
+    });
+  }
+
+  /** Customer invoice for this partner booking — your organisation's details, never the partner's. */
+  openInvoice() {
+    this._dialog.open(InvoicePreviewComponent, {
+      data: { booking: { bookingId: this.booking.bookingId } },
+      maxWidth: '500px',
+      width: '95vw',
+      maxHeight: '92vh',
     });
   }
 

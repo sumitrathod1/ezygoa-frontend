@@ -71,4 +71,13 @@ export class OrganizationService {
   removeLink(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/links/${id}`);
   }
+
+  /** App-wide settings: how many days a sign-in lasts */
+  getSystemSettings(): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/SystemSettings`);
+  }
+
+  saveSessionDays(sessionDays: number): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/SystemSettings`, { sessionDays });
+  }
 }

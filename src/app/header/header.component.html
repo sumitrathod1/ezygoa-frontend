@@ -6,13 +6,14 @@
     aria-label="Company Logo Menu"
     class="logo-button"
   >
-    <img src="assets/Ezy.png" alt="Logo" class="logo-image" />
+    <img [src]="(org$ | async)?.logoUrl || 'assets/Ezy.png'" [alt]="((org$ | async)?.name || 'Company') + ' logo'" class="logo-image" />
   </button>
 
   <!-- Same logo, no menu — desktop only -->
-  <img src="assets/Ezy.png" alt="Logo" class="logo-static" />
+  <img [src]="(org$ | async)?.logoUrl || 'assets/Ezy.png'" [alt]="((org$ | async)?.name || 'Company') + ' logo'" class="logo-static" />
 
-  <span class="app-title">Ezy</span>
+  <!-- The signed-in organisation's own name (was "Ezy" for everyone) -->
+  <span class="app-title">{{ (org$ | async)?.name || '' }}</span>
 
   <span class="example-spacer"></span>
   @if (pending$ | async; as p) {
@@ -59,6 +60,9 @@
   </button> -->
   <button mat-menu-item routerLink="/assign">
     <i class="bi bi-diagram-3-fill" style="margin-right:6px;color:#ea580c"></i> Assign drivers
+  </button>
+  <button mat-menu-item routerLink="/rentals">
+    <i class="bi bi-key-fill" style="margin-right:6px;color:#0d9488"></i> Rent a Car
   </button>
   <button mat-menu-item routerLink="/employee">
     <i class="bi bi-people-fill" style="margin-right:6px;color:#6366f1"></i> Drivers

@@ -122,6 +122,9 @@
           {{ b.settlementDirection === 'VendorToOwner' ? 'Record payment' : 'Pay partner' }}
         </button>
         <button class="outline-btn" (click)="viewDetail(b)">Detail</button>
+        <button class="outline-btn" (click)="openInvoice(b)" title="Invoice for the customer (shows your company, not the partner)">
+          <i class="bi bi-receipt"></i> Invoice
+        </button>
       </div>
     </div>
 

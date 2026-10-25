@@ -8,16 +8,47 @@ import { EmployeeService } from '../../services/employee.service';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
-import { Observable } from 'rxjs';
+import { Observable, skip } from 'rxjs';
 import { DispatchService } from '../../services/dispatch.service';
 import { TransferBookingDialogComponent } from '../transfer-booking-dialog/transfer-booking-dialog.component';
+import { InvoicePreviewComponent } from '../../calendar/invoice-preview/invoice-preview.component';
 
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 type Period = 'week' | 'month' | 'quarter' | 'year' | 'custom' | '';
+
+/** Totals over every booking that matches the filters (sent by the server, not counted from one page) */
+export interface BookingSummary {
+  count: number;
+  revenue: number;
+  pending: number;
+  assigned: number;
+  completed: number;
+  cancelled: number;
+}
+
+const EMPTY_SUMMARY: BookingSummary = { count: 0, revenue: 0, pending: 0, assigned: 0, completed: 0, cancelled: 0 };
+
+const emptyFilter = () => ({
+  particularDate: '',
+  startDate: '',
+  endDate: '',
+  from: '',
+  to: '',
+  status: '',
+  vehicleId: '',
+  userId: '',
+  bookingType: '',
+  travelTime: '',
+  /** Who added the booking */
+  createdByUserId: '',
+  /** Linked organisation it was transferred from; 'any' = every transferred booking */
+  fromOrgId: '',
+});
 
 @Component({
   selector: 'app-booking-table',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, IndianCurrencyPipe],
+  imports: [BookingTypePipe, CommonModule, RouterModule, FormsModule, ReactiveFormsModule, IndianCurrencyPipe],
   templateUrl: './booking-table.component.html',
   styleUrl: './booking-table.component.css',
 })
@@ -25,39 +56,32 @@ export class BookingTableComponent implements OnInit {
   bookings: any[] = [];
   vehicles: any[] = [];
   employees: any[] = [];
+  addedByOptions: { userId: number; name: string; count: number }[] = [];
+  fromOrgOptions: { orgId: number; name: string; count: number }[] = [];
 
-  // Summary KPIs from current result
-  resultTotal = 0;
-  resultRevenue = 0;
-  resultPending = 0;
-  resultCompleted = 0;
-  resultCancelled = 0;
+  summary: BookingSummary = { ...EMPTY_SUMMARY };
+  loading = false;
 
   pagination: any = {
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: 20,
     totalCount: 0,
     totalPages: 0,
   };
 
-  showFilter = true;
+  /** Filter panel open (collapsed by default on phones) */
+  showFilters = typeof window !== 'undefined' && window.innerWidth > 768;
   selectedPeriod: Period = '';
   showCustom = false;
 
-  filter: any = {
-    particularDate: '',
-    startDate: '',
-    endDate: '',
-    from: '',
-    to: '',
-    status: '',
-    vehicleId: '',
-    userId: '',
-    bookingType: '',
-    travelTime: '',
-  };
+  filter: any = emptyFilter();
 
-  statusOptions = ['', 'Pending', 'Completed', 'Cancelled', 'InProgress'];
+  statusOptions = [
+    { value: 'Pending', label: 'Pending' },
+    { value: 'Assigned', label: 'Assigned' },
+    { value: 'Completed', label: 'Completed' },
+    { value: 'Canceled', label: 'Cancelled' },
+  ];
 
   constructor(
     private _dialog: MatDialog,
@@ -86,9 +110,19 @@ export class BookingTableComponent implements OnInit {
       .subscribe((done) => done && this.applyFilter());
   }
 
+  invoice(booking: any) {
+    this._dialog.open(InvoicePreviewComponent, {
+      data: { booking: { bookingId: booking.bookingId } },
+      maxWidth: '500px',
+      width: '95vw',
+      maxHeight: '92vh',
+    });
+  }
+
   ngOnInit() {
     this.applyFilter();
-    this._bookingservice.bookingUpdated$.subscribe(() => this.applyFilter());
+    // bookingUpdated$ replays its last value on subscribe — skip it, the page was just loaded
+    this._bookingservice.bookingUpdated$.pipe(skip(1)).subscribe(() => this.applyFilter());
 
     this._vehicleService.getAllVehicles().subscribe({
       next: (data: any) => {
@@ -109,7 +143,8 @@ export class BookingTableComponent implements OnInit {
     if (p === 'custom') return;
 
     const now = new Date();
-    const fmt = (d: Date) => d.toISOString().split('T')[0];
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     if (p === '') {
       this.filter.startDate = '';
@@ -131,55 +166,89 @@ export class BookingTableComponent implements OnInit {
       this.filter.endDate = fmt(now);
     }
 
+    this.search();
+  }
+
+  /** A filter changed: back to page 1 */
+  search() {
     this.pagination.pageNumber = 1;
     this.applyFilter();
   }
 
   applyFilter() {
+    this.loading = true;
     this._bookingservice
       .filterBookings(this.filter, this.pagination.pageNumber, this.pagination.pageSize)
       .subscribe({
         next: (res: any) => {
+          this.loading = false;
           this.bookings = res.data || [];
           this.pagination = res.pagination || this.pagination;
-          this.computeSummary();
+          this.summary = { ...EMPTY_SUMMARY, ...(res.summary || {}) };
+          if (res.filters) {
+            this.addedByOptions = res.filters.addedBy || [];
+            this.fromOrgOptions = res.filters.fromOrgs || [];
+          }
         },
+        error: () => (this.loading = false),
       });
   }
 
   applyCustomRange() {
-    this.pagination.pageNumber = 1;
-    this.applyFilter();
+    this.search();
   }
 
   clearFilter() {
     this.selectedPeriod = '';
     this.showCustom = false;
-    this.filter = {
-      particularDate: '', startDate: '', endDate: '',
-      from: '', to: '', status: '', vehicleId: '',
-      userId: '', bookingType: '', travelTime: '',
-    };
-    this.pagination.pageNumber = 1;
-    this.applyFilter();
+    this.filter = emptyFilter();
+    this.search();
   }
 
-  computeSummary() {
-    this.resultTotal     = this.bookings.length;
-    this.resultRevenue   = this.bookings.reduce((s, b) => s + (b.amount || 0), 0);
-    this.resultPending   = this.bookings.filter((b) => b.status === 'Pending').length;
-    this.resultCompleted = this.bookings.filter((b) => b.status === 'Completed').length;
-    this.resultCancelled = this.bookings.filter((b) => b.status === 'Cancelled').length;
+  /** Tap a status tile to see only those bookings (tap again to show all) */
+  toggleStatus(status: string) {
+    this.filter.status = this.filter.status === status ? '' : status;
+    this.search();
+  }
+
+  /** Number of dropdown filters in use — shown on the "Filters" button */
+  get activeFilterCount(): number {
+    const f = this.filter;
+    return [f.status, f.vehicleId, f.userId, f.createdByUserId, f.fromOrgId].filter((v) => !!v).length;
+  }
+
+  get hasAnyFilter(): boolean {
+    return this.activeFilterCount > 0 || !!this.selectedPeriod;
+  }
+
+  /** "21–40 of 1,699" */
+  get rangeText(): string {
+    const { pageNumber, pageSize, totalCount } = this.pagination;
+    if (!totalCount) return '0';
+    const start = (pageNumber - 1) * pageSize + 1;
+    const end = Math.min(totalCount, pageNumber * pageSize);
+    return `${start}–${end} of ${totalCount.toLocaleString('en-IN')}`;
   }
 
   changePage(page: number) {
-    if (page < 1 || page > this.pagination.totalPages) return;
+    if (page < 1 || page > this.pagination.totalPages || page === this.pagination.pageNumber) return;
     this.pagination.pageNumber = page;
     this.applyFilter();
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   editBooking(booking: any) {
     this._dialog.open(BookingFormComponent, { data: booking });
+  }
+
+  statusLabel(status?: string | null): string {
+    return status === 'Canceled' ? 'Cancelled' : status || '';
+  }
+
+  /** Booked with a partner's car/driver instead of our own */
+  driverText(b: any): string {
+    if (b.partnerName) return `Partner: ${b.partnerName}`;
+    return b.userName || '';
   }
 
   formatTime(time?: string | null): string {
@@ -193,17 +262,5 @@ export class BookingTableComponent implements OnInit {
     return `${hour12}:${m} ${suffix}`;
   }
 
-  get pages(): number[] {
-    const total = this.pagination.totalPages;
-    const current = this.pagination.pageNumber;
-    const delta = 2;
-    const pages: number[] = [];
-    for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
-      pages.push(i);
-    }
-    return pages;
-  }
-
-  showLeftDots(): boolean  { return this.pagination.pageNumber > 3; }
-  showRightDots(): boolean { return this.pagination.pageNumber < this.pagination.totalPages - 2; }
+  trackBooking = (_: number, b: any) => b.bookingId;
 }

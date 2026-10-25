@@ -14,8 +14,9 @@ export class VehicleService {
 
   constructor(private _http: HttpClient) {}
 
-  getAllVehicles() {
-    return this._http.get(`${this.baseUrl}GetallVehicles`);
+  /** Real vehicles. Rent-a-car placeholders ("RENTAL-…") only when asked (rental screens). */
+  getAllVehicles(includeRental = false) {
+    return this._http.get(`${this.baseUrl}GetallVehicles`, includeRental ? { params: { includeRental: 'true' } } : {});
   }
 
   getAllExpences() {

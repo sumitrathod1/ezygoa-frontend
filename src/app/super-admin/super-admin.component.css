@@ -474,3 +474,17 @@
   .link-form > i { display: none; }
   .link-form select, .link-form .btn-primary { flex-basis: 100%; }
 }
+
+/* ── Stay signed in ── */
+.session-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.session-presets { display: flex; flex-wrap: wrap; gap: .4rem; }
+.session-presets .on { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.session-input { display: inline-flex; align-items: center; gap: .4rem; margin: 0; color: #94a3b8; font-size: .85rem; }
+.session-input input {
+  width: 80px;
+  padding: .45rem .6rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}

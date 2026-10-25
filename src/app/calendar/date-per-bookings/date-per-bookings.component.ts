@@ -11,11 +11,13 @@ import { RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
 import { DispatchService } from '../../services/dispatch.service';
 import { TransferBookingDialogComponent } from '../../booking/transfer-booking-dialog/transfer-booking-dialog.component';
+import { TripDialogComponent } from '../../booking/trip-dialog/trip-dialog.component';
 
+import { BookingTypePipe } from '../../pipes/booking-type.pipe';
 @Component({
   selector: 'app-date-per-bookings',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [BookingTypePipe, CommonModule, RouterModule],
   templateUrl: './date-per-bookings.component.html',
   styleUrl: './date-per-bookings.component.css',
 })
@@ -37,6 +39,26 @@ export class DatePerBookingsComponent {
     private _dispatch: DispatchService
   ) {
     this.canTransfer$ = this._dispatch.canTransfer();
+  }
+
+  openTrip(b: any) {
+    this._dialog.open(TripDialogComponent, { width: '640px', maxWidth: '96vw', data: { tripId: b.tripId } });
+  }
+
+  /** New booking for the same customer — joins their trip (and hotel) when there is one. */
+  addForCustomer(b: any) {
+    this._dialog.open(BookingFormComponent, {
+      data: {
+        prefill: {
+          customerName: b.customer?.customerName,
+          customerNumber: b.customer?.customerNumber,
+          tripId: b.tripId ?? null,
+          pax: b.pax ?? null,
+          travelAgentId: b.travelAgentId ?? null,
+          stay: b.tripStayName ? { name: b.tripStayName, mapsLink: b.tripStayMapsLink ?? null } : null,
+        },
+      },
+    });
   }
 
   isPartner(b: any): boolean {
@@ -163,6 +185,9 @@ export class DatePerBookingsComponent {
       RailwayStation: '#06b6d4',
       FullDay: '#f59e0b',
       SightSeeing: '#22c55e',
+      NorthGoaSightseeing: '#16a34a',
+      SouthGoaSightseeing: '#0d9488',
+      DudhsagarTour: '#0891b2',
       Shuttle: '#6366f1',
       Notspecified: '#9ca3af',
     };

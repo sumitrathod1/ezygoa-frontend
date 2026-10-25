@@ -35,35 +35,51 @@
 
   <ng-container *ngIf="!isLoadingSummary && summary">
 
-    <!-- ── Revenue / Profit Banner ── -->
-    <div class="exp-banner">
-      <div class="exp-banner-item">
-        <div class="exp-banner-label">Revenue</div>
-        <div class="exp-banner-val green">₹{{ summary.revenue | number:'1.0-0' }}</div>
+    <!-- ── This month: spent, earned, profit ── -->
+    <div class="xs-hero">
+      <div class="xs-top">
+        <span class="xs-label"><i class="bi bi-wallet2"></i> Spent in {{ monthName }}</span>
+        <span class="xs-chg" *ngIf="lastMonthExpenses" [class.up]="spendChange > 0" [class.down]="spendChange < 0">
+          <i class="bi" [ngClass]="spendChange > 0 ? 'bi-arrow-up-right' : spendChange < 0 ? 'bi-arrow-down-right' : 'bi-dash'"></i>
+          {{ spendChange < 0 ? -spendChange : spendChange }}% vs last month
+        </span>
       </div>
-      <div class="exp-banner-sep"></div>
-      <div class="exp-banner-item">
-        <div class="exp-banner-label">Total Expenses</div>
-        <div class="exp-banner-val red">₹{{ summary.totalExpenses | number:'1.0-0' }}</div>
-      </div>
-      <div class="exp-banner-sep"></div>
-      <div class="exp-banner-item">
-        <div class="exp-banner-label">Net Profit</div>
-        <div class="exp-banner-val" [class.green]="summary.netProfit >= 0" [class.red]="summary.netProfit < 0">
-          ₹{{ summary.netProfit | number:'1.0-0' }}
+      <div class="xs-val">₹{{ summary.totalExpenses | number:'1.0-0' }}</div>
+      <div class="xs-split">
+        <div>
+          <span>Earned</span>
+          <strong class="g">₹{{ summary.revenue | number:'1.0-0' }}</strong>
         </div>
+        <div>
+          <span>{{ summary.netProfit >= 0 ? 'Profit' : 'Loss' }}</span>
+          <strong [class.g]="summary.netProfit >= 0" [class.r]="summary.netProfit < 0">₹{{ (summary.netProfit < 0 ? -summary.netProfit : summary.netProfit) | number:'1.0-0' }}</strong>
+        </div>
+        <div>
+          <span>Spent / earned</span>
+          <strong>{{ spendRatio }}%</strong>
+        </div>
+      </div>
+      <div class="xs-mix" *ngIf="summary.totalExpenses > 0">
+        <div *ngFor="let c of spendCards" [style.width.%]="c.share" [ngClass]="c.cls" [title]="c.label + ' ' + c.share + '%'"></div>
       </div>
     </div>
 
-    <!-- ── 8 KPI Cards ── -->
-    <div class="exp-kpi-grid">
-      <div class="exp-kpi" [ngClass]="card.cls" *ngFor="let card of kpiCards"
-           [routerLink]="card.link || null" [class.clickable]="!!card.link">
-        <i class="bi exp-kpi-icon" [ngClass]="card.icon"></i>
-        <div class="exp-kpi-val">₹{{ getCategoryAmount(card.key) | number:'1.0-0' }}</div>
-        <div class="exp-kpi-lbl">{{ card.label }}</div>
+    <!-- ── Where it went: only categories with spending, biggest first ── -->
+    <div class="xs-cats" *ngIf="spendCards.length; else noSpend">
+      <div class="xs-cat" [ngClass]="c.cls" *ngFor="let c of spendCards; let i = index"
+           [routerLink]="c.link || null" [class.clickable]="!!c.link" [class.top]="i === 0">
+        <div class="xc-icon"><i class="bi" [ngClass]="c.icon"></i></div>
+        <div class="xc-main">
+          <span class="xc-label">{{ c.label }} <em *ngIf="i === 0">Biggest</em></span>
+          <span class="xc-val">₹{{ c.amount | number:'1.0-0' }}</span>
+          <div class="xc-bar"><div [style.width.%]="c.share"></div></div>
+        </div>
+        <span class="xc-pct">{{ c.share }}%</span>
       </div>
     </div>
+    <ng-template #noSpend>
+      <div class="xs-none"><i class="bi bi-emoji-smile"></i> Nothing spent in {{ monthName }} yet.</div>
+    </ng-template>
 
     <!-- ── Main 3-column layout on desktop ── -->
     <div class="exp-main-grid">

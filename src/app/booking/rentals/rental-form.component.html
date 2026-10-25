@@ -1,0 +1,148 @@
+<div class="rf-wrap">
+  <div class="rf-head">
+    <div class="rf-title"><i class="bi bi-key-fill"></i> {{ editId ? 'Edit rental #' + editId : 'New car rental' }}</div>
+    <button type="button" class="rf-x" (click)="close()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="rf-body">
+    <!-- Customer -->
+    <div class="rf-section">
+      <div class="rf-sec-title"><i class="bi bi-person-fill"></i> Customer</div>
+      <div class="rf-grid">
+        <label class="rf-field">
+          <span>Name</span>
+          <input type="text" [(ngModel)]="customerName" placeholder="Full name" />
+        </label>
+        <label class="rf-field">
+          <span>Phone</span>
+          <input type="tel" [(ngModel)]="customerNumber" placeholder="+91 XXXXXXXXXX" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Dates -->
+    <div class="rf-section">
+      <div class="rf-sec-title"><i class="bi bi-calendar-range"></i> Dates <span class="rf-days">{{ days }} day{{ days === 1 ? '' : 's' }}</span></div>
+      <div class="rf-grid">
+        <label class="rf-field">
+          <span>Pickup date</span>
+          <input type="date" [(ngModel)]="pickupDate" (ngModelChange)="onDatesChange()" />
+        </label>
+        <label class="rf-field">
+          <span>Pickup time</span>
+          <select [(ngModel)]="pickupTime"><option *ngFor="let t of times" [value]="t">{{ t }}</option></select>
+        </label>
+        <label class="rf-field">
+          <span>Return date</span>
+          <input type="date" [(ngModel)]="returnDate" [min]="pickupDate" (ngModelChange)="onDatesChange()" />
+        </label>
+        <label class="rf-field">
+          <span>Return time</span>
+          <select [(ngModel)]="returnTime"><option *ngFor="let t of times" [value]="t">{{ t }}</option></select>
+        </label>
+      </div>
+    </div>
+
+    <!-- Car: ours or a partner's -->
+    <div class="rf-section">
+      <div class="rf-sec-title"><i class="bi bi-car-front-fill"></i> Car</div>
+      <div class="rf-toggle" role="radiogroup" aria-label="Whose car">
+        <button type="button" role="radio" [attr.aria-checked]="source === 'own'" [class.active]="source === 'own'" (click)="source = 'own'">Our car</button>
+        <button type="button" role="radio" [attr.aria-checked]="source === 'partner'" [class.active]="source === 'partner'" (click)="source = 'partner'">Partner's car</button>
+      </div>
+
+      <ng-container *ngIf="source === 'own'">
+        <label class="rf-field">
+          <span>Vehicle <small>(can be chosen later)</small></span>
+          <select [(ngModel)]="vehicleId" (ngModelChange)="applyRate()">
+            <option [ngValue]="null">Choose later</option>
+            <option *ngFor="let v of vehicles" [ngValue]="v.vehicleId">
+              {{ v.vehicleName }} · {{ isRentalCar(v) ? 'rent-a-car' : v.vehicleNumber }}{{ busyText(v) }}
+            </option>
+          </select>
+        </label>
+      </ng-container>
+
+      <ng-container *ngIf="source === 'partner'">
+        <div class="rf-grid">
+          <label class="rf-field">
+            <span>Partner name</span>
+            <input type="text" list="rf-partners" [(ngModel)]="partnerName" (ngModelChange)="pickPartner($event)" placeholder="Type or pick a saved partner" />
+            <datalist id="rf-partners"><option *ngFor="let p of partners" [value]="p.name">{{ p.number }}</option></datalist>
+          </label>
+          <label class="rf-field">
+            <span>Partner number</span>
+            <input type="tel" [(ngModel)]="partnerNumber" placeholder="+91 XXXXXXXXXX" />
+          </label>
+          <label class="rf-field">
+            <span>Your commission (₹)</span>
+            <input type="number" min="0" [(ngModel)]="commission" />
+          </label>
+          <label class="rf-field">
+            <span>Customer pays</span>
+            <select [(ngModel)]="cashWith">
+              <option value="Admin">Us</option>
+              <option value="ExternalEmployee">The partner</option>
+            </select>
+          </label>
+        </div>
+        <p class="rf-hint">Shows in Extra (partner screen) and on the partner's statement — not on the booking calendar.</p>
+      </ng-container>
+    </div>
+
+    <!-- Where -->
+    <div class="rf-section">
+      <div class="rf-sec-title"><i class="bi bi-geo-alt-fill"></i> Hand over &amp; return</div>
+      <div class="rf-place">
+        <span class="rf-place-label">Hand over at</span>
+        <button type="button" class="rf-place-btn" (click)="pickPlace('pickupLocation')">{{ pickupLocation || 'Tap to choose' }}</button>
+        <div class="rf-chips">
+          <button type="button" *ngFor="let p of places" [class.on]="pickupLocation === p.value" (click)="pickupLocation = p.value">{{ p.label }}</button>
+        </div>
+      </div>
+      <div class="rf-place">
+        <span class="rf-place-label">Car comes back at</span>
+        <button type="button" class="rf-place-btn" (click)="pickPlace('returnLocation')">{{ returnLocation || 'Tap to choose' }}</button>
+        <div class="rf-chips">
+          <button type="button" *ngIf="pickupLocation" [class.on]="returnLocation === pickupLocation" (click)="returnLocation = pickupLocation">↩ Same place</button>
+          <button type="button" *ngFor="let p of places" [class.on]="returnLocation === p.value" (click)="returnLocation = p.value">{{ p.label }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Money -->
+    <div class="rf-section">
+      <div class="rf-sec-title"><i class="bi bi-currency-rupee"></i> Price</div>
+      <div class="rf-grid">
+        <label class="rf-field">
+          <span>Price per day (₹)</span>
+          <input type="number" min="0" [(ngModel)]="ratePerDay" (ngModelChange)="onRateTyped()" />
+        </label>
+        <label class="rf-field">
+          <span>Total (₹) <small>{{ ratePerDay ? '₹' + ratePerDay + ' × ' + days : '' }}</small></span>
+          <input type="number" min="0" [(ngModel)]="amount" (ngModelChange)="onAmountTyped()" />
+        </label>
+        <label class="rf-field">
+          <span>Security deposit (₹) <small>refundable</small></span>
+          <input type="number" min="0" [(ngModel)]="securityDeposit" (ngModelChange)="depositEdited = true" />
+        </label>
+        <label class="rf-field">
+          <span>Advance paid (₹)</span>
+          <input type="number" min="0" [(ngModel)]="advance" />
+        </label>
+      </div>
+      <div class="rf-balance">Balance to collect: <strong>₹{{ balance | number }}</strong></div>
+    </div>
+
+    <div class="rf-errors" *ngIf="errors.length">
+      <div *ngFor="let e of errors">{{ e }}</div>
+    </div>
+  </div>
+
+  <div class="rf-actions">
+    <button type="button" class="rf-btn outline" (click)="close()">Cancel</button>
+    <button type="button" class="rf-btn primary" [disabled]="saving" (click)="save()">
+      <i class="bi bi-check-circle"></i> {{ saving ? 'Saving…' : editId ? 'Update rental' : 'Save rental' }}
+    </button>
+  </div>
+</div>
